@@ -166,7 +166,7 @@ flags' order does not matter, you can choose any order you like
     }
 
     std::string get_normal_input(std::size_t index = 0) {
-        if (index > normal_input.size())
+        if (index >= normal_input.size())
             return "";
         return normal_input.at(index);
     }
@@ -190,7 +190,7 @@ flags' order does not matter, you can choose any order you like
 
     std::string detail_message() {
         std::string res = "";
-        res += "designed flags:\n";
+        res += "\ndesigned flags:\n";
         res += "\tshort flag with no argument:\n";
         for (const auto& [k, v] : flag_short_no_arg) {
             res += "\t\t-" + k + " (enum flags int = " + std::to_string(int(v)) + ")\n";
