@@ -115,7 +115,7 @@ to run, such as
 additionally,
     '-h' can be replaced by '--help'
     '<debug_mode>' can be: shell, lex, parse, ast, sym, ir, cfg, asm
-    '-O' can be replaced by '--optimize'
+    '-O' can be replaced by '--optimize' (-O1, -O 1, --optimize 1)
     '-d' can be replaced by '--debug'
     '-S' can be replaced by '--assembly'
     '-o' can be replaced by '--out'
