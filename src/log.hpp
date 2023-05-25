@@ -10,42 +10,44 @@
 namespace Log {
 
     enum class stage {error, warning, info, debug};
+    enum class placeholder {};
 
     stage log_stage = stage::debug;
     bool add_time = false;
 
-    void endl() {}
+    void endl(placeholder p) { std::cout << std::endl; }
+    void flush(placeholder p) { std::cout << std::flush; }
+
+    void std(const std::string& str) {
+        std::string time_str = add_time ? "[" + timing::local_time() + "] " : "";
+        std::cout << time_str + str;
+    }
 
     void debug(const std::string& str) {
         if (unsigned(log_stage) >= unsigned(stage::debug)) {
             std::string time_str = add_time ? "[" + timing::local_time() + "] " : "";
-            std::cout << dye::grey(time_str + "debug: " + str) << std::endl;
+            std::cout << dye::grey(time_str + "debug: " + str);
         }
-    }
-
-    void output(const std::string& str) {
-        std::string time_str = add_time ? "[" + timing::local_time() + "] " : "";
-        std::cout << time_str + str << std::endl;
     }
 
     void info(const std::string& str) {
         if (unsigned(log_stage) >= unsigned(stage::info)) {
             std::string time_str = add_time ? "[" + timing::local_time() + "] " : "";
-            std::cout << dye::aqua(time_str + "info: " + str) << std::endl;
+            std::cout << dye::aqua(time_str + "info: " + str);
         }
     }
 
     void warning(const std::string& str) {
         if (unsigned(log_stage) >= unsigned(stage::warning)) {
             std::string time_str = add_time ? "[" + timing::local_time() + "] " : "";
-            std::cout << dye::yellow(time_str + "warning: " + str) << std::endl;
+            std::cout << dye::yellow(time_str + "warning: " + str);
         }
     }
 
     void error(const std::string& str) {
         if (unsigned(log_stage) >= unsigned(stage::error)) {
             std::string time_str = add_time ? "[" + timing::local_time() + "] " : "";
-            std::cout << dye::red(time_str + "error: " + str) << std::endl;
+            std::cout << dye::red(time_str + "error: " + str);
         }
     }
 }
@@ -66,7 +68,8 @@ public:
         return *this;
     }
 
-    LoggerType& operator<<(void (&endl)()) {
+    LoggerType& operator<<(void (&ost)(Log::placeholder)) {
+        ost(Log::placeholder());
         log_func(ss.str());
         ss.str(std::string());
         return *this;

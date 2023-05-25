@@ -190,7 +190,7 @@ flags' order does not matter, you can choose any order you like
 
     std::string detail_message() {
         std::string res = "";
-        res += "\ndesigned flags:\n";
+        res += "designed flags:\n";
         res += "\tshort flag with no argument:\n";
         for (const auto& [k, v] : flag_short_no_arg) {
             res += "\t\t-" + k + " (enum flags int = " + std::to_string(int(v)) + ")\n";
