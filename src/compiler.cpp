@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 
     // shell output
     if (shell_config.debug_type() == debug::shell) {
-        Logger << Log::std << shell_config.detail_message() << Log::flush;
+        // Logger << Log::std << shell_config.detail_message() << Log::flush;
         debug_file << shell_config.detail_message() << std::flush;
     }
 
