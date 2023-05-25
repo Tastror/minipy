@@ -39,26 +39,30 @@ int main(int argc, char** argv) {
     }
 
     std::string output_filename = shell_config.get_flag_arg(flags::out);
-    if (output_filename == "") output_filename = "debug/out.s";
-    output_file.open(output_filename);
-    if (!output_file.is_open()) {
-        Logger << Log::error << "output file '" << output_filename << "' cannot open" << Log::endl;
-        return 0;
+    if (shell_config.is_flag_occured(flags::assembly)) {
+        if (output_filename == "") output_filename = "debug/out.s";
+        output_file.open(output_filename);
+        if (!output_file.is_open()) {
+            Logger << Log::error << "output file '" << output_filename << "' cannot open" << Log::endl;
+            return 0;
+        }
     }
 
     std::string debug_output_filename = shell_config.get_normal_input(1);
-    if (debug_output_filename == "") {
-        debug_output_filename = "debug/" + shell_config.get_flag_arg(flags::debug);
-        if (shell_config.debug_type() == debug::ast_graph || shell_config.debug_type() == debug::control_graph) {
-            debug_output_filename += ".png";
-        } else {
-            debug_output_filename += ".txt";
+    if (shell_config.is_flag_occured(flags::debug)) {
+        if (debug_output_filename == "") {
+            debug_output_filename = "debug/" + shell_config.get_flag_arg(flags::debug);
+            if (shell_config.debug_type() == debug::ast_graph || shell_config.debug_type() == debug::control_graph) {
+                debug_output_filename += ".png";
+            } else {
+                debug_output_filename += ".txt";
+            }
         }
-    }
-    debug_output_file.open(debug_output_filename);
-    if (!output_file.is_open()) {
-        Logger << Log::error << "output file '" << debug_output_filename << "' cannot open" << Log::endl;
-        return 0;
+        debug_output_file.open(debug_output_filename);
+        if (!output_file.is_open()) {
+            Logger << Log::error << "output file '" << debug_output_filename << "' cannot open" << Log::endl;
+            return 0;
+        }
     }
 
 
