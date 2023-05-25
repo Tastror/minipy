@@ -69,8 +69,8 @@ public:
     }
 
     LoggerType& operator<<(void (&ost)(Log::placeholder)) {
-        ost(Log::placeholder());
         log_func(ss.str());
+        ost(Log::placeholder());
         ss.str(std::string());
         return *this;
     }
