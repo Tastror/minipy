@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     // file
     std::ifstream input_file;
     std::ofstream output_file;
-    std::ofstream debug_output_file;
+    std::ofstream debug_file;
 
     std::string input_filename = shell_config.get_normal_input(0);
     if (input_filename == "") {
@@ -50,29 +50,29 @@ int main(int argc, char** argv) {
     }
 
     if (shell_config.is_flag_occured(flags::debug)) {
-        std::string debug_output_filename = shell_config.get_normal_input(1);
-        if (debug_output_filename == "") {
-            debug_output_filename = "debug/" + shell_config.get_flag_arg(flags::debug);
+        std::string debug_filename = shell_config.get_normal_input(1);
+        if (debug_filename == "") {
+            debug_filename = "debug/" + shell_config.get_flag_arg(flags::debug);
             if (shell_config.debug_type() == debug::ast_graph || shell_config.debug_type() == debug::control_graph) {
-                debug_output_filename += ".png";
+                debug_filename += ".png";
             } else {
-                debug_output_filename += ".txt";
+                debug_filename += ".txt";
             }
         }
-        debug_output_file.open(debug_output_filename);
-        if (!debug_output_file.is_open()) {
-            Logger << Log::error << "output file '" << debug_output_filename << "' cannot open" << Log::endl;
+        debug_file.open(debug_filename);
+        if (!debug_file.is_open()) {
+            Logger << Log::error << "output file '" << debug_filename << "' cannot open" << Log::endl;
             return 0;
         }
         Logger << Log::info << shell_config.get_flag_arg(flags::debug)
-            << " debug information will output to " << debug_output_filename << Log::endl;
+            << " debug information will output to " << debug_filename << Log::endl;
     }
 
 
     // shell output
     if (shell_config.debug_type() == debug::shell) {
         Logger << Log::std << shell_config.detail_message() << Log::flush;
-        debug_output_file << shell_config.detail_message() << std::flush;
+        debug_file << shell_config.detail_message() << std::flush;
     }
 
 

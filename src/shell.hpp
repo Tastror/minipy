@@ -108,7 +108,7 @@ Welcome to use Tastror's Compiler!
 
 use
     compiler -h
-    compiler <input_file> [-d <debug_mode>] [<debug_output_file>] [-S] [-o <output_file>] [-On (-O1, -O2)]
+    compiler <input_file> [-d <debug_mode>] [<debug_file>] [-S] [-o <output_file>] [-On (-O1, -O2)]
 to run, such as
     compiler mytest.py -d ast ast.png -S -o result.s -O2
 
@@ -120,7 +120,7 @@ additionally,
     '-S' can be replaced by '--assembly'
     '-o' can be replaced by '--out'
 
-    '<debug_output_file>' only works when you specify '<debug_mode>'
+    '<debug_file>' only works when you specify '<debug_mode>'
     '-o <output_file>' only works when you specify '-S'
 
 flags' order does not matter, you can choose any order you like
