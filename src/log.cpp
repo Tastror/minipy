@@ -23,55 +23,14 @@ void LoggerType::change_output_file(std::ofstream& f) {
     of = &f;
 }
 
-void LoggerType::debug(const std::string& str) {
-    if (unsigned(Log::log_stage) >= unsigned(Log::stage::debug)) {
-        std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
-        if (use_stdin)
-            std::cout << hue::grey << time_str + "debug: " + str << hue::reset;
-        if (use_file)
-            *of << time_str + "debug: " + str;
-    }
+void LoggerType::add_temp_output_file(std::ofstream& f) {
+    tmp.insert(&f);
 }
 
-void LoggerType::info(const std::string& str) {
-    if (unsigned(Log::log_stage) >= unsigned(Log::stage::info)) {
-        std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
-        if (use_stdin)
-            std::cout << hue::aqua << time_str + "info: " + str << hue::reset;
-        if (use_file)
-            *of << time_str + "info: " + str;
-    }
+void LoggerType::del_all_temp_output_file() {
+    tmp.clear();
 }
 
-void LoggerType::std(const std::string& str) {
-    if (unsigned(Log::log_stage) >= unsigned(Log::stage::std)) {
-        std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
-        if (use_stdin)
-            std::cout << hue::reset << time_str + str << hue::reset;
-        if (use_file)
-            *of << time_str + str;
-    }
-}
-
-void LoggerType::warning(const std::string& str) {
-    if (unsigned(Log::log_stage) >= unsigned(Log::stage::warning)) {
-        std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
-        if (use_stdin)
-            std::cout << hue::yellow << time_str + "warning: " + str << hue::reset;
-        if (use_file)
-            *of << time_str + "warning: " + str;
-    }
-}
-
-void LoggerType::error(const std::string& str) {
-    if (unsigned(Log::log_stage) >= unsigned(Log::stage::error)) {
-        std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
-        if (use_stdin)
-            std::cout << hue::red << time_str + "error: " + str << hue::reset;
-        if (use_file)
-            *of << time_str + "error: " + str;
-    }
-}
 
 LoggerType& LoggerType::operator<<(Log::operat op) {
     switch (op) {
@@ -80,16 +39,22 @@ LoggerType& LoggerType::operator<<(Log::operat op) {
         ss.str(std::string());
         if (use_stdin)
             std::cout << std::endl;
-        if (use_file)
+        if (use_file) {
             *of << std::endl;
+            for (auto& i : tmp)
+                *i << std::endl;
+        }
         break;
     case Log::flush:
         log_func(ss.str());
         ss.str(std::string());
         if (use_stdin)
             std::cout << std::flush;
-        if (use_file)
+        if (use_file) {
             *of << std::flush;
+            for (auto& i : tmp)
+                *i << std::flush;
+        }
         break;
     case Log::to_stdout:
         use_stdin = true;
@@ -130,6 +95,71 @@ LoggerType& LoggerType::operator<<(Log::stage st) {
         break;
     }
     return *this;
+}
+
+void LoggerType::debug(const std::string& str) {
+    if (unsigned(Log::log_stage) >= unsigned(Log::stage::debug)) {
+        std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
+        if (use_stdin)
+            std::cout << hue::grey << time_str + "debug: " + str << hue::reset;
+        if (use_file) {
+            *of << time_str + "debug: " + str;
+            for (auto& i : tmp)
+                *i << time_str + "debug: " + str;
+        }
+    }
+}
+
+void LoggerType::info(const std::string& str) {
+    if (unsigned(Log::log_stage) >= unsigned(Log::stage::info)) {
+        std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
+        if (use_stdin)
+            std::cout << hue::aqua << time_str + "info: " + str << hue::reset;
+        if (use_file) {
+            *of << time_str + "info: " + str;
+            for (auto& i : tmp)
+                *i << time_str + "info: " + str;
+        }
+    }
+}
+
+void LoggerType::std(const std::string& str) {
+    if (unsigned(Log::log_stage) >= unsigned(Log::stage::std)) {
+        std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
+        if (use_stdin)
+            std::cout << hue::reset << time_str + str << hue::reset;
+        if (use_file) {
+            *of << time_str + str;
+            for (auto& i : tmp)
+                *i << time_str + str;
+        }
+    }
+}
+
+void LoggerType::warning(const std::string& str) {
+    if (unsigned(Log::log_stage) >= unsigned(Log::stage::warning)) {
+        std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
+        if (use_stdin)
+            std::cout << hue::yellow << time_str + "warning: " + str << hue::reset;
+        if (use_file) {
+            *of << time_str + "warning: " + str;
+            for (auto& i : tmp)
+                *i << time_str + "warning: " + str;
+        }
+    }
+}
+
+void LoggerType::error(const std::string& str) {
+    if (unsigned(Log::log_stage) >= unsigned(Log::stage::error)) {
+        std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
+        if (use_stdin)
+            std::cout << hue::red << time_str + "error: " + str << hue::reset;
+        if (use_file) {
+            *of << time_str + "error: " + str;
+            for (auto& i : tmp)
+                *i << time_str + "error: " + str;
+        }
+    }
 }
 
 LoggerType Logger;

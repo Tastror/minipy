@@ -1,5 +1,6 @@
 #pragma once
 
+#include <set>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -19,6 +20,7 @@ private:
     std::function<void(const std::string&)> log_func;
     std::stringstream ss;
     std::ofstream* of;
+    std::set<std::ofstream*> tmp;
     bool use_file;
     bool use_stdin;
 
@@ -28,12 +30,8 @@ public:
 
     void change_output_file(std::ofstream&);
 
-    void std(const std::string& str);
-    void debug(const std::string& str);
-    void info(const std::string& str);
-    void warning(const std::string& str);
-    void error(const std::string& str);
-
+    void add_temp_output_file(std::ofstream&);
+    void del_all_temp_output_file();
 
     // template implement should be set in the .h file
     template<class T> LoggerType& operator<<(const T& data) {
@@ -43,6 +41,12 @@ public:
 
     LoggerType& operator<<(Log::operat);
     LoggerType& operator<<(Log::stage);
+
+    void std(const std::string& str);
+    void debug(const std::string& str);
+    void info(const std::string& str);
+    void warning(const std::string& str);
+    void error(const std::string& str);
 };
 
 extern LoggerType Logger;

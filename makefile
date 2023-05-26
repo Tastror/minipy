@@ -60,6 +60,9 @@ $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.cpp $(OTHERS)
 $(TARGET): $(OBJS) $(FLEX_BISON_OBJS)
 	$(CC) $^ -o $@ $(CFLAGS)
 
+test:
+	$(TARGET) test.py
+
 clean:
 	rm -rf $(BUILD_DIR)
 

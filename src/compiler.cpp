@@ -84,28 +84,29 @@ int main(int argc, char** argv) {
 
 
     // shell output
+    Logger << Log::std << "-> shell parsing done" << Log::endl;
     if (shell_config.debug_type() == debug::shell) {
-        Logger.change_output_file(debug_file);
-    } else {
-        Logger.change_output_file(log_file);
-        Logger << Log::std << "-> shell parsing done" << Log::endl;
+        Logger.add_temp_output_file(debug_file);
     }
     Logger << Log::to_file;
+
     Logger << Log::std << shell_config.detail_message() << Log::endl;
+    
+    Logger.del_all_temp_output_file();
     Logger << Log::to_stdout_and_file;
 
 
     // lexer & parser
+    Logger << Log::std << "-> lexing & parsing begin" << Log::endl;
     if (shell_config.debug_type() == debug::lex || shell_config.debug_type() == debug::parse) {
-        Logger.change_output_file(debug_file);
-    } else {
-        Logger.change_output_file(log_file);
-        Logger << Log::std << "-> lexing & parsing begin" << Log::endl;
+        Logger.add_temp_output_file(debug_file);
     }
-
     Logger << Log::to_file;
+
     yyin = input_file_ptr;
     yyparse();
+
+    Logger.del_all_temp_output_file();
     Logger << Log::to_stdout_and_file;
 
     // use astnode_root next
