@@ -2,7 +2,7 @@ CC = g++
 FLEX = flex
 BISON = bison
 CFLAGS = -Wall
-FLEX_BISON_CFLAGS = -Wall -Wno-unused-function -Wno-write-strings -Wno-class-memaccess
+FLEX_BISON_CFLAGS = -Wall -Wno-unused-function -Wno-write-strings -Wno-class-memaccess -Wno-unused-value -Wno-unused-label
 
 SOURCE_DIR = src
 BUILD_DIR = build
@@ -43,7 +43,7 @@ $(FLEX_GEN_CPP): $(FLEX_FILE)
 
 $(BISON_GEN_HEAD): $(BISON_GEN_CPP)
 $(BISON_GEN_CPP): $(BISON_FILE)
-	$(BISON) -d -o $(BISON_GEN_CPP) --defines=$(BISON_GEN_HEAD) $(BISON_FILE)
+	$(BISON) -d -o $(BISON_GEN_CPP) --defines=$(BISON_GEN_HEAD) $(BISON_FILE) -v --debug
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)

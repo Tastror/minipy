@@ -8,7 +8,7 @@
 #include "../src/log.h"
 #include "../src/lexer.h"
 
-#define yylval_token_ptr yylval.data.token_ptr
+#define yylval_token_ptr yylval.token_ptr
 
 #define YY_USER_INIT { BEGIN(NEW_LINE_COUNT); }
 
@@ -61,6 +61,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 <LINE_COMMENT>.* {
                 Logger << Log::info << yylineno << ", " << yycolumnno << ": now comment: " << yytext << Log::endl;
                 SAME_LINE_COLUMN_UPDATE;
+                Logger << yylval_token_ptr << Log::endl;
             }
 
 {pure_dec_value}|{hex_value}|{oct_value}|{bin_value} {

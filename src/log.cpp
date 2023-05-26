@@ -93,8 +93,10 @@ LoggerType& LoggerType::operator<<(Log::operat op) {
         break;
     case Log::to_stdin:
         use_stdin = true;
+        use_file = false;
         break;
     case Log::to_file:
+        use_stdin = false;
         use_file = true;
         break;
     case Log::stdin_and_file:

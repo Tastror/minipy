@@ -19,48 +19,47 @@ std::shared_ptr<AstNode> astnode_root;
 #include "../src/common.h"
 #include "../src/lexer.h"
 #include "../src/parser.h"
-}
 
-%union u_t {
-    struct s_t {
-        std::shared_ptr<Token> token_ptr;
-        std::shared_ptr<AstNode> astnode_ptr;
-        s_t() {};
-        ~s_t() {};
-        s_t& operator=(const s_t& other) {
-            this->token_ptr = other.token_ptr;
-            this->astnode_ptr = other.astnode_ptr;
-            return *this;
-        }
-    } data;
-    u_t() {};
-    ~u_t() {};
-    u_t& operator=(const u_t& other) {
-        this->data.token_ptr = other.data.token_ptr;
-        this->data.astnode_ptr = other.data.astnode_ptr;
+struct s_t {
+    std::shared_ptr<Token> token_ptr;
+    std::shared_ptr<AstNode> astnode_ptr;
+    s_t() {
+        token_ptr = nullptr;
+        astnode_ptr = nullptr;
+    };
+    ~s_t() {};
+    s_t& operator=(const s_t& other) {
+        this->token_ptr = other.token_ptr;
+        this->astnode_ptr = other.astnode_ptr;
         return *this;
     }
 };
 
+typedef s_t YYSTYPE;
+
+#define yyoverflow
+
+}
+
 %start file
 
-%token <data.token_ptr> t_error
-%token <data.token_ptr> t_identifier
-%token <data.token_ptr> t_integer
-%token <data.token_ptr> t_floats
-%token <data.token_ptr> t_operators_add
-%token <data.token_ptr> t_operators_minus
-%token <data.token_ptr> t_delimiter
-%token <data.token_ptr> t_keyword
-%token <data.token_ptr> t_indent
-%token <data.token_ptr> t_newline
+%token <token_ptr> t_error
+%token <token_ptr> t_identifier
+%token <token_ptr> t_integer
+%token <token_ptr> t_floats
+%token <token_ptr> t_operators_add
+%token <token_ptr> t_operators_minus
+%token <token_ptr> t_delimiter
+%token <token_ptr> t_keyword
+%token <token_ptr> t_indent
+%token <token_ptr> t_newline
 
-%type <data.astnode_ptr> ast_error
-%type <data.astnode_ptr> statement
-// %type <data.astnode_ptr> simple_stmt
-// %type <data.astnode_ptr> compound_stmt
-// %type <data.astnode_ptr> assignment
-// %type <data.astnode_ptr> block
+%type <astnode_ptr> ast_error
+%type <astnode_ptr> statement
+// %type <astnode_ptr> simple_stmt
+// %type <astnode_ptr> compound_stmt
+// %type <astnode_ptr> assignment
+// %type <astnode_ptr> block
 
 %%
 
