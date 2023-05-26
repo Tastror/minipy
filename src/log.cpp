@@ -101,7 +101,7 @@ void LoggerType::debug(const std::string& str) {
     if (unsigned(Log::log_stage) >= unsigned(Log::stage::debug)) {
         std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
         if (use_stdin)
-            std::cout << hue::grey << time_str + "debug: " + str << hue::reset;
+            std::cout << hue::green << time_str << hue::grey << "debug: " + str << hue::reset;
         if (use_file) {
             *of << time_str + "debug: " + str;
             for (auto& i : tmp)
@@ -114,7 +114,7 @@ void LoggerType::info(const std::string& str) {
     if (unsigned(Log::log_stage) >= unsigned(Log::stage::info)) {
         std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
         if (use_stdin)
-            std::cout << hue::aqua << time_str + "info: " + str << hue::reset;
+            std::cout << hue::green << time_str << hue::aqua << "info: " + str << hue::reset;
         if (use_file) {
             *of << time_str + "info: " + str;
             for (auto& i : tmp)
@@ -127,7 +127,7 @@ void LoggerType::std(const std::string& str) {
     if (unsigned(Log::log_stage) >= unsigned(Log::stage::std)) {
         std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
         if (use_stdin)
-            std::cout << hue::reset << time_str + str << hue::reset;
+            std::cout << hue::green << time_str << hue::reset << str << hue::reset;
         if (use_file) {
             *of << time_str + str;
             for (auto& i : tmp)
@@ -140,7 +140,7 @@ void LoggerType::warning(const std::string& str) {
     if (unsigned(Log::log_stage) >= unsigned(Log::stage::warning)) {
         std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
         if (use_stdin)
-            std::cout << hue::yellow << time_str + "warning: " + str << hue::reset;
+            std::cout << hue::green << time_str << hue::yellow << "warning: " + str << hue::reset;
         if (use_file) {
             *of << time_str + "warning: " + str;
             for (auto& i : tmp)
@@ -153,7 +153,7 @@ void LoggerType::error(const std::string& str) {
     if (unsigned(Log::log_stage) >= unsigned(Log::stage::error)) {
         std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
         if (use_stdin)
-            std::cout << hue::red << time_str + "error: " + str << hue::reset;
+            std::cout << hue::green << time_str << hue::red << "error: " + str << hue::reset;
         if (use_file) {
             *of << time_str + "error: " + str;
             for (auto& i : tmp)
