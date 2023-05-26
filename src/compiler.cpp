@@ -88,6 +88,7 @@ int main(int argc, char** argv) {
         Logger.change_output_file(debug_file);
     } else {
         Logger.change_output_file(log_file);
+        Logger << Log::std << "-> shell parsing done" << Log::endl;
     }
     Logger << Log::to_file;
     Logger << Log::std << shell_config.detail_message() << Log::endl;
@@ -99,6 +100,7 @@ int main(int argc, char** argv) {
         Logger.change_output_file(debug_file);
     } else {
         Logger.change_output_file(log_file);
+        Logger << Log::std << "-> lexing & parsing begin" << Log::endl;
     }
 
     Logger << Log::to_file;

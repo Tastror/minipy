@@ -33,7 +33,7 @@ FLEX_BISON_REQUIRES = $(FLEX_GEN_HEAD) $(FLEX_GEN_CPP) $(BISON_GEN_HEAD) $(BISON
 FLEX_BISON_OBJS = $(BUILD_DIR)/$(FLEX_GEN_NAME).o $(BUILD_DIR)/$(BISON_GEN_NAME).o
 
 
-.PHONY: building clean
+.PHONY: building clean clean-debug
 
 building: $(DEBUG_DIR) $(BUILD_DIR) $(FLEX_BISON_REQUIRES) $(TARGET)
 
@@ -62,3 +62,6 @@ $(TARGET): $(OBJS) $(FLEX_BISON_OBJS)
 
 clean:
 	rm -rf $(BUILD_DIR)
+
+clean-debug:
+	rm -rf $(DEBUG_DIR)
