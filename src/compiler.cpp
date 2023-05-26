@@ -10,6 +10,15 @@
 
 int main(int argc, char** argv) {
 
+    std::ofstream log_file;
+    log_file.open("log.txt");
+    if (!log_file.is_open()) {
+        Logger << Log::error << "log file 'log.txt' cannot open" << Log::endl;
+        return 0;
+    }
+    Logger.add_output_file(log_file);
+    Logger << Log::stdin_and_file;
+
 
     // shell
     ShellConfig shell_config;

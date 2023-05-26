@@ -4,6 +4,7 @@
 #include <set>
 #include <unordered_map>
 
+#include "log.h"
 #include "shell.h"
 
 // you only need to change:
@@ -15,11 +16,11 @@
 
 
 void ShellConfig::show_welcome() {
-    std::cout << welcome;
+    Logger << Log::std << welcome << Log::flush;
 }
 
 void ShellConfig::show_help() {
-    std::cout << help;
+    Logger << Log::std << help << Log::flush;
 }
 
 void ShellConfig::generate_help_occured() {
