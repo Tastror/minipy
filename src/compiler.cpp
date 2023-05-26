@@ -3,8 +3,9 @@
 #include <fstream>
 
 #include "compiler.h"
-#include "log.hpp"
-#include "shell.hpp"
+#include "log.h"
+#include "shell.h"
+#include "parser.h"
 
 int main(int argc, char** argv) {
 
@@ -75,6 +76,11 @@ int main(int argc, char** argv) {
         debug_file << shell_config.detail_message() << std::flush;
     }
 
+
+    // lexer & parser
+    int result = yyparse();
+    Logger << Log::info << "result = " << result << Log::endl;
+    // use astnode_root
 
     return 0;
 }

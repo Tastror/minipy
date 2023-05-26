@@ -1,9 +1,9 @@
-#pragma once
-
 #include <chrono>
 #include <thread>
 #include <string>
 #include <iomanip>
+
+#include "common.h"
 
 namespace timing {
 
