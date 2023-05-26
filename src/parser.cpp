@@ -16,3 +16,10 @@ std::shared_ptr<AstNode> make_from_token(Token token) {
     res->token_leaf = token;
     return res;
 }
+
+std::shared_ptr<AstNode> make_from_token(std::shared_ptr<Token> token) {
+    auto res = std::make_shared<AstNode>();
+    res->is_token_leaf = true;
+    res->token_leaf = *token;
+    return res;
+}

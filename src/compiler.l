@@ -1,12 +1,16 @@
 %{
+#include <iostream>
 #include <string>
+#include <memory>
 #include <algorithm>
 
 #include "compiler_bison.h"
-#include "../src/Log.h"
+#include "../src/log.h"
 #include "../src/lexer.h"
 
-#define YY_USER_INIT BEGIN(NEW_LINE_COUNT);
+#define yylval_token_ptr yylval.data.token_ptr
+
+#define YY_USER_INIT { BEGIN(NEW_LINE_COUNT); }
 
 int yycolumnno;
 size_t last_string_length;
@@ -21,7 +25,7 @@ std::string last_string;
 
 %}
 
-%option warn noyywrap yylineno case-sensitive pointer
+%option warn nodefault noyywrap yylineno case-sensitive pointer debug
 
 %x LINE_COMMENT
 %x NEW_LINE_COUNT
@@ -43,6 +47,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 %%
 
 "#"         {
+                Logger << Log::info << yylineno << ", " << yycolumnno << ": now commet: " << yytext << Log::endl;
                 SAME_LINE_COLUMN_UPDATE;
                 BEGIN(LINE_COMMENT);
             }
@@ -54,41 +59,50 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
             }
 
 <LINE_COMMENT>.* {
+                Logger << Log::info << yylineno << ", " << yycolumnno << ": now comment: " << yytext << Log::endl;
                 SAME_LINE_COLUMN_UPDATE;
             }
 
 {pure_dec_value}|{hex_value}|{oct_value}|{bin_value} {
-                yylval.token.type = token_type::integer;
-                yylval.token.content.data.int_num = translate_python_int(std::string(yytext));
-                yylval.token.lineno = yylineno;
-                yylval.token.columnno = yycolumnno;
+                Logger << Log::info << yylineno << ", " << yycolumnno << ": now integer: " << yytext << Log::endl;
+                yylval_token_ptr = std::make_unique<Token>();
+                yylval_token_ptr->type = token_type::integer;
+                yylval_token_ptr->content.data.int_num = translate_python_int(std::string(yytext));
+                yylval_token_ptr->lineno = yylineno;
+                yylval_token_ptr->columnno = yycolumnno;
                 SAME_LINE_COLUMN_UPDATE;
                 return t_integer;
             }
 
 ({float_value}|{dec_value})e(\+|-)?[0-9]+ {
-                yylval.token.type = token_type::floats;
-                yylval.token.content.data.double_num = std::stod(std::string(yytext));
-                yylval.token.lineno = yylineno;
-                yylval.token.columnno = yycolumnno;
+                Logger << Log::info << yylineno << ", " << yycolumnno << ": now float: " << yytext << Log::endl;
+                yylval_token_ptr = std::make_unique<Token>();
+                yylval_token_ptr->type = token_type::floats;
+                yylval_token_ptr->content.data.double_num = std::stod(std::string(yytext));
+                yylval_token_ptr->lineno = yylineno;
+                yylval_token_ptr->columnno = yycolumnno;
                 SAME_LINE_COLUMN_UPDATE;
                 return t_floats;
             }
 
 {float_value} {
-                yylval.token.type = token_type::floats;
-                yylval.token.content.data.double_num = std::stod(std::string(yytext));
-                yylval.token.lineno = yylineno;
-                yylval.token.columnno = yycolumnno;
+                Logger << Log::info << yylineno << ", " << yycolumnno << ": now float: " << yytext << Log::endl;
+                yylval_token_ptr = std::make_unique<Token>();
+                yylval_token_ptr->type = token_type::floats;
+                yylval_token_ptr->content.data.double_num = std::stod(std::string(yytext));
+                yylval_token_ptr->lineno = yylineno;
+                yylval_token_ptr->columnno = yycolumnno;
                 SAME_LINE_COLUMN_UPDATE;
                 return t_floats;
             }
 
 {letter}+({digit}|{letter})* {
-                yylval.token.type = token_type::identifier;
-                yylval.token.content.name = std::string(yytext);
-                yylval.token.lineno = yylineno;
-                yylval.token.columnno = yycolumnno;
+                Logger << Log::info << yylineno << ", " << yycolumnno << ": now identifier: " << yytext << Log::endl;
+                yylval_token_ptr = std::make_unique<Token>();
+                yylval_token_ptr->type = token_type::identifier;
+                yylval_token_ptr->content.name = std::string(yytext);
+                yylval_token_ptr->lineno = yylineno;
+                yylval_token_ptr->columnno = yycolumnno;
                 SAME_LINE_COLUMN_UPDATE;
                 return t_identifier;
             }
@@ -102,26 +116,39 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
             }
 
 <NEW_LINE_COUNT>({space}|{tab})+ {
-                yylval.token.type = token_type::indent;
+                Logger << Log::info << yylineno << ", " << yycolumnno << ": now tab/space after a new line" << Log::endl;
+                yylval_token_ptr = std::make_unique<Token>();
+                yylval_token_ptr->type = token_type::indent;
                 std::string temp(yytext);
-                yylval.token.content.indent_num.space_num = std::count(temp.begin(), temp.end(), ' ');
-                yylval.token.content.indent_num.tab_num = std::count(temp.begin(), temp.end(), '\t');
-                yylval.token.lineno = yylineno;
-                yylval.token.columnno = yycolumnno;
-                NEW_LINE_COLUMN_UPDATE;
+                yylval_token_ptr->content.indent_num.space_num = std::count(temp.begin(), temp.end(), ' ');
+                yylval_token_ptr->content.indent_num.tab_num = std::count(temp.begin(), temp.end(), '\t');
+                yylval_token_ptr->lineno = yylineno;
+                yylval_token_ptr->columnno = yycolumnno;
+                SAME_LINE_COLUMN_UPDATE;
                 BEGIN(INITIAL);
                 return t_indent;
             }
 
-[\S]*       {
+<NEW_LINE_COUNT>{new_line} {
+                NEW_LINE_COLUMN_UPDATE;
+                return t_newline;
+            }
+
+<NEW_LINE_COUNT>. {
+                BEGIN(INITIAL);
+                yyless(0);
+            }
+
+.               {
                 Logger << Log::error
                     << "line " << yylineno << ", column " << yycolumnno
                     << ": invalid string '" << yytext << "'"
                     << Log::endl;
-                yylval.token.type = token_type::error;
-                yylval.token.content.message = "invalid string '" + std::string(yytext) + "'";
-                yylval.token.lineno = yylineno;
-                yylval.token.columnno = yycolumnno;
+                yylval_token_ptr = std::make_unique<Token>();
+                yylval_token_ptr->type = token_type::error;
+                yylval_token_ptr->content.message = "invalid string '" + std::string(yytext) + "'";
+                yylval_token_ptr->lineno = yylineno;
+                yylval_token_ptr->columnno = yycolumnno;
                 SAME_LINE_COLUMN_UPDATE;
                 return t_error;
             }

@@ -8,6 +8,7 @@
 #include "common.h"
 #include "lexer.h"
 
+extern FILE* yyin;
 int yyparse();
 
 enum class astnode_type {
@@ -30,3 +31,4 @@ struct AstNode {
 extern std::shared_ptr<AstNode> astnode_root;
 
 std::shared_ptr<AstNode> make_from_token(Token token);
+std::shared_ptr<AstNode> make_from_token(std::shared_ptr<Token> token);

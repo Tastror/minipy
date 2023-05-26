@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <cstdio>
 
 #include "compiler.h"
 #include "log.h"
@@ -24,7 +25,7 @@ int main(int argc, char** argv) {
 
 
     // file
-    std::ifstream input_file;
+    FILE* input_file_ptr;
     std::ofstream output_file;
     std::ofstream debug_file;
 
@@ -33,8 +34,7 @@ int main(int argc, char** argv) {
         Logger << Log::warning << "no file specified" << Log::endl;
         return 0;
     }
-    input_file.open(input_filename);
-    if (!input_file.is_open()) {
+    if ((input_file_ptr = fopen(input_filename.c_str(), "r")) == nullptr) {
         Logger << Log::error << "input file '" << input_filename << "' cannot open" << Log::endl;
         return 0;
     }
@@ -78,6 +78,7 @@ int main(int argc, char** argv) {
 
 
     // lexer & parser
+    yyin = input_file_ptr;
     int result = yyparse();
     Logger << Log::info << "result = " << result << Log::endl;
     // use astnode_root

@@ -3,7 +3,8 @@
 #include <memory>
 
 #include "compiler_flex.h"
-#include "../src/Log.h"
+#include "../src/common.h"
+#include "../src/log.h"
 #include "../src/lexer.h"
 #include "../src/parser.h"
 
@@ -15,37 +16,51 @@ std::shared_ptr<AstNode> astnode_root;
 
 %code requires {
 #include <memory>
+#include "../src/common.h"
 #include "../src/lexer.h"
 #include "../src/parser.h"
 }
 
 %union u_t {
-    Token token;
-    std::shared_ptr<AstNode> astnode;
+    struct s_t {
+        std::shared_ptr<Token> token_ptr;
+        std::shared_ptr<AstNode> astnode_ptr;
+        s_t() {};
+        ~s_t() {};
+        s_t& operator=(const s_t& other) {
+            this->token_ptr = other.token_ptr;
+            this->astnode_ptr = other.astnode_ptr;
+            return *this;
+        }
+    } data;
     u_t() {};
     ~u_t() {};
-    u_t& operator=(const u_t& other) { this->astnode = other.astnode; return *this; }
+    u_t& operator=(const u_t& other) {
+        this->data.token_ptr = other.data.token_ptr;
+        this->data.astnode_ptr = other.data.astnode_ptr;
+        return *this;
+    }
 };
 
 %start file
 
-%token <token> t_error
-%token <token> t_identifier
-%token <token> t_integer
-%token <token> t_floats
-%token <token> t_operators_add
-%token <token> t_operators_minus
-%token <token> t_delimiter
-%token <token> t_keyword
-%token <token> t_indent
-%token <token> t_newline
+%token <data.token_ptr> t_error
+%token <data.token_ptr> t_identifier
+%token <data.token_ptr> t_integer
+%token <data.token_ptr> t_floats
+%token <data.token_ptr> t_operators_add
+%token <data.token_ptr> t_operators_minus
+%token <data.token_ptr> t_delimiter
+%token <data.token_ptr> t_keyword
+%token <data.token_ptr> t_indent
+%token <data.token_ptr> t_newline
 
-%type <astnode> ast_error
-%type <astnode> statement
-// %type <astnode> simple_stmt
-// %type <astnode> compound_stmt
-// %type <astnode> assignment
-// %type <astnode> block
+%type <data.astnode_ptr> ast_error
+%type <data.astnode_ptr> statement
+// %type <data.astnode_ptr> simple_stmt
+// %type <data.astnode_ptr> compound_stmt
+// %type <data.astnode_ptr> assignment
+// %type <data.astnode_ptr> block
 
 %%
 
@@ -65,51 +80,61 @@ statement : statement ast_error
 
 ast_error : t_error
             {
+                Logger << Log::info << "t_error" << Log::endl;
                 $$ = make_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_identifier
             {
+                Logger << Log::info << "t_identifier" << Log::endl;
                 $$ = make_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_integer
             {
+                Logger << Log::info << "t_integer" << Log::endl;
                 $$ = make_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_floats
             {
+                Logger << Log::info << "t_floats" << Log::endl;
                 $$ = make_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_operators_add
             {
+                Logger << Log::info << "t_operators_add" << Log::endl;
                 $$ = make_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_operators_minus
             {
+                Logger << Log::info << "t_operators_minus" << Log::endl;
                 $$ = make_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_delimiter
             {
+                Logger << Log::info << "t_delimiter" << Log::endl;
                 $$ = make_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_keyword
             {
+                Logger << Log::info << "t_keyword" << Log::endl;
                 $$ = make_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_indent
             {
+                Logger << Log::info << "t_indent" << Log::endl;
                 $$ = make_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_newline
             {
+                Logger << Log::info << "t_newline" << Log::endl;
                 $$ = make_from_token($1);
                 $$->type = astnode_type::error;
             }

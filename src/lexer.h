@@ -22,7 +22,7 @@ struct Token {
     uint32_t lineno;
     uint32_t columnno;
 
-    union content_t {
+    struct content_t {
         none no;  // <- newline
         std::string message;  // <- error (error message)
         std::string name;  // <- identifier, operators, delimiter, keyword

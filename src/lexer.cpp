@@ -19,7 +19,9 @@ uint64_t translate_python_int(const std::string& str) {
 
 // class with none-trivial union should implement those functions
 
-Token::content_t::content_t() {};
+Token::content_t::content_t() {
+    
+};
 Token::content_t::~content_t() {};
 
 Token::Token() {};
