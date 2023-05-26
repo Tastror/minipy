@@ -57,7 +57,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 
 <LINE_COMMENT>{new_line} {
                 NEW_LINE_COLUMN_UPDATE;
-                BEGIN(INITIAL);
+                BEGIN(NEW_LINE_COUNT);
                 return t_newline;
             }
 
@@ -66,7 +66,6 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                     << "line " << yylineno << ", column " << yycolumnno
                     << ": comment: " << yytext << Log::endl;
                 SAME_LINE_COLUMN_UPDATE;
-                Logger << yylval.token_ptr << Log::endl;
             }
 
 \+          {
