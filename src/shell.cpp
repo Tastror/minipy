@@ -66,12 +66,14 @@ ShellConfig::ShellConfig() {
     flag_short_with_arg["o"] = flags::out;
     flag_short_with_arg["O"] = flags::optimize;
     flag_short_no_arg["S"] = flags::assembly;
+    flag_short_no_arg["t"] = flags::time;
 
     flag_long_no_arg["help"] = flags::help;
     flag_long_with_arg["debug"] = flags::debug;
     flag_long_with_arg["out"] = flags::out;
     flag_long_with_arg["optimize"] = flags::optimize;
     flag_long_no_arg["assembly"] = flags::assembly;
+    flag_long_no_arg["time"] = flags::time;
 
     help = welcome =
 R"(
@@ -79,7 +81,7 @@ Welcome to use Tastror's Compiler!
 
 use
     compiler -h
-    compiler <input_file> [-d <debug_mode>] [<debug_file>] [-S] [-o <output_file>] [-On (-O1, -O2)]
+    compiler <input_file> [-d <debug_mode>] [<debug_file>] [-S] [-o <output_file>] [-On (-O1, -O2)] [-t]
 to run, such as
     compiler mytest.py -d ast ast.png -S -o result.s -O2
 
@@ -90,6 +92,7 @@ additionally,
     '-d' can be replaced by '--debug'
     '-S' can be replaced by '--assembly'
     '-o' can be replaced by '--out'
+    '-t' can be replaced by '--time'
 
     '<debug_file>' only works when you specify '<debug_mode>'
     '-o <output_file>' only works when you specify '-S'

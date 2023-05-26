@@ -7,11 +7,19 @@
 
 namespace timing {
 
+    int64_t now_ms() {
+        auto now = std::chrono::system_clock::now();
+        auto seconds = std::chrono::time_point_cast<std::chrono::seconds>(now);
+        auto fraction = now - seconds;
+        auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(fraction);
+        return milliseconds.count();
+    }
+
     std::string local_time() {
         std::stringstream str_stream;
         std::time_t t = std::time(nullptr);
         std::tm tm = *std::localtime(&t);
-        str_stream << std::put_time(&tm, "%Y/%m/%d %H:%M:%S");
+        str_stream << std::put_time(&tm, "%Y/%m/%d %H:%M:%S") << "." << std::setfill('0') << std::setw(3) << now_ms();
         return str_stream.str();
     }
 
@@ -19,13 +27,7 @@ namespace timing {
         std::stringstream str_stream;
         std::time_t t = std::time(nullptr);
         std::tm tm = *std::localtime(&t);
-        str_stream << std::put_time(&tm, "%Y-%m-%d-%H-%M-%S");
+        str_stream << std::put_time(&tm, "%Y-%m-%d-%H-%M-%S") << "-" << std::setfill('0') << std::setw(3) << now_ms();;
         return str_stream.str();
-    }
-
-    // return std::chrono::steady_clock::time_point
-    // use auto to get it
-    auto now() {
-        return std::chrono::steady_clock::now();
     }
 }

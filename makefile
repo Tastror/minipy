@@ -2,7 +2,7 @@ CC = g++
 FLEX = flex
 BISON = bison
 CFLAGS = -Wall
-FLEX_BISON_CFLAGS = -Wall -Wno-unused-function -Wno-write-strings -Wno-class-memaccess -Wno-unused-value -Wno-unused-label
+FLEX_BISON_CFLAGS = $(CFLAGS) -Wno-unused-function -Wno-write-strings -Wno-class-memaccess -Wno-unused-value -Wno-unused-label
 
 SOURCE_DIR = src
 BUILD_DIR = build
@@ -10,11 +10,9 @@ DEBUG_DIR = debug
 
 TARGET_FILE = compiler.exe
 SRC_FILES = compiler.cpp color.cpp common.cpp log.cpp shell.cpp lexer.cpp parser.cpp
-OTHER_FILES = compiler.h color.h common.h log.h shell.h lexer.h parser.h
 
 TARGET = $(BUILD_DIR)/$(TARGET_FILE)
 SRCS = $(addprefix $(SOURCE_DIR)/, $(SRC_FILES))
-OTHERS = $(addprefix $(SOURCE_DIR)/, $(OTHER_FILES))
 OBJS = $(addprefix $(BUILD_DIR)/, $(SRC_FILES:.cpp=.o))
 
 
@@ -51,10 +49,10 @@ $(BUILD_DIR):
 $(DEBUG_DIR):
 	mkdir -p $(DEBUG_DIR)
 
-$(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(OTHERS)
+$(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(SOURCE_DIR)/%.h
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/%.o: $(BUILD_DIR)/%.cpp $(OTHERS)
+$(BUILD_DIR)/%.o: $(BUILD_DIR)/%.cpp
 	$(CC) -c $< -o $@ $(FLEX_BISON_CFLAGS)
 
 $(TARGET): $(OBJS) $(FLEX_BISON_OBJS)

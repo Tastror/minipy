@@ -33,6 +33,9 @@ int main(int argc, char** argv) {
     if (shell_config.is_help_occured()) {
         return 0;
     }
+    if (shell_config.is_flag_occured(flags::time)) {
+        Log::add_time = true;
+    }
 
 
     // input (.py), output (.s) and debug file (.txt / .png)
