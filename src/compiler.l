@@ -24,6 +24,17 @@ std::stringstream debug_ss;
 #define EOF_COLUMN_UPDATE \
     { last_string = std::string(); last_string_length = 0; }
 
+#define OPERATOR_TOKEN_GEN_SHOW { \
+    yylval.token_ptr = std::make_unique<Token>(); \
+    yylval.token_ptr->type = token_type::operators; \
+    yylval.token_ptr->content.name = std::string(yytext); \
+    yylval.token_ptr->lineno = yylineno; \
+    yylval.token_ptr->columnno = yycolumnno; \
+    Logger << Log::info \
+        << "line " << yylineno << ", column " << yycolumnno \
+        << ": operator: " << yytext << Log::endl; \
+    SAME_LINE_COLUMN_UPDATE; }
+
 %}
 
 %option warn nodefault noyywrap yylineno case-sensitive pointer
@@ -39,7 +50,9 @@ tab         \t
 new_line    (\r\n|\n)
 
 dec_value   [0-9]+
-pure_dec_value ([1-9][0-9]+|[0-9])
+pure_dec_value ([1-9][0-9]+|[0-9]|0+)
+wrong_dec_value (0+[1-9]+[0-9]*)
+wrong_id    ([0-9]+[_a-zA-Z]+([_a-zA-Z]|[0-9])*)
 hex_value   0x[0-9a-fA-F]+
 oct_value   0o[0-7]+
 bin_value   0b[01]+
@@ -68,31 +81,12 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 SAME_LINE_COLUMN_UPDATE;
             }
 
-\+          {
-                yylval.token_ptr = std::make_unique<Token>();
-                yylval.token_ptr->type = token_type::operators;
-                yylval.token_ptr->content.name = std::string(yytext);
-                yylval.token_ptr->lineno = yylineno;
-                yylval.token_ptr->columnno = yycolumnno;
-                Logger << Log::info
-                    << "line " << yylineno << ", column " << yycolumnno
-                    << ": operator: " << yytext << Log::endl;
-                SAME_LINE_COLUMN_UPDATE;
-                return t_operators_add;
-            }
-
--           {
-                yylval.token_ptr = std::make_unique<Token>();
-                yylval.token_ptr->type = token_type::operators;
-                yylval.token_ptr->content.name = std::string(yytext);
-                yylval.token_ptr->lineno = yylineno;
-                yylval.token_ptr->columnno = yycolumnno;
-                Logger << Log::info
-                    << "line " << yylineno << ", column " << yycolumnno
-                    << ": operator: " << yytext << Log::endl;
-                SAME_LINE_COLUMN_UPDATE;
-                return t_operators_sub;
-            }
+\+          { OPERATOR_TOKEN_GEN_SHOW; return t_operators_add; }
+-           { OPERATOR_TOKEN_GEN_SHOW; return t_operators_sub; }
+\*          { OPERATOR_TOKEN_GEN_SHOW; return t_operators_mul; }
+\/          { OPERATOR_TOKEN_GEN_SHOW; return t_operators_div; }
+%           { OPERATOR_TOKEN_GEN_SHOW; return t_operators_mod; }
+=           { OPERATOR_TOKEN_GEN_SHOW; return t_operators_assign; }
 
 {pure_dec_value}|{hex_value}|{oct_value}|{bin_value} {
                 yylval.token_ptr = std::make_unique<Token>();
@@ -185,7 +179,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 yyless(0);
             }
 
-.               {
+.|{wrong_dec_value}|{wrong_id} {
                 yylval.token_ptr = std::make_unique<Token>();
                 yylval.token_ptr->type = token_type::error;
                 yylval.token_ptr->content.message = "invalid string '" + std::string(yytext) + "'";

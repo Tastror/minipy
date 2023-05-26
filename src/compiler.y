@@ -49,6 +49,10 @@ typedef s_t YYSTYPE;
 %token <token_ptr> t_floats
 %token <token_ptr> t_operators_add
 %token <token_ptr> t_operators_sub
+%token <token_ptr> t_operators_mul
+%token <token_ptr> t_operators_div
+%token <token_ptr> t_operators_mod
+%token <token_ptr> t_operators_assign
 %token <token_ptr> t_delimiter
 %token <token_ptr> t_keyword
 %token <token_ptr> t_indent
@@ -110,6 +114,30 @@ ast_error : t_error
         | t_operators_sub
             {
                 Logger << Log::info << "t_operators_minus" << Log::endl;
+                $$ = make_from_token($1);
+                $$->type = astnode_type::error;
+            }
+        | t_operators_mul
+            {
+                Logger << Log::info << "t_operators_multiply" << Log::endl;
+                $$ = make_from_token($1);
+                $$->type = astnode_type::error;
+            }
+        | t_operators_div
+            {
+                Logger << Log::info << "t_operators_divide" << Log::endl;
+                $$ = make_from_token($1);
+                $$->type = astnode_type::error;
+            }
+        | t_operators_mod
+            {
+                Logger << Log::info << "t_operators_mod" << Log::endl;
+                $$ = make_from_token($1);
+                $$->type = astnode_type::error;
+            }
+        | t_operators_assign
+            {
+                Logger << Log::info << "t_operators_assign" << Log::endl;
                 $$ = make_from_token($1);
                 $$->type = astnode_type::error;
             }
