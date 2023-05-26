@@ -9,7 +9,7 @@
 
 namespace Log {
     enum stage {error, warning, std, info, debug};
-    enum operat {endl, flush, to_stdin, to_file, stdin_and_file};
+    enum operat {endl, flush, to_stdout, to_file, to_stdout_and_file};
     extern stage log_stage;
     extern bool add_time;
 }
@@ -26,7 +26,7 @@ public:
 
     LoggerType();
 
-    void add_output_file(std::ofstream&);
+    void change_output_file(std::ofstream&);
 
     void std(const std::string& str);
     void debug(const std::string& str);

@@ -19,7 +19,7 @@ LoggerType::LoggerType() {
     log_func = std::bind(&LoggerType::debug, this, std::placeholders::_1);
 }
 
-void LoggerType::add_output_file(std::ofstream& f) {
+void LoggerType::change_output_file(std::ofstream& f) {
     of = &f;
 }
 
@@ -91,7 +91,7 @@ LoggerType& LoggerType::operator<<(Log::operat op) {
         if (use_file)
             *of << std::flush;
         break;
-    case Log::to_stdin:
+    case Log::to_stdout:
         use_stdin = true;
         use_file = false;
         break;
@@ -99,7 +99,7 @@ LoggerType& LoggerType::operator<<(Log::operat op) {
         use_stdin = false;
         use_file = true;
         break;
-    case Log::stdin_and_file:
+    case Log::to_stdout_and_file:
         use_stdin = use_file = true;
         break;
     default:

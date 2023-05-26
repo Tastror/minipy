@@ -1,3 +1,5 @@
+1 + 1.5 + 2 + 0o13 + 0b1 + 0xaf12 + 123e1
+
 def input():
     global has_input, input_buf
     if has_input:

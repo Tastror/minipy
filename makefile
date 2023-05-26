@@ -43,7 +43,7 @@ $(FLEX_GEN_CPP): $(FLEX_FILE)
 
 $(BISON_GEN_HEAD): $(BISON_GEN_CPP)
 $(BISON_GEN_CPP): $(BISON_FILE)
-	$(BISON) -d -o $(BISON_GEN_CPP) --defines=$(BISON_GEN_HEAD) $(BISON_FILE) -v --debug
+	$(BISON) -d -o $(BISON_GEN_CPP) --defines=$(BISON_GEN_HEAD) $(BISON_FILE) -v
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)

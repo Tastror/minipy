@@ -48,7 +48,7 @@ typedef s_t YYSTYPE;
 %token <token_ptr> t_integer
 %token <token_ptr> t_floats
 %token <token_ptr> t_operators_add
-%token <token_ptr> t_operators_minus
+%token <token_ptr> t_operators_sub
 %token <token_ptr> t_delimiter
 %token <token_ptr> t_keyword
 %token <token_ptr> t_indent
@@ -107,7 +107,7 @@ ast_error : t_error
                 $$ = make_from_token($1);
                 $$->type = astnode_type::error;
             }
-        | t_operators_minus
+        | t_operators_sub
             {
                 Logger << Log::info << "t_operators_minus" << Log::endl;
                 $$ = make_from_token($1);

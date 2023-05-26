@@ -10,14 +10,16 @@
 
 int main(int argc, char** argv) {
 
+    // Logger and Logfile
+    // untargeted output will be dumped in log.txt
     std::ofstream log_file;
     log_file.open("log.txt");
     if (!log_file.is_open()) {
         Logger << Log::error << "log file 'log.txt' cannot open" << Log::endl;
         return 0;
     }
-    Logger.add_output_file(log_file);
-    Logger << Log::stdin_and_file;
+    Logger.change_output_file(log_file);
+    Logger << Log::to_stdout_and_file;
 
 
     // shell
@@ -33,7 +35,7 @@ int main(int argc, char** argv) {
     }
 
 
-    // file
+    // input (.py), output (.s) and debug file (.txt / .png)
     FILE* input_file_ptr;
     std::ofstream output_file;
     std::ofstream debug_file;
@@ -59,7 +61,7 @@ int main(int argc, char** argv) {
         Logger << Log::info << "assembly will output to " << output_filename << Log::endl;
     }
 
-    if (shell_config.is_flag_occured(flags::debug)) {
+    if (shell_config.is_flag_occured(flags::debug) && shell_config.debug_type() != debug::none) {
         std::string debug_filename = shell_config.get_normal_input(1);
         if (debug_filename == "") {
             debug_filename = "debug/" + shell_config.get_flag_arg(flags::debug);
@@ -78,19 +80,33 @@ int main(int argc, char** argv) {
             << " debug information will output to " << debug_filename << Log::endl;
     }
 
+    Logger << Log::info << "other information will output to log.txt" << Log::endl;
+
 
     // shell output
     if (shell_config.debug_type() == debug::shell) {
-        // Logger << Log::std << shell_config.detail_message() << Log::flush;
-        debug_file << shell_config.detail_message() << std::flush;
+        Logger.change_output_file(debug_file);
+    } else {
+        Logger.change_output_file(log_file);
     }
+    Logger << Log::to_file;
+    Logger << Log::std << shell_config.detail_message() << Log::endl;
+    Logger << Log::to_stdout_and_file;
 
 
     // lexer & parser
+    if (shell_config.debug_type() == debug::lex || shell_config.debug_type() == debug::parse) {
+        Logger.change_output_file(debug_file);
+    } else {
+        Logger.change_output_file(log_file);
+    }
+
+    Logger << Log::to_file;
     yyin = input_file_ptr;
-    int result = yyparse();
-    Logger << Log::info << "result = " << result << Log::endl;
-    // use astnode_root
+    yyparse();
+    Logger << Log::to_stdout_and_file;
+
+    // use astnode_root next
 
     return 0;
 }

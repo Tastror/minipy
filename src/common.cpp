@@ -11,7 +11,7 @@ namespace timing {
         std::stringstream str_stream;
         std::time_t t = std::time(nullptr);
         std::tm tm = *std::localtime(&t);
-        str_stream << std::put_time(&tm, "%c");
+        str_stream << std::put_time(&tm, "%Y/%m/%d %H:%M:%S");
         return str_stream.str();
     }
 
