@@ -107,12 +107,13 @@ int main(int argc, char** argv) {
     Logger << Log::to_file;
 
     yyin = input_file_ptr;
-    yyparse();
+    auto ast_head = std::make_shared<AstNode>();
+    yyparse(ast_head);
 
     Logger.del_all_temp_output_file();
     Logger << Log::to_stdout_and_file;
 
-    // use astnode_root next
+    // use ast_head next
 
     return 0;
 }

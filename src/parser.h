@@ -9,7 +9,6 @@
 #include "lexer.h"
 
 extern FILE* yyin;
-int yyparse();
 
 enum class astnode_type {
     error, statement, simple_stmt, compound_stmt, assignment, block, expression
@@ -28,7 +27,7 @@ struct AstNode {
     ~AstNode();
 };
 
-extern std::shared_ptr<AstNode> astnode_root;
-
 std::shared_ptr<AstNode> make_from_token(Token token);
 std::shared_ptr<AstNode> make_from_token(std::shared_ptr<Token> token);
+
+int yyparse(std::shared_ptr<AstNode>& ast_head);

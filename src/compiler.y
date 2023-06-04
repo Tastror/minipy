@@ -8,10 +8,7 @@
 #include "../src/lexer.h"
 #include "../src/parser.h"
 
-void yyerror(char * msg);
-
-std::shared_ptr<AstNode> astnode_root;
-
+void yyerror(std::shared_ptr<AstNode>& ast_head, char * msg);
 %}
 
 %code requires {
@@ -41,6 +38,8 @@ typedef s_t YYSTYPE;
 
 }
 
+%parse-param {std::shared_ptr<AstNode>& ast_head}
+
 %start file
 
 %token <token_ptr> t_error
@@ -69,7 +68,7 @@ typedef s_t YYSTYPE;
 
 file : statement
             {
-                astnode_root = $1;
+                ast_head = $1;
             }
 
 statement : statement ast_error
@@ -168,7 +167,7 @@ ast_error : t_error
 
 %%
 
-void yyerror(char * msg)
+void yyerror(std::shared_ptr<AstNode>& ast_head, char* msg)
 {
     Logger << Log::error
         << "line " << yylineno << ", column " << yycolumnno - last_string_length
