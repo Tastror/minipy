@@ -18,11 +18,11 @@ std::string last_string;
 std::stringstream debug_ss;
 
 #define SAME_LINE_COLUMN_UPDATE \
-    { last_string = std::string(yytext); last_string_length = last_string.size(); yycolumnno += last_string.size(); }
+    do { last_string = std::string(yytext); last_string_length = last_string.size(); yycolumnno += last_string.size(); } while(0)
 #define NEW_LINE_COLUMN_UPDATE \
-    { last_string = std::string("\n"); last_string_length = 1; yycolumnno = 1; }
+    do { last_string = std::string("\n"); last_string_length = 1; yycolumnno = 1; } while(0)
 #define EOF_COLUMN_UPDATE \
-    { last_string = std::string(); last_string_length = 0; }
+    do { last_string = std::string(); last_string_length = 0; } while(0)
 
 #define OPERATOR_TOKEN_GEN_SHOW { \
     yylval.token_ptr = std::make_unique<Token>(); \
