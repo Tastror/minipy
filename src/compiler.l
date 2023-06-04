@@ -24,7 +24,7 @@ std::stringstream debug_ss;
 #define EOF_COLUMN_UPDATE \
     do { last_string = std::string(); last_string_length = 0; } while(0)
 
-#define OPERATOR_TOKEN_GEN_SHOW { \
+#define OPERATOR_TOKEN_GEN_SHOW do { \
     yylval.token_ptr = std::make_unique<Token>(); \
     yylval.token_ptr->type = token_type::operators; \
     yylval.token_ptr->content.name = std::string(yytext); \
@@ -33,7 +33,7 @@ std::stringstream debug_ss;
     Logger << Log::info \
         << "line " << yylineno << ", column " << yycolumnno \
         << ": operator: " << yytext << Log::endl; \
-    SAME_LINE_COLUMN_UPDATE; }
+    SAME_LINE_COLUMN_UPDATE; } while(0)
 
 %}
 
