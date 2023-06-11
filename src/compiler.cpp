@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
 
     // this two should output after <flags::time>
     Logger << Log::info << "other information will output to log.txt" << Log::endl;
-    Logger << Log::std << "   shell parsing begin ->" << Log::endl;
+    Logger << Log::std << "|begin| -> shell parsing begin" << Log::endl;
 
     // input (.py), output (.s) and debug file (.txt / .png)
     FILE* input_file_ptr;
@@ -107,17 +107,20 @@ int main(int argc, char** argv) {
             << " debug information will output to " << debug_filename << Log::endl;
     }
 
-    // this should do after debug_file is parsed
+    // begin debug print
     if (shell_config.debug_type() == debug::shell)
         Logger.add_temp_output_file(debug_file);
     Logger << cmd_print;
     
+    // debug print
     Logger << Log::debug << "shell_config.detail_message() begin" << Log::endl;
     Logger << Log::std << shell_config.detail_message() << Log::endl;
 
+    // end debug print
     Logger.del_all_temp_output_file();
     Logger << Log::to_stdout_and_file;
-    Logger << Log::std << "-> shell parsing done" << Log::endl;
+
+    Logger << Log::std << "           shell parsing done -> |end|" << Log::endl;
 
 
 
@@ -128,12 +131,14 @@ int main(int argc, char** argv) {
     // lexer & parser
     // lexer and parser, use yyparse to do two thing together
 
-    Logger << Log::std << "   lexing & parsing begin ->" << Log::endl;
+    Logger << Log::std << "|begin| -> lexing & parsing begin" << Log::endl;
 
+    // begin debug print
     if (shell_config.debug_type() == debug::lex || shell_config.debug_type() == debug::parse) 
         Logger.add_temp_output_file(debug_file);
     Logger << cmd_print;
 
+    // run & debug print
     auto ast_head = make_astnode();
     yyin = input_file_ptr;
     Logger << Log::debug << "yyparse begin" << Log::endl;
@@ -141,9 +146,11 @@ int main(int argc, char** argv) {
     Logger << Log::debug << "log_ast begin" << Log::endl;
     log_ast(ast_head);
 
+    // end debug print
     Logger.del_all_temp_output_file();
     Logger << Log::to_stdout_and_file;
-    Logger << Log::std << "-> lexing & parsing done" << Log::endl;
+
+    Logger << Log::std << "           lexing & parsing done -> |end|" << Log::endl;
 
 
 
