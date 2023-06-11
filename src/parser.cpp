@@ -91,8 +91,9 @@ std::string AstNode::to_string() {
 
 void log_ast_data(AstNode* astnode, int depth) {
     for (int i = 0; i < depth; ++i) {
-        Logger << " ";
+        Logger << "  ";
     }
+    Logger << "(" << std::to_string(depth) << ") ";
     Logger << astnode->to_string() << Log::endl;
 }
 
