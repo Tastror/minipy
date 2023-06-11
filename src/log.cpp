@@ -37,7 +37,8 @@ LoggerType& LoggerType::operator<<(Log::operat op) {
     case Log::endl:
         log_func(ss.str());
         ss.str(std::string());
-        if (use_stdin)
+        // error will always output on stdin !!!
+        if (use_stdin || last_stage == Log::error)
             std::cout << std::endl;
         if (use_file) {
             *of << std::endl;
@@ -48,7 +49,8 @@ LoggerType& LoggerType::operator<<(Log::operat op) {
     case Log::flush:
         log_func(ss.str());
         ss.str(std::string());
-        if (use_stdin)
+        // error will always output on stdin !!!
+        if (use_stdin || last_stage == Log::error)
             std::cout << std::flush;
         if (use_file) {
             *of << std::flush;
@@ -98,6 +100,7 @@ LoggerType& LoggerType::operator<<(Log::stage st) {
 }
 
 void LoggerType::debug(const std::string& str) {
+    last_stage = Log::debug;
     if (unsigned(Log::log_stage) >= unsigned(Log::stage::debug)) {
         std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
         if (use_stdin)
@@ -111,6 +114,7 @@ void LoggerType::debug(const std::string& str) {
 }
 
 void LoggerType::info(const std::string& str) {
+    last_stage = Log::info;
     if (unsigned(Log::log_stage) >= unsigned(Log::stage::info)) {
         std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
         if (use_stdin)
@@ -124,6 +128,7 @@ void LoggerType::info(const std::string& str) {
 }
 
 void LoggerType::std(const std::string& str) {
+    last_stage = Log::std;
     if (unsigned(Log::log_stage) >= unsigned(Log::stage::std)) {
         std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
         if (use_stdin)
@@ -137,6 +142,7 @@ void LoggerType::std(const std::string& str) {
 }
 
 void LoggerType::warning(const std::string& str) {
+    last_stage = Log::warning;
     if (unsigned(Log::log_stage) >= unsigned(Log::stage::warning)) {
         std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
         if (use_stdin)
@@ -150,10 +156,11 @@ void LoggerType::warning(const std::string& str) {
 }
 
 void LoggerType::error(const std::string& str) {
+    last_stage = Log::error;
     if (unsigned(Log::log_stage) >= unsigned(Log::stage::error)) {
         std::string time_str = Log::add_time ? "[" + timing::local_time() + "] " : "";
-        if (use_stdin)
-            std::cout << hue::green << time_str << hue::red << "error: " + str << hue::reset;
+        // error will always output on stdin !!!
+        std::cout << hue::green << time_str << hue::red << "error: " + str << hue::reset;
         if (use_file) {
             *of << time_str + "error: " + str;
             for (auto& i : tmp)

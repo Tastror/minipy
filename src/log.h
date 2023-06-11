@@ -23,6 +23,7 @@ private:
     std::set<std::ofstream*> tmp;
     bool use_file;
     bool use_stdin;
+    Log::stage last_stage;
 
 public:
 

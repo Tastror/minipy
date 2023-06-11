@@ -9,10 +9,17 @@
 #include "../src/parser.h"
 
 void yyerror(AstNode*& ast_head, char* msg);
+
+bool block_depth_init = false;
+bool use_tab = false;
+int block_depth_cell = 0;
+int now_block_depth = 0;
+
 %}
 
 %code requires {
 #include <memory>
+#include "../src/log.h"
 #include "../src/common.h"
 #include "../src/lexer.h"
 #include "../src/parser.h"
@@ -25,6 +32,9 @@ union s_t {
 typedef s_t YYSTYPE;
 
 #define yyoverflow
+
+#define LOG_ASTNODE(type_string) \
+    do { Logger << Log::info << "astnode: " << type_string << Log::endl; } while(0)
 
 }
 
@@ -81,87 +91,137 @@ statement : statement ast_error
 
 ast_error : t_error
             {
-                Logger << Log::info << "t_error" << Log::endl;
+                LOG_ASTNODE("t_error");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_identifier
             {
-                Logger << Log::info << "t_identifier" << Log::endl;
+                LOG_ASTNODE("t_identifier");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_integer
             {
-                Logger << Log::info << "t_integer" << Log::endl;
+                LOG_ASTNODE("t_integer");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_floats
             {
-                Logger << Log::info << "t_floats" << Log::endl;
+                LOG_ASTNODE("t_floats");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_operators_add
             {
-                Logger << Log::info << "t_operators_add" << Log::endl;
+                LOG_ASTNODE("t_operators_add");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_operators_sub
             {
-                Logger << Log::info << "t_operators_minus" << Log::endl;
+                LOG_ASTNODE("t_operators_minus");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_operators_mul
             {
-                Logger << Log::info << "t_operators_multiply" << Log::endl;
+                LOG_ASTNODE("t_operators_multiply");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_operators_div
             {
-                Logger << Log::info << "t_operators_divide" << Log::endl;
+                LOG_ASTNODE("t_operators_divide");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_operators_mod
             {
-                Logger << Log::info << "t_operators_mod" << Log::endl;
+                LOG_ASTNODE("t_operators_mod");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_operators_assign
             {
-                Logger << Log::info << "t_operators_assign" << Log::endl;
+                LOG_ASTNODE("t_operators_assign");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_keyword_def
             {
-                Logger << Log::info << "t_keyword_def" << Log::endl;
+                LOG_ASTNODE("t_keyword_def");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_delimiter
             {
-                Logger << Log::info << "t_delimiter" << Log::endl;
+                LOG_ASTNODE("t_delimiter");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
         | t_indent
             {
-                Logger << Log::info << "t_indent" << Log::endl;
+                LOG_ASTNODE("t_indent");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
+
+                if (!block_depth_init) {
+                    block_depth_init = true;
+                    if (
+                        $$->token_leaf.content.indent_num.space_num != 0 &&
+                        $$->token_leaf.content.indent_num.tab_num != 0
+                    ) {
+                        yyerror(ast_head, "mix space and tab together");
+                        use_tab = false;
+                        block_depth_cell = 4;
+                    } else if (
+                        $$->token_leaf.content.indent_num.space_num != 0 &&
+                        $$->token_leaf.content.indent_num.tab_num == 0
+                    ) {
+                        use_tab = false;
+                        block_depth_cell = $$->token_leaf.content.indent_num.space_num;
+                    } else if (
+                        $$->token_leaf.content.indent_num.space_num == 0 &&
+                        $$->token_leaf.content.indent_num.tab_num != 0
+                    ) {
+                        use_tab = true;
+                        block_depth_cell = $$->token_leaf.content.indent_num.tab_num;
+                    }
+                } else {
+                    if (
+                        $$->token_leaf.content.indent_num.space_num != 0 &&
+                        $$->token_leaf.content.indent_num.tab_num != 0
+                    ) {
+                        yyerror(ast_head, "mix space and tab together");
+                    } else if (
+                        !use_tab &&
+                        $$->token_leaf.content.indent_num.space_num != 0 &&
+                        $$->token_leaf.content.indent_num.tab_num == 0 &&
+                        $$->token_leaf.content.indent_num.space_num % block_depth_cell == 0
+                    ) {
+                        now_block_depth =
+                            $$->token_leaf.content.indent_num.space_num /
+                            block_depth_cell;
+                    } else if (
+                        use_tab &&
+                        $$->token_leaf.content.indent_num.space_num == 0 &&
+                        $$->token_leaf.content.indent_num.tab_num != 0 &&
+                        $$->token_leaf.content.indent_num.tab_num % block_depth_cell == 0
+                    ) {
+                        now_block_depth =
+                            $$->token_leaf.content.indent_num.tab_num /
+                            block_depth_cell;
+                    } else {
+                        yyerror(ast_head, "unindent does not match any outer indentation level");
+                    }
+                }
             }
         | t_newline
             {
-                Logger << Log::info << "t_newline" << Log::endl;
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
+                LOG_ASTNODE("t_newline");
+                now_block_depth = 0;
             }
 
 %%
