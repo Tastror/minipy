@@ -64,15 +64,19 @@ typedef s_t YYSTYPE;
 file : statement
             {
                 ast_head = $1;
+                ast_head->type = astnode_type::file;
             }
 
 statement : statement ast_error
             {
-                $2->parent = $1;
-                $1->sons.push_back($2);
-                $$ = $1;
+                $$ = $1->eat($2);
+                $$->type = astnode_type::statement;
             }
         | ast_error
+            {
+                $$ = $1;
+                $$->type = astnode_type::statement;
+            }
 
 
 ast_error : t_error

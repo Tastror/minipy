@@ -16,7 +16,7 @@ extern FILE* yyin;
 // type to_string
 
 enum class astnode_type {
-    error, statement, simple_stmt, compound_stmt, assignment, block, expression
+    error, file, statement, simple_stmt, compound_stmt, assignment, block, expression,
 };
 
 namespace std {
@@ -40,6 +40,9 @@ struct AstNode {
     AstNode();
     ~AstNode();
 
+    AstNode* eat(AstNode* son);
+    AstNode* give(AstNode* mother);
+    
     std::string to_string();
 };
 

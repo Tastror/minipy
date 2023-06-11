@@ -104,7 +104,8 @@ int main(int argc, char** argv) {
     if (shell_config.debug_type() == debug::lex || shell_config.debug_type() == debug::parse) {
         Logger.add_temp_output_file(debug_file);
     }
-    Logger << Log::to_file;
+    // Logger << Log::to_file;
+    Logger << Log::to_stdout_and_file;
 
     yyin = input_file_ptr;
     auto ast_head = std::make_shared<AstNode>();

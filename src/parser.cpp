@@ -46,6 +46,7 @@ AstNode* make_astnode_from_token(Token* token) {
 std::string std::to_string(astnode_type tt) {
     switch (tt) {
         case astnode_type::error: return "error";
+        case astnode_type::file: return "file";
         case astnode_type::statement: return "statement";
         case astnode_type::simple_stmt: return "simple_stmt";
         case astnode_type::compound_stmt: return "compound_stmt";
@@ -53,6 +54,7 @@ std::string std::to_string(astnode_type tt) {
         case astnode_type::block: return "block";
         case astnode_type::expression: return "expression"; 
     }
+    return "";
 }
 
 
@@ -62,6 +64,18 @@ std::string std::to_string(astnode_type tt) {
 
 AstNode::AstNode() {}
 AstNode::~AstNode() {}
+
+AstNode* AstNode::eat(AstNode* son) {
+    this->sons.push_back(son);
+    son->parent = this;
+    return this;
+}
+
+AstNode* AstNode::give(AstNode* mother) {
+    mother->sons.push_back(this);
+    this->parent = mother;
+    return mother;
+}
 
 std::string AstNode::to_string() {
     if (this->is_token_leaf)
@@ -88,7 +102,6 @@ void log_ast_inside(AstNode* parent, int depth) {
     for (auto* i : parent->sons) {
         log_ast_inside(i, depth + 1);
     }
-    return;
 }
 
 void log_ast(AstNode* head) {

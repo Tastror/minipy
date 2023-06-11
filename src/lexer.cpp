@@ -33,6 +33,7 @@ std::string std::to_string(token_type tt) {
         case token_type::indent: return "indent";
         case token_type::newline: return "newline";
     }
+    return "";
 }
 
 uint64_t translate_python_int(const std::string& str) {
