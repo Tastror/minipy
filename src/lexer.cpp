@@ -4,6 +4,37 @@
 #include "common.h"
 #include "lexer.h"
 
+
+
+// --- 1 ---
+// buff and make
+
+std::vector<std::unique_ptr<Token>> token_buff;
+
+Token* make_token() {
+    token_buff.push_back(std::make_unique<Token>());
+    return token_buff.back().get();
+}
+
+
+
+// --- 2 ---
+// type to_string and to_num
+
+std::string std::to_string(token_type tt) {
+    switch (tt) {
+        case token_type::error: return "error";
+        case token_type::identifier: return "identifier";
+        case token_type::integer: return "integer";
+        case token_type::floats: return "floats";
+        case token_type::operators: return "operators";
+        case token_type::delimiter: return "delimiter";
+        case token_type::keyword: return "keyword"; 
+        case token_type::indent: return "indent";
+        case token_type::newline: return "newline";
+    }
+}
+
 uint64_t translate_python_int(const std::string& str) {
     if (str.substr(0, 2) == "0x") {
         return std::stoul(str.substr(2), nullptr, 16);
@@ -16,12 +47,10 @@ uint64_t translate_python_int(const std::string& str) {
     }
 }
 
-std::vector<std::unique_ptr<Token>> token_buff;
 
-Token* make_token() {
-    token_buff.push_back(std::make_unique<Token>());
-    return token_buff.back().get();
-}
+
+// --- 3 ---
+// class (include class to_string)
 
 // class with none-trivial union should implement those functions
 
@@ -118,3 +147,34 @@ Token& Token::operator=(const Token& other) {
     *this = std::move(temp);
     return *this;
 };
+
+std::string Token::to_string() {
+    std::string res;
+    res += std::to_string(this->type) + ", ";
+    res += std::to_string(this->lineno) + "-";
+    res += std::to_string(this->columnno) + ", ";
+    switch (this->type) {
+    case token_type::newline:
+        res += "token_type::no";
+        break;
+    case token_type::error:
+        res += this->content.message;
+        break;
+    case token_type::identifier:
+    case token_type::operators:
+    case token_type::delimiter:
+    case token_type::keyword:
+        res += this->content.name;
+        break;
+    case token_type::integer:
+        res += std::to_string(this->content.data.int_num);
+        break;
+    case token_type::floats:
+        res += std::to_string(this->content.data.double_num);
+        break;
+    case token_type::indent:
+        res += "space: " + std::to_string(this->content.indent_num.space_num) + ", tab: " + std::to_string(this->content.indent_num.tab_num) ;
+        break;
+    }
+    return res;
+}
