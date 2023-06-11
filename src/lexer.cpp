@@ -16,6 +16,12 @@ uint64_t translate_python_int(const std::string& str) {
     }
 }
 
+std::vector<std::unique_ptr<Token>> token_buff;
+
+Token* make_token() {
+    token_buff.push_back(std::make_unique<Token>());
+    return token_buff.end()->get();
+}
 
 // class with none-trivial union should implement those functions
 

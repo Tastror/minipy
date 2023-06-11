@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
+#include <memory>
 
 #include "common.h"
 
@@ -48,3 +50,7 @@ struct Token {
     Token& operator=(Token&& other);
     Token& operator=(const Token& other);
 };
+
+// 所有权 (unique_ptr) 在这个 vector 里，其他函数只能获得 Token*，即 Token 的读写权限，并非所有权。
+extern std::vector<std::unique_ptr<Token>> token_buff;
+Token* make_token();

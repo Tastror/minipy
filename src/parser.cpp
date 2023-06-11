@@ -10,15 +10,26 @@
 AstNode::AstNode() {}
 AstNode::~AstNode() {}
 
-std::shared_ptr<AstNode> make_from_token(Token token) {
-    auto res = std::make_shared<AstNode>();
+std::vector<std::unique_ptr<AstNode>> astnode_buff;
+
+AstNode* make_astnode() {
+    astnode_buff.push_back(std::make_unique<AstNode>());
+    auto res = astnode_buff.end()->get();
+    res->is_token_leaf = false;
+    return res;
+}
+
+AstNode* make_astnode_from_token(Token token) {
+    astnode_buff.push_back(std::make_unique<AstNode>());
+    auto res = astnode_buff.end()->get();
     res->is_token_leaf = true;
     res->token_leaf = token;
     return res;
 }
 
-std::shared_ptr<AstNode> make_from_token(std::shared_ptr<Token> token) {
-    auto res = std::make_shared<AstNode>();
+AstNode* make_astnode_from_token(Token* token) {
+    astnode_buff.push_back(std::make_unique<AstNode>());
+    auto res = astnode_buff.end()->get();
     res->is_token_leaf = true;
     res->token_leaf = *token;
     return res;
