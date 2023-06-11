@@ -67,6 +67,7 @@ ShellConfig::ShellConfig() {
     flag_short_with_arg["O"] = flags::optimize;
     flag_short_no_arg["S"] = flags::assembly;
     flag_short_no_arg["t"] = flags::time;
+    flag_short_no_arg["s"] = flags::show;
 
     flag_long_no_arg["help"] = flags::help;
     flag_long_with_arg["debug"] = flags::debug;
@@ -74,6 +75,7 @@ ShellConfig::ShellConfig() {
     flag_long_with_arg["optimize"] = flags::optimize;
     flag_long_no_arg["assembly"] = flags::assembly;
     flag_long_no_arg["time"] = flags::time;
+    flag_long_no_arg["show"] = flags::show;
 
     help = welcome =
 R"(
@@ -81,19 +83,26 @@ Welcome to use Tastror's Compiler!
 
 use
     compiler -h
-    compiler <input_file> [-d <debug_mode>] [<debug_file>] [-S] [-o <output_file>] [-On (-O1, -O2)] [-t]
-to run, such as
-    compiler mytest.py -d ast ast.png -S -o result.s -O2
+    compiler <input_file> [-d <debug_mode>] [<debug_file>] [-S] [-o <output_file>] [-On (-O1, -O2)] [-t] [-s]
+to run,
+
+such as
+    compiler mytest.py -d ast ast.png -S -o result.s -O2 --time --show
+
+specifically,
+    '<input_file>':                         input filename
+    '-h' can be replaced by '--help':       show help menu
+    '-d' can be replaced by '--debug':      choose a debug mode
+        '<debug_mode>' can be:              shell, lex, parse, ast, sym, ir, cfg, asm
+        '<debug_file>':                     debug mode output filename
+    '-S' can be replaced by '--assembly':   whether to assembly
+        '-o' can be replaced by '--out':    next add assembly output filename
+        '<output_file>':                    assembly output filename
+    '-O' can be replaced by '--optimize':   optimize option (-O1, -O 1, --optimize 1)
+    '-t' can be replaced by '--time':       log time or not
+    '-s' can be replaced by '--show':       log on std & file or just file
 
 additionally,
-    '-h' can be replaced by '--help'
-    '<debug_mode>' can be: shell, lex, parse, ast, sym, ir, cfg, asm
-    '-O' can be replaced by '--optimize' (-O1, -O 1, --optimize 1)
-    '-d' can be replaced by '--debug'
-    '-S' can be replaced by '--assembly'
-    '-o' can be replaced by '--out'
-    '-t' can be replaced by '--time'
-
     '<debug_file>' only works when you specify '<debug_mode>'
     '-o <output_file>' only works when you specify '-S'
 

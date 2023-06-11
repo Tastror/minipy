@@ -59,7 +59,10 @@ $(TARGET): $(OBJS) $(FLEX_BISON_OBJS)
 	$(CC) $^ -o $@ $(CFLAGS)
 
 test:
-	$(TARGET) test.py -t
+	$(TARGET) test.py --time --show
+
+noshow:
+	$(TARGET) test.py --time
 
 clean:
 	rm -rf $(BUILD_DIR)

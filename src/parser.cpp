@@ -90,6 +90,7 @@ std::string AstNode::to_string() {
 // head log show
 
 void log_ast_data(AstNode* astnode, int depth) {
+    Logger << Log::info;
     for (int i = 0; i < depth; ++i) {
         Logger << "  ";
     }
@@ -105,7 +106,5 @@ void log_ast_inside(AstNode* parent, int depth) {
 }
 
 void log_ast(AstNode* head) {
-    Logger << Log::info << "begin to print ast tree" << Log::endl;
-    Logger << Log::std << std::to_string(head->type) << Log::endl;
     log_ast_inside(head, 0);
 }
