@@ -9,7 +9,6 @@
 #include "lexer.h"
 
 extern FILE* yyin;
-int yyparse(AstNode* ast_head);
 
 
 
@@ -43,6 +42,8 @@ struct AstNode {
 
     std::string to_string();
 };
+
+int yyparse(AstNode* ast_head);
 
 
 
