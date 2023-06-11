@@ -59,7 +59,7 @@ $(TARGET): $(OBJS) $(FLEX_BISON_OBJS)
 	$(CC) $^ -o $@ $(CFLAGS)
 
 test:
-	$(TARGET) test.py
+	$(TARGET) test.py -t
 
 clean:
 	rm -rf $(BUILD_DIR)
