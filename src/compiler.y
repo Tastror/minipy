@@ -17,19 +17,9 @@ void yyerror(AstNode* ast_head, char* msg);
 #include "../src/lexer.h"
 #include "../src/parser.h"
 
-struct s_t {
+union s_t {
     Token* token_ptr;
     AstNode* astnode_ptr;
-    s_t() {
-        token_ptr = nullptr;
-        astnode_ptr = nullptr;
-    };
-    ~s_t() {};
-    s_t& operator=(const s_t& other) {
-        this->token_ptr = other.token_ptr;
-        this->astnode_ptr = other.astnode_ptr;
-        return *this;
-    }
 };
 
 typedef s_t YYSTYPE;
