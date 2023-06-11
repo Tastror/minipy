@@ -14,10 +14,19 @@
 ## build
 
 ```shell
+make clean
 make
 ```
 
 ## run
+
+use demo `test.py`, see res in `log.txt`
+
+```shell
+make test  # or `make noshow` if you do not want to print in shell
+```
+
+or use what you like
 
 ```shell
 # show help

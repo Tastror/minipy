@@ -112,6 +112,7 @@ int main(int argc, char** argv) {
         Logger.add_temp_output_file(debug_file);
     Logger << cmd_print;
     
+    Logger << Log::debug << "shell_config.detail_message() begin" << Log::endl;
     Logger << Log::std << shell_config.detail_message() << Log::endl;
 
     Logger.del_all_temp_output_file();
@@ -145,7 +146,16 @@ int main(int argc, char** argv) {
     Logger << Log::std << "-> lexing & parsing done" << Log::endl;
 
 
-    // use ast_head next
+
+
+
+    // <<< 4 & 5 >>>
+
+    // syntax & optimize
+
+    ast_head = nullptr;
+
+
 
     return 0;
 }
