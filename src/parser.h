@@ -42,11 +42,11 @@ struct AstNode {
 
     AstNode* eat(AstNode* son);
     AstNode* give(AstNode* mother);
-    
+
     std::string to_string();
 };
 
-int yyparse(AstNode* ast_head);
+int yyparse(AstNode*& ast_head);
 
 
 

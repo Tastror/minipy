@@ -108,9 +108,9 @@ int main(int argc, char** argv) {
     Logger << Log::to_stdout_and_file;
 
     yyin = input_file_ptr;
-    auto ast_head = std::make_shared<AstNode>();
-    yyparse(ast_head.get());
-    log_ast(ast_head.get());
+    auto ast_head = make_astnode();
+    yyparse(ast_head);
+    log_ast(ast_head);
 
     Logger.del_all_temp_output_file();
     Logger << Log::to_stdout_and_file;

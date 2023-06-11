@@ -8,7 +8,7 @@
 #include "../src/lexer.h"
 #include "../src/parser.h"
 
-void yyerror(AstNode* ast_head, char* msg);
+void yyerror(AstNode*& ast_head, char* msg);
 %}
 
 %code requires {
@@ -28,7 +28,7 @@ typedef s_t YYSTYPE;
 
 }
 
-%parse-param {AstNode* ast_head}
+%parse-param {AstNode*& ast_head}
 
 %start file
 
@@ -166,7 +166,7 @@ ast_error : t_error
 
 %%
 
-void yyerror(AstNode* ast_head, char* msg)
+void yyerror(AstNode*& ast_head, char* msg)
 {
     Logger << Log::error
         << "line " << yylineno << ", column " << yycolumnno - last_string_length
