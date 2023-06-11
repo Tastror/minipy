@@ -73,7 +73,8 @@ typedef s_t YYSTYPE;
 
 file : statement
             {
-                ast_head = $1;
+                ast_head = make_astnode();
+                ast_head->eat($1);
                 ast_head->type = astnode_type::file;
             }
 
@@ -188,6 +189,13 @@ ast_error : t_error
                     ) {
                         use_tab = true;
                         block_depth_cell = $$->token_leaf.content.indent_num.tab_num;
+                    } else if (
+                        $$->token_leaf.content.indent_num.space_num == 0 &&
+                        $$->token_leaf.content.indent_num.tab_num == 0
+                    ) {
+                        yyerror(ast_head, "WTF to get here");
+                        use_tab = false;
+                        block_depth_cell = 4;
                     }
                 } else {
                     if (
@@ -221,6 +229,8 @@ ast_error : t_error
         | t_newline
             {
                 LOG_ASTNODE("t_newline");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
                 now_block_depth = 0;
             }
 
