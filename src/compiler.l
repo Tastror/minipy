@@ -68,6 +68,24 @@ std::stringstream debug_ss;
     SAME_LINE_COLUMN_UPDATE; \
 } while(0)
 
+#define BRACKET_TOKEN_GEN do { \
+    yylval.token_ptr = make_token(); \
+    yylval.token_ptr->type = token_type::bracket; \
+    yylval.token_ptr->content.name = std::string(yytext); \
+    SET_TOKEN_LINE_COLUMN; \
+    LOG_TOKEN("bracket"); \
+    SAME_LINE_COLUMN_UPDATE; \
+} while(0)
+
+#define DELIMITER_TOKEN_GEN do { \
+    yylval.token_ptr = make_token(); \
+    yylval.token_ptr->type = token_type::delimiter; \
+    yylval.token_ptr->content.name = std::string(yytext); \
+    SET_TOKEN_LINE_COLUMN; \
+    LOG_TOKEN("delimiter"); \
+    SAME_LINE_COLUMN_UPDATE; \
+} while(0)
+
 %}
 
 %option warn nodefault noyywrap yylineno case-sensitive pointer
@@ -116,6 +134,20 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 \/          { OPERATOR_TOKEN_GEN; return t_operators_div; }
 %           { OPERATOR_TOKEN_GEN; return t_operators_mod; }
 =           { OPERATOR_TOKEN_GEN; return t_operators_assign; }
+
+\(          { BRACKET_TOKEN_GEN; return t_bracket_parentheses_l; }
+\)          { BRACKET_TOKEN_GEN; return t_bracket_parentheses_r; }
+\[          { BRACKET_TOKEN_GEN; return t_bracket_square_l; }
+\]          { BRACKET_TOKEN_GEN; return t_bracket_square_r; }
+\{          { BRACKET_TOKEN_GEN; return t_bracket_curly_l; }
+\}          { BRACKET_TOKEN_GEN; return t_bracket_curly_r; }
+\"          { BRACKET_TOKEN_GEN; return t_bracket_apostrophe; }
+\'          { BRACKET_TOKEN_GEN; return t_bracket_dquotes; }
+
+,           { DELIMITER_TOKEN_GEN; return t_delimiter_comma; }
+:           { DELIMITER_TOKEN_GEN; return t_delimiter_colon; }
+->          { DELIMITER_TOKEN_GEN; return t_delimiter_arrow; }
+\;          { DELIMITER_TOKEN_GEN; return t_delimiter_semicolon; }
 
 def         {
                 yylval.token_ptr = make_token();

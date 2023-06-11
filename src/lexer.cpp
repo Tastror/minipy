@@ -28,6 +28,7 @@ std::string std::to_string(token_type tt) {
         case token_type::integer: return "integer";
         case token_type::floats: return "floats";
         case token_type::operators: return "operators";
+        case token_type::bracket: return "bracket";
         case token_type::delimiter: return "delimiter";
         case token_type::keyword: return "keyword"; 
         case token_type::indent: return "indent";
@@ -74,6 +75,7 @@ Token::Token(const Token& other) {
         break;
     case token_type::identifier:
     case token_type::operators:
+    case token_type::bracket:
     case token_type::delimiter:
     case token_type::keyword:
         this->content.name = other.content.name;
@@ -84,33 +86,6 @@ Token::Token(const Token& other) {
         break;
     case token_type::indent:
         this->content.indent_num = other.content.indent_num;
-        break;
-    }
-}
-
-Token::Token(Token&& other) {
-    this->type = std::move(other.type);
-    this->lineno = std::move(other.lineno);
-    this->columnno = std::move(other.columnno);
-    switch (other.type) {
-    case token_type::newline:
-        this->content.no = std::move(other.content.no);
-        break;
-    case token_type::error:
-        this->content.message = std::move(other.content.message);
-        break;
-    case token_type::identifier:
-    case token_type::operators:
-    case token_type::delimiter:
-    case token_type::keyword:
-        this->content.name = std::move(other.content.name);
-        break;
-    case token_type::integer:
-    case token_type::floats:
-        this->content.data = std::move(other.content.data);
-        break;
-    case token_type::indent:
-        this->content.indent_num = std::move(other.content.indent_num);
         break;
     }
 }
@@ -128,6 +103,7 @@ Token& Token::operator=(Token&& other) {
         break;
     case token_type::identifier:
     case token_type::operators:
+    case token_type::bracket:
     case token_type::delimiter:
     case token_type::keyword:
         this->content.name = std::move(other.content.name);
@@ -141,6 +117,10 @@ Token& Token::operator=(Token&& other) {
         break;
     }
     return *this;
+}
+
+Token::Token(Token&& other) {
+    *this = std::move(other);
 }
 
 Token& Token::operator=(const Token& other) {
@@ -163,6 +143,7 @@ std::string Token::to_string() {
         break;
     case token_type::identifier:
     case token_type::operators:
+    case token_type::bracket:
     case token_type::delimiter:
     case token_type::keyword:
         res += this->content.name;

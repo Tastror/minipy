@@ -18,7 +18,7 @@ extern std::string last_string;
 // type to_string and to_num
 
 enum class token_type {
-    error, identifier, integer, floats, operators, delimiter, keyword, indent, newline,
+    error, identifier, integer, floats, operators, bracket, delimiter, keyword, indent, newline,
 };
 
 namespace std {

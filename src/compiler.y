@@ -56,6 +56,20 @@ typedef s_t YYSTYPE;
 %token <token_ptr> t_operators_mod
 %token <token_ptr> t_operators_assign
 
+%token <token_ptr> t_bracket_parentheses_l
+%token <token_ptr> t_bracket_parentheses_r
+%token <token_ptr> t_bracket_square_l
+%token <token_ptr> t_bracket_square_r
+%token <token_ptr> t_bracket_curly_l
+%token <token_ptr> t_bracket_curly_r
+%token <token_ptr> t_bracket_apostrophe
+%token <token_ptr> t_bracket_dquotes
+
+%token <token_ptr> t_delimiter_comma
+%token <token_ptr> t_delimiter_colon
+%token <token_ptr> t_delimiter_arrow
+%token <token_ptr> t_delimiter_semicolon
+
 %token <token_ptr> t_keyword_def
 
 %token <token_ptr> t_delimiter
@@ -232,6 +246,78 @@ ast_error : t_error
                 $$ = make_astnode();
                 $$->type = astnode_type::error;
                 now_block_depth = 0;
+            }
+        | t_bracket_parentheses_l
+            {
+                LOG_ASTNODE("t");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
+            }
+        | t_bracket_parentheses_r
+            {
+                LOG_ASTNODE("t");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
+            }
+        | t_bracket_square_l
+            {
+                LOG_ASTNODE("t");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
+            }
+        | t_bracket_square_r
+            {
+                LOG_ASTNODE("t");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
+            }
+        | t_bracket_curly_l
+            {
+                LOG_ASTNODE("t");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
+            }
+        | t_bracket_curly_r
+            {
+                LOG_ASTNODE("t");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
+            }
+        | t_bracket_apostrophe
+            {
+                LOG_ASTNODE("t");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
+            }
+        | t_bracket_dquotes
+            {
+                LOG_ASTNODE("t");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
+            }
+        | t_delimiter_comma
+            {
+                LOG_ASTNODE("t");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
+            }
+        | t_delimiter_colon
+            {
+                LOG_ASTNODE("t");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
+            }
+        | t_delimiter_arrow
+            {
+                LOG_ASTNODE("t");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
+            }
+        | t_delimiter_semicolon
+            {
+                LOG_ASTNODE("t");
+                $$ = make_astnode();
+                $$->type = astnode_type::error;
             }
 
 %%
