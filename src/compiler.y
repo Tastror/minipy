@@ -33,6 +33,8 @@ int now_block_depth = 0;
     node = make_astnode(); \
     node->type = astnode_type::error; \
 } while(0)
+
+#define IDN(node) node->token_leaf.content.indent_num
 }
 
 %union {
@@ -205,59 +207,43 @@ ast_error : t_error
 
                 if (!block_depth_init) {
                     block_depth_init = true;
-                    if (
-                        $$->token_leaf.content.indent_num.space_num != 0 &&
-                        $$->token_leaf.content.indent_num.tab_num != 0
-                    ) {
+                    if (IDN($$).space_num != 0 && IDN($$).tab_num != 0) {
                         yyerror(ast_head, "mix space and tab together");
+                        block_depth_init = false;  // reinit next time
+                    }
+                    else if (IDN($$).space_num != 0 &&IDN($$).tab_num == 0) {
                         use_tab = false;
-                        block_depth_cell = 4;
-                    } else if (
-                        $$->token_leaf.content.indent_num.space_num != 0 &&
-                        $$->token_leaf.content.indent_num.tab_num == 0
-                    ) {
-                        use_tab = false;
-                        block_depth_cell = $$->token_leaf.content.indent_num.space_num;
-                    } else if (
-                        $$->token_leaf.content.indent_num.space_num == 0 &&
-                        $$->token_leaf.content.indent_num.tab_num != 0
-                    ) {
+                        block_depth_cell = IDN($$).space_num;
+                        IDN($$).valid_depth = now_block_depth = 1;
+                    }
+                    else if (IDN($$).space_num == 0 && IDN($$).tab_num != 0) {
                         use_tab = true;
-                        block_depth_cell = $$->token_leaf.content.indent_num.tab_num;
-                    } else if (
-                        $$->token_leaf.content.indent_num.space_num == 0 &&
-                        $$->token_leaf.content.indent_num.tab_num == 0
-                    ) {
-                        yyerror(ast_head, "WTF to get here");
-                        use_tab = false;
-                        block_depth_cell = 4;
+                        block_depth_cell = IDN($$).tab_num;
+                        IDN($$).valid_depth = now_block_depth = 1;
+                    }
+                    else {
+                        yyerror(ast_head, "!!! you cannot get here, unless your lex for t_indent is wrong !!!");
                     }
                 } else {
-                    if (
-                        $$->token_leaf.content.indent_num.space_num != 0 &&
-                        $$->token_leaf.content.indent_num.tab_num != 0
-                    ) {
+                    if (IDN($$).space_num != 0 && IDN($$).tab_num != 0) {
                         yyerror(ast_head, "mix space and tab together");
-                    } else if (
+                    }
+                    else if (
                         !use_tab &&
-                        $$->token_leaf.content.indent_num.space_num != 0 &&
-                        $$->token_leaf.content.indent_num.tab_num == 0 &&
-                        $$->token_leaf.content.indent_num.space_num % block_depth_cell == 0
+                        IDN($$).space_num != 0 && IDN($$).tab_num == 0 &&
+                        IDN($$).space_num % block_depth_cell == 0
                     ) {
-                        now_block_depth =
-                            $$->token_leaf.content.indent_num.space_num /
-                            block_depth_cell;
-                    } else if (
+                        IDN($$).valid_depth = now_block_depth = IDN($$).space_num / block_depth_cell;
+                    }
+                    else if (
                         use_tab &&
-                        $$->token_leaf.content.indent_num.space_num == 0 &&
-                        $$->token_leaf.content.indent_num.tab_num != 0 &&
-                        $$->token_leaf.content.indent_num.tab_num % block_depth_cell == 0
+                        IDN($$).space_num == 0 && IDN($$).tab_num != 0 &&
+                        IDN($$).tab_num % block_depth_cell == 0
                     ) {
-                        now_block_depth =
-                            $$->token_leaf.content.indent_num.tab_num /
-                            block_depth_cell;
-                    } else {
-                        yyerror(ast_head, "unindent does not match any outer indentation level");
+                        IDN($$).valid_depth = now_block_depth = IDN($$).tab_num / block_depth_cell;
+                    }
+                    else {
+                        yyerror(ast_head, "!!! you cannot get here, unless your lex for t_indent is wrong !!!");
                     }
                 }
             }

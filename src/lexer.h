@@ -47,6 +47,7 @@ struct Token {
         struct indent_num_t {
             uint64_t space_num;
             uint64_t tab_num;
+            uint64_t valid_depth;
         } indent_num;  // indent
 
         union data_t {
