@@ -136,9 +136,15 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 return t_newline;
             }
 
-<NEW_LINE_COUNT>{new_line} {
+<NEW_LINE_COUNT>({space}|{tab})*{new_line} {
                 NEW_LINE_COLUMN_UPDATE;
                 return t_newline;
+            }
+
+<NEW_LINE_COUNT>({space}|{tab})*[#] {
+                LOG_TOKEN("comment start sharp");
+                SAME_LINE_COLUMN_UPDATE;
+                BEGIN(LINE_COMMENT);
             }
 
 <NEW_LINE_COUNT>({space}|{tab})+ {
