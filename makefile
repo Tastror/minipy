@@ -9,15 +9,15 @@ BUILD_DIR = build
 DEBUG_DIR = debug
 
 TARGET_FILE = compiler.exe
-SRC_FILES = compiler.cpp color.cpp common.cpp log.cpp shell.cpp lexer.cpp parser.cpp
+SRC_FILES = compiler.cpp common.cpp log.cpp shell.cpp lexer.cpp parser.cpp
 
 TARGET = $(BUILD_DIR)/$(TARGET_FILE)
 SRCS = $(addprefix $(SOURCE_DIR)/, $(SRC_FILES))
 OBJS = $(addprefix $(BUILD_DIR)/, $(SRC_FILES:.cpp=.o))
 
 
-FLEX_FILE_NAME = compiler.l
-BISON_FILE_NAME = compiler.y
+FLEX_FILE_NAME = lexer.l
+BISON_FILE_NAME = parser.y
 FLEX_FILE = $(SOURCE_DIR)/$(FLEX_FILE_NAME)
 BISON_FILE = $(SOURCE_DIR)/$(BISON_FILE_NAME)
 
