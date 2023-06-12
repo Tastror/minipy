@@ -195,13 +195,20 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 return t_floats;
             }
 
-_           { DELIMITER_TOKEN_GEN; return t_underline; }
-
 ,           { DELIMITER_TOKEN_GEN; return t_delimiter_comma; }
 :           { DELIMITER_TOKEN_GEN; return t_delimiter_colon; }
 ->          { DELIMITER_TOKEN_GEN; return t_delimiter_arrow; }
 \;          { DELIMITER_TOKEN_GEN; return t_delimiter_comma; }
 \.          { DELIMITER_TOKEN_GEN; return t_delimiter_dot; }
+
+\"          { BRACKET_TOKEN_GEN; return t_bracket_squotes; }
+\'          { BRACKET_TOKEN_GEN; return t_bracket_dquotes; }
+\(          { BRACKET_TOKEN_GEN; return t_bracket_parentheses_l; }
+\)          { BRACKET_TOKEN_GEN; return t_bracket_parentheses_r; }
+\[          { BRACKET_TOKEN_GEN; return t_bracket_square_l; }
+\]          { BRACKET_TOKEN_GEN; return t_bracket_square_r; }
+\{          { BRACKET_TOKEN_GEN; return t_bracket_curly_l; }
+\}          { BRACKET_TOKEN_GEN; return t_bracket_curly_r; }
 
 \+          { OPERATOR_TOKEN_GEN; return t_operators_add; }
 -           { OPERATOR_TOKEN_GEN; return t_operators_sub; }
@@ -240,15 +247,7 @@ _           { DELIMITER_TOKEN_GEN; return t_underline; }
 [<][<]=     { OPERATOR_TOKEN_GEN; return t_operators_sleft_assign; }
 >>=         { OPERATOR_TOKEN_GEN; return t_operators_sright_assign; }
 
-\"          { BRACKET_TOKEN_GEN; return t_bracket_squotes; }
-\'          { BRACKET_TOKEN_GEN; return t_bracket_dquotes; }
-\(          { BRACKET_TOKEN_GEN; return t_bracket_parentheses_l; }
-\)          { BRACKET_TOKEN_GEN; return t_bracket_parentheses_r; }
-\[          { BRACKET_TOKEN_GEN; return t_bracket_square_l; }
-\]          { BRACKET_TOKEN_GEN; return t_bracket_square_r; }
-\{          { BRACKET_TOKEN_GEN; return t_bracket_curly_l; }
-\}          { BRACKET_TOKEN_GEN; return t_bracket_curly_r; }
-
+_           { KEYWORD_TOKEN_GEN; return t_keyword_underline; }
 None        { KEYWORD_TOKEN_GEN; return t_keyword_None; }
 True        { KEYWORD_TOKEN_GEN; return t_keyword_True; }
 False       { KEYWORD_TOKEN_GEN; return t_keyword_False; }

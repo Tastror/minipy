@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
 
     // <<< 4 & 5 >>>
 
-    // syntax & optimize
+    // semantic & optimize
 
     ast_head = nullptr;
 

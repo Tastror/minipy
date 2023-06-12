@@ -18,7 +18,7 @@ extern std::string last_string;
 // type to_string and to_num
 
 enum class token_type {
-    error, identifier, integer, floats, operators, bracket, delimiter, keyword, indent, newline,
+    error, newline, indent, identifier, integer, floats, rawtext, delimiter, bracket, operators, keyword,
 };
 
 namespace std {
@@ -39,17 +39,22 @@ struct Token {
     uint32_t columnno;
 
     struct content_t {
-        none no;  // <- newline
-        std::string message;  // <- error (error message)
-        std::string name;  // <- identifier, operators, delimiter, keyword
+
+        std::string message;  // error (error message), rawtext (raw text message)
+
+        none no;  // newline
+
         struct indent_num_t {
             uint64_t space_num;
             uint64_t tab_num;
-        } indent_num;  // <- indent
+        } indent_num;  // indent
+
         union data_t {
             int64_t int_num;  
             double double_num;
-        } data;  // <- integer, floats
+        } data;  // integer, floats
+
+        std::string name;  // identifier, delimiter, bracket, operators, keyword
 
         // class with none-trivial union should implement those functions
         content_t();

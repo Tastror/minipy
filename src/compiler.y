@@ -52,15 +52,22 @@ int now_block_depth = 0;
 %token <token_ptr> t_identifier
 %token <token_ptr> t_integer
 %token <token_ptr> t_floats
-%token <token_ptr> t_raw_text  // just for str
-
-%token <token_ptr> t_underline  // _
+%token <token_ptr> t_rawtext  // just for str
 
 %token <token_ptr> t_delimiter_comma        // ,
 %token <token_ptr> t_delimiter_colon        // :
 %token <token_ptr> t_delimiter_arrow        // ->
 %token <token_ptr> t_delimiter_semicolon    // ;
 %token <token_ptr> t_delimiter_dot          // .
+
+%token <token_ptr> t_bracket_squotes
+%token <token_ptr> t_bracket_dquotes
+%token <token_ptr> t_bracket_parentheses_l
+%token <token_ptr> t_bracket_parentheses_r
+%token <token_ptr> t_bracket_square_l
+%token <token_ptr> t_bracket_square_r
+%token <token_ptr> t_bracket_curly_l
+%token <token_ptr> t_bracket_curly_r
 
 %token <token_ptr> t_operators_add      // +
 %token <token_ptr> t_operators_sub      // -
@@ -99,15 +106,7 @@ int now_block_depth = 0;
 %token <token_ptr> t_operators_sleft_assign     // <<=
 %token <token_ptr> t_operators_sright_assign    // >>=
 
-%token <token_ptr> t_bracket_squotes
-%token <token_ptr> t_bracket_dquotes
-%token <token_ptr> t_bracket_parentheses_l
-%token <token_ptr> t_bracket_parentheses_r
-%token <token_ptr> t_bracket_square_l
-%token <token_ptr> t_bracket_square_r
-%token <token_ptr> t_bracket_curly_l
-%token <token_ptr> t_bracket_curly_r
-
+%token <token_ptr> t_keyword_underline  // _
 %token <token_ptr> t_keyword_None
 %token <token_ptr> t_keyword_True
 %token <token_ptr> t_keyword_False
@@ -280,18 +279,25 @@ ast_error : t_error
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
-        | t_raw_text
+        | t_rawtext
             {
-                LOG_ASTNODE("t_raw_text");
+                LOG_ASTNODE("t_rawtext");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
-        | t_underline { EMPTY($$); }
         | t_delimiter_comma { EMPTY($$); }
         | t_delimiter_colon { EMPTY($$); }
         | t_delimiter_arrow { EMPTY($$); }
         | t_delimiter_semicolon { EMPTY($$); }
         | t_delimiter_dot { EMPTY($$); }
+        | t_bracket_squotes { EMPTY($$); }
+        | t_bracket_dquotes { EMPTY($$); }
+        | t_bracket_parentheses_l { EMPTY($$); }
+        | t_bracket_parentheses_r { EMPTY($$); }
+        | t_bracket_square_l { EMPTY($$); }
+        | t_bracket_square_r { EMPTY($$); }
+        | t_bracket_curly_l { EMPTY($$); }
+        | t_bracket_curly_r { EMPTY($$); }
         | t_operators_add { EMPTY($$); }
         | t_operators_sub { EMPTY($$); }
         | t_operators_mul { EMPTY($$); }
@@ -327,14 +333,7 @@ ast_error : t_error
         | t_operators_not_assign { EMPTY($$); }
         | t_operators_sleft_assign { EMPTY($$); }
         | t_operators_sright_assign { EMPTY($$); }
-        | t_bracket_squotes { EMPTY($$); }
-        | t_bracket_dquotes { EMPTY($$); }
-        | t_bracket_parentheses_l { EMPTY($$); }
-        | t_bracket_parentheses_r { EMPTY($$); }
-        | t_bracket_square_l { EMPTY($$); }
-        | t_bracket_square_r { EMPTY($$); }
-        | t_bracket_curly_l { EMPTY($$); }
-        | t_bracket_curly_r { EMPTY($$); }
+        | t_keyword_underline { EMPTY($$); }
         | t_keyword_None { EMPTY($$); }
         | t_keyword_True { EMPTY($$); }
         | t_keyword_False { EMPTY($$); }

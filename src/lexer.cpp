@@ -24,15 +24,16 @@ Token* make_token() {
 std::string std::to_string(token_type tt) {
     switch (tt) {
         case token_type::error: return "error";
+        case token_type::newline: return "newline";
+        case token_type::indent: return "indent";
         case token_type::identifier: return "identifier";
         case token_type::integer: return "integer";
         case token_type::floats: return "floats";
-        case token_type::operators: return "operators";
-        case token_type::bracket: return "bracket";
+        case token_type::rawtext: return "rawtext";
         case token_type::delimiter: return "delimiter";
+        case token_type::bracket: return "bracket";
+        case token_type::operators: return "operators";
         case token_type::keyword: return "keyword"; 
-        case token_type::indent: return "indent";
-        case token_type::newline: return "newline";
     }
     return "";
 }
@@ -67,25 +68,26 @@ Token::Token(const Token& other) {
     this->lineno = other.lineno;
     this->columnno = other.columnno;
     switch (other.type) {
+    case token_type::error:
+    case token_type::rawtext:
+        this->content.message = other.content.message;
+        break;
     case token_type::newline:
         this->content.no = other.content.no;
         break;
-    case token_type::error:
-        this->content.message = other.content.message;
-        break;
-    case token_type::identifier:
-    case token_type::operators:
-    case token_type::bracket:
-    case token_type::delimiter:
-    case token_type::keyword:
-        this->content.name = other.content.name;
+    case token_type::indent:
+        this->content.indent_num = other.content.indent_num;
         break;
     case token_type::integer:
     case token_type::floats:
         this->content.data = other.content.data;
         break;
-    case token_type::indent:
-        this->content.indent_num = other.content.indent_num;
+    case token_type::identifier:
+    case token_type::delimiter:
+    case token_type::bracket:
+    case token_type::operators:
+    case token_type::keyword:
+        this->content.name = other.content.name;
         break;
     }
 }
@@ -95,25 +97,26 @@ Token& Token::operator=(Token&& other) {
     this->lineno = std::move(other.lineno);
     this->columnno = std::move(other.columnno);
     switch (other.type) {
+    case token_type::error:
+    case token_type::rawtext:
+        this->content.message = std::move(other.content.message);
+        break;
     case token_type::newline:
         this->content.no = std::move(other.content.no);
         break;
-    case token_type::error:
-        this->content.message = std::move(other.content.message);
-        break;
-    case token_type::identifier:
-    case token_type::operators:
-    case token_type::bracket:
-    case token_type::delimiter:
-    case token_type::keyword:
-        this->content.name = std::move(other.content.name);
+    case token_type::indent:
+        this->content.indent_num = std::move(other.content.indent_num);
         break;
     case token_type::integer:
     case token_type::floats:
         this->content.data = std::move(other.content.data);
         break;
-    case token_type::indent:
-        this->content.indent_num = std::move(other.content.indent_num);
+    case token_type::identifier:
+    case token_type::delimiter:
+    case token_type::bracket:
+    case token_type::operators:
+    case token_type::keyword:
+        this->content.name = std::move(other.content.name);
         break;
     }
     return *this;
@@ -135,18 +138,17 @@ std::string Token::to_string() {
     res += std::to_string(this->lineno) + "-";
     res += std::to_string(this->columnno) + ", ";
     switch (this->type) {
+    case token_type::error:
+    case token_type::rawtext:
+        res += this->content.message;
+        break;
     case token_type::newline:
         res += "token_type::no";
         break;
-    case token_type::error:
-        res += this->content.message;
-        break;
-    case token_type::identifier:
-    case token_type::operators:
-    case token_type::bracket:
-    case token_type::delimiter:
-    case token_type::keyword:
-        res += this->content.name;
+    case token_type::indent:
+        res +=
+            "space: " + std::to_string(this->content.indent_num.space_num) +
+            ", tab: " + std::to_string(this->content.indent_num.tab_num) ;
         break;
     case token_type::integer:
         res += std::to_string(this->content.data.int_num);
@@ -154,8 +156,12 @@ std::string Token::to_string() {
     case token_type::floats:
         res += std::to_string(this->content.data.double_num);
         break;
-    case token_type::indent:
-        res += "space: " + std::to_string(this->content.indent_num.space_num) + ", tab: " + std::to_string(this->content.indent_num.tab_num) ;
+    case token_type::identifier:
+    case token_type::delimiter:
+    case token_type::bracket:
+    case token_type::operators:
+    case token_type::keyword:
+        res += this->content.name;
         break;
     }
     return res;
