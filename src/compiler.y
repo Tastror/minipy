@@ -10,6 +10,7 @@
 #include "../src/parser.h"
 
 void yyerror(AstNode*& ast_head, char* msg);
+void yyerror(AstNode*& ast_head, char* msg, int space_num, int tab_num);
 
 bool block_depth_init = false;
 bool use_tab = false;
@@ -209,7 +210,7 @@ ast_error : t_error
                 if (!block_depth_init) {
                     block_depth_init = true;
                     if (IDN($$).space_num != 0 && IDN($$).tab_num != 0) {
-                        yyerror(ast_head, "mix space and tab together");
+                        yyerror(ast_head, "mix space and tab together", IDN($$).space_num, IDN($$).tab_num);
                         block_depth_init = false;  // reinit next time
                     }
                     else if (IDN($$).space_num != 0 &&IDN($$).tab_num == 0) {
@@ -227,7 +228,7 @@ ast_error : t_error
                     }
                 } else {
                     if (IDN($$).space_num != 0 && IDN($$).tab_num != 0) {
-                        yyerror(ast_head, "mix space and tab together");
+                        yyerror(ast_head, "mix space and tab together", IDN($$).space_num, IDN($$).tab_num);
                     }
                     else if (
                         !use_tab &&
@@ -247,7 +248,7 @@ ast_error : t_error
                         assert(false && "you cannot get here, unless your lex for t_indent is wrong!!!");
                     }
                     else {
-                        yyerror(ast_head, "unindent does not match any outer indentation level");
+                        yyerror(ast_head, "unindent does not match any outer indentation level", IDN($$).space_num, IDN($$).tab_num);
                     }
                 }
             }
@@ -367,4 +368,12 @@ void yyerror(AstNode*& ast_head, char* msg)
         << "line " << yylineno << ", column " << yycolumnno - last_string_length
         << ": '" << last_string << "' " << msg
         << Log::endl;
+}
+
+void yyerror(AstNode*& ast_head, char* msg, int space_num, int tab_num)
+{
+    Logger << Log::error
+        << "line " << yylineno << ", column " << yycolumnno - last_string_length
+        << ": " << space_num << " space(s) and " << tab_num << " tab(s), "
+        << msg << Log::endl;
 }
