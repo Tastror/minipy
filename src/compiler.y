@@ -40,6 +40,9 @@ int now_block_depth = 0;
 
 %token <token_ptr> t_error
 
+%token <token_ptr> t_indent
+%token <token_ptr> t_newline
+
 %token <token_ptr> t_identifier
 %token <token_ptr> t_integer
 %token <token_ptr> t_floats
@@ -99,9 +102,6 @@ int now_block_depth = 0;
 %token <token_ptr> t_bracket_curly_l
 %token <token_ptr> t_bracket_curly_r
 
-%token <token_ptr> t_indent
-%token <token_ptr> t_newline
-
 %token <token_ptr> t_keyword_None
 %token <token_ptr> t_keyword_True
 %token <token_ptr> t_keyword_False
@@ -144,7 +144,7 @@ int now_block_depth = 0;
 
 %token <token_ptr> t_keyword_assert
 
-%token <token_ptr> t_keyword_tastror_out_debug
+%token <token_ptr> t_keyword_tastror_out
 
 
 
@@ -185,71 +185,12 @@ ast_error : t_error
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
-        | t_identifier
+        | t_newline
             {
-                LOG_ASTNODE("t_identifier");
-                $$ = make_astnode_from_token($1);
+                LOG_ASTNODE("t_newline");
+                $$ = make_astnode();
                 $$->type = astnode_type::error;
-            }
-        | t_integer
-            {
-                LOG_ASTNODE("t_integer");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
-            }
-        | t_floats
-            {
-                LOG_ASTNODE("t_floats");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
-            }
-        | t_operators_add
-            {
-                LOG_ASTNODE("t_operators_add");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
-            }
-        | t_operators_sub
-            {
-                LOG_ASTNODE("t_operators_minus");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
-            }
-        | t_operators_mul
-            {
-                LOG_ASTNODE("t_operators_multiply");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
-            }
-        | t_operators_div
-            {
-                LOG_ASTNODE("t_operators_divide");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
-            }
-        | t_operators_mod
-            {
-                LOG_ASTNODE("t_operators_mod");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
-            }
-        | t_operators_assign
-            {
-                LOG_ASTNODE("t_operators_assign");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
-            }
-        | t_keyword_def
-            {
-                LOG_ASTNODE("t_keyword_def");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
-            }
-        | t_delimiter
-            {
-                LOG_ASTNODE("t_delimiter");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
+                now_block_depth = 0;
             }
         | t_indent
             {
@@ -315,12 +256,29 @@ ast_error : t_error
                     }
                 }
             }
-        | t_newline
+        | t_identifier
             {
-                LOG_ASTNODE("t_newline");
-                $$ = make_astnode();
+                LOG_ASTNODE("t_identifier");
+                $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
-                now_block_depth = 0;
+            }
+        | t_integer
+            {
+                LOG_ASTNODE("t_integer");
+                $$ = make_astnode_from_token($1);
+                $$->type = astnode_type::error;
+            }
+        | t_floats
+            {
+                LOG_ASTNODE("t_floats");
+                $$ = make_astnode_from_token($1);
+                $$->type = astnode_type::error;
+            }
+        | t_operators_add
+            {
+                LOG_ASTNODE("t_operators_add");
+                $$ = make_astnode_from_token($1);
+                $$->type = astnode_type::error;
             }
         | t_bracket_parentheses_l
             {
@@ -329,66 +287,6 @@ ast_error : t_error
                 $$->type = astnode_type::error;
             }
         | t_bracket_parentheses_r
-            {
-                LOG_ASTNODE("t");
-                $$ = make_astnode();
-                $$->type = astnode_type::error;
-            }
-        | t_bracket_square_l
-            {
-                LOG_ASTNODE("t");
-                $$ = make_astnode();
-                $$->type = astnode_type::error;
-            }
-        | t_bracket_square_r
-            {
-                LOG_ASTNODE("t");
-                $$ = make_astnode();
-                $$->type = astnode_type::error;
-            }
-        | t_bracket_curly_l
-            {
-                LOG_ASTNODE("t");
-                $$ = make_astnode();
-                $$->type = astnode_type::error;
-            }
-        | t_bracket_curly_r
-            {
-                LOG_ASTNODE("t");
-                $$ = make_astnode();
-                $$->type = astnode_type::error;
-            }
-        | t_bracket_squotes
-            {
-                LOG_ASTNODE("t");
-                $$ = make_astnode();
-                $$->type = astnode_type::error;
-            }
-        | t_bracket_dquotes
-            {
-                LOG_ASTNODE("t");
-                $$ = make_astnode();
-                $$->type = astnode_type::error;
-            }
-        | t_delimiter_comma
-            {
-                LOG_ASTNODE("t");
-                $$ = make_astnode();
-                $$->type = astnode_type::error;
-            }
-        | t_delimiter_colon
-            {
-                LOG_ASTNODE("t");
-                $$ = make_astnode();
-                $$->type = astnode_type::error;
-            }
-        | t_delimiter_arrow
-            {
-                LOG_ASTNODE("t");
-                $$ = make_astnode();
-                $$->type = astnode_type::error;
-            }
-        | t_delimiter_semicolon
             {
                 LOG_ASTNODE("t");
                 $$ = make_astnode();
