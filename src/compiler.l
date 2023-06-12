@@ -141,7 +141,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 \]          { BRACKET_TOKEN_GEN; return t_bracket_square_r; }
 \{          { BRACKET_TOKEN_GEN; return t_bracket_curly_l; }
 \}          { BRACKET_TOKEN_GEN; return t_bracket_curly_r; }
-\"          { BRACKET_TOKEN_GEN; return t_bracket_apostrophe; }
+\"          { BRACKET_TOKEN_GEN; return t_bracket_squotes; }
 \'          { BRACKET_TOKEN_GEN; return t_bracket_dquotes; }
 
 ,           { DELIMITER_TOKEN_GEN; return t_delimiter_comma; }
