@@ -37,12 +37,6 @@ std::stringstream debug_ss;
 
 
 
-#define LOG_TOKEN_ERROR(type_string) do { \
-    Logger << Log::error \
-        << "line " << yylineno << ", column " << yycolumnno \
-        << ": " << type_string << ": " << yytext << Log::endl; \
-} while(0)
-
 #define LOG_TOKEN(type_string) do { \
     Logger << Log::info \
         << "line " << yylineno << ", column " << yycolumnno \
@@ -56,12 +50,18 @@ std::stringstream debug_ss;
         << ", value = " << data << Log::endl; \
 } while(0)
 
-#define LOG_TOKEN_SPACE() do { \
+#define LOG_TOKEN_INDENT() do { \
     Logger << Log::info \
         << "line " << yylineno << ", column " << yycolumnno \
         << ": tab/space after a new line: " \
         << yylval.token_ptr->content.indent_num.space_num << " space(s) and " \
         << yylval.token_ptr->content.indent_num.tab_num << " tab(s)" << Log::endl; \
+} while(0)
+
+#define LOG_TOKEN_ERROR(type_string) do { \
+    Logger << Log::error \
+        << "line " << yylineno << ", column " << yycolumnno \
+        << ": " << type_string << ": " << yytext << Log::endl; \
 } while(0)
 
 
@@ -154,7 +154,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 yylval.token_ptr->content.indent_num.space_num = std::count(temp.begin(), temp.end(), ' ');
                 yylval.token_ptr->content.indent_num.tab_num = std::count(temp.begin(), temp.end(), '\t');
                 SET_TOKEN_LINE_COLUMN;
-                LOG_TOKEN_SPACE();
+                LOG_TOKEN_INDENT();
                 SAME_LINE_COLUMN_UPDATE;
                 BEGIN(INITIAL);
                 return t_indent;
