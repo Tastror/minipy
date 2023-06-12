@@ -15,7 +15,7 @@ TBD
 
 ```shell
 make clean
-make
+make  # or `make building`, since `build` is a dir name here
 ```
 
 ## run
@@ -23,15 +23,14 @@ make
 use demo `test.py`, see res in `log.txt`
 
 ```shell
-make test  # or `make noshow` if you do not want to print in shell
+make help  # --help of this compiler
+make test  # or `make show` if you want to print to terminal colorfully, :)
 ```
 
 or use what you like
 
 ```shell
-# show help
 build/compiler.exe -h
-
-# run, with time count in log.txt
-build/compiler.exe -S test.py -o out.asm --time
+build/compiler.exe test.py -S -o out.asm --time
+...
 ```

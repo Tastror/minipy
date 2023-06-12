@@ -31,9 +31,9 @@ FLEX_BISON_REQUIRES = $(FLEX_GEN_HEAD) $(FLEX_GEN_CPP) $(BISON_GEN_HEAD) $(BISON
 FLEX_BISON_OBJS = $(BUILD_DIR)/$(FLEX_GEN_NAME).o $(BUILD_DIR)/$(BISON_GEN_NAME).o
 
 
-.PHONY: building clean clean-debug
+.PHONY: building help test show alltest clean clean-debug
 
-building: $(DEBUG_DIR) $(BUILD_DIR) $(FLEX_BISON_REQUIRES) $(TARGET)
+building: $(BUILD_DIR) $(FLEX_BISON_REQUIRES) $(TARGET)
 
 $(FLEX_GEN_HEAD): $(FLEX_GEN_CPP)
 $(FLEX_GEN_CPP): $(FLEX_FILE)
@@ -58,11 +58,25 @@ $(BUILD_DIR)/%.o: $(BUILD_DIR)/%.cpp
 $(TARGET): $(OBJS) $(FLEX_BISON_OBJS)
 	$(CC) $^ -o $@ $(CFLAGS)
 
+help:
+	$(TARGET) --help
+
 test:
+	$(TARGET) test.py --time
+
+show:
 	$(TARGET) test.py --time --show
 
-noshow:
-	$(TARGET) test.py --time
+alltest: $(DEBUG_DIR)
+	$(TARGET) test.py --time -dshell $(DEBUG_DIR)/1_shell.txt
+	$(TARGET) test.py --time -dlex $(DEBUG_DIR)/2_lex.txt
+	$(TARGET) test.py --time -dparse $(DEBUG_DIR)/3_parse.txt
+	$(TARGET) test.py --time -dast $(DEBUG_DIR)/4_ast.txt
+	$(TARGET) test.py --time -dsym $(DEBUG_DIR)/5_sym.txt
+	$(TARGET) test.py --time -dir $(DEBUG_DIR)/6_ir.txt
+	$(TARGET) test.py --time -dcfg $(DEBUG_DIR)/7_cfg.txt
+	$(TARGET) test.py --time -dasm $(DEBUG_DIR)/8_asm.txt
+	$(TARGET) test.py --time -S
 
 clean:
 	rm -rf $(BUILD_DIR)

@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
     Logger << Log::info << "other information will output to log.txt" << Log::endl;
     Logger << Log::std << "|begin| -> shell parsing begin" << Log::endl;
 
-    // input (.py), output (.s) and debug file (.txt / .png)
+    // input (.py), output (.s) and debug file (.txt)
     FILE* input_file_ptr;
     std::ofstream output_file;
     std::ofstream debug_file;
@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
 
     if (shell_config.is_flag_occured(flags::assembly)) {
         std::string output_filename = shell_config.get_flag_arg(flags::out);
-        if (output_filename == "") output_filename = "debug/out.s";
+        if (output_filename == "") output_filename = "out.s";
         output_file.open(output_filename);
         if (!output_file.is_open()) {
             Logger << Log::error << "output file '" << output_filename << "' cannot open" << Log::endl;
@@ -91,12 +91,7 @@ int main(int argc, char** argv) {
     if (shell_config.is_flag_occured(flags::debug) && shell_config.debug_type() != debug::none) {
         std::string debug_filename = shell_config.get_normal_input(1);
         if (debug_filename == "") {
-            debug_filename = "debug/" + shell_config.get_flag_arg(flags::debug);
-            if (shell_config.debug_type() == debug::ast_graph || shell_config.debug_type() == debug::control_graph) {
-                debug_filename += ".png";
-            } else {
-                debug_filename += ".txt";
-            }
+            debug_filename = "debug/" + shell_config.get_flag_arg(flags::debug) + ".txt";
         }
         debug_file.open(debug_filename);
         if (!debug_file.is_open()) {
@@ -143,14 +138,26 @@ int main(int argc, char** argv) {
     yyin = input_file_ptr;
     Logger << Log::debug << "yyparse begin" << Log::endl;
     yyparse(ast_head);
-    Logger << Log::debug << "log_ast begin" << Log::endl;
-    log_ast(ast_head);
 
     // end debug print
     Logger.del_all_temp_output_file();
     Logger << Log::to_stdout_and_file;
 
     Logger << Log::std << "           lexing & parsing done -> |end|" << Log::endl;
+
+
+
+    // begin debug print
+    if (shell_config.debug_type() == debug::ast) 
+        Logger.add_temp_output_file(debug_file);
+    Logger << cmd_print;
+
+    Logger << Log::debug << "log_ast begin" << Log::endl;
+    log_ast(ast_head);
+
+    // end debug print
+    Logger.del_all_temp_output_file();
+    Logger << Log::to_stdout_and_file;
 
 
 

@@ -87,17 +87,17 @@ use
 to run,
 
 such as
-    compiler mytest.py -d ast ast.png -S -o result.s -O2 --time --show
+    compiler test.py -d ast -S -o debug/result.s -O2 --time --show
 
 specifically,
     '<input_file>':                         input filename
     '-h' can be replaced by '--help':       show help menu
     '-d' can be replaced by '--debug':      choose a debug mode
-        '<debug_mode>' can be:              shell, lex, parse, ast, sym, ir, cfg, asm
-        '<debug_file>':                     debug mode output filename
+        '<debug_mode>' can be:              shell, lex, parse, ast, sym, ir, cfg, asm (lex == parse)
+        '<debug_file>':                     debug output filename, default is "debug/<debug_mode>.txt"
     '-S' can be replaced by '--assembly':   whether to assembly
         '-o' can be replaced by '--out':    next add assembly output filename
-        '<output_file>':                    assembly output filename
+        '<output_file>':                    assembly output filename, default is "out.s"
     '-O' can be replaced by '--optimize':   optimize option (-O1, -O 1, --optimize 1)
     '-t' can be replaced by '--time':       log time or not
     '-s' can be replaced by '--show':       log on std & file or just file
@@ -119,7 +119,7 @@ debug ShellConfig::debug_type() {
     } else if (type_str == "parse") {
         return debug::parse;
     } else if (type_str == "ast") {
-        return debug::ast_graph;
+        return debug::ast;
     } else if (type_str == "sym") {
         return debug::symbol;
     } else if (type_str == "ir") {
