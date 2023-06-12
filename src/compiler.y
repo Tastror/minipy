@@ -1,6 +1,7 @@
 %{
 #include <string>
 #include <memory>
+#include <cassert>
 
 #include "compiler_flex.h"
 #include "../src/common.h"
@@ -222,7 +223,7 @@ ast_error : t_error
                         IDN($$).valid_depth = now_block_depth = 1;
                     }
                     else {
-                        yyerror(ast_head, "!!! you cannot get here, unless your lex for t_indent is wrong !!!");
+                        assert(false && "you cannot get here, unless your lex for t_indent is wrong!!!");
                     }
                 } else {
                     if (IDN($$).space_num != 0 && IDN($$).tab_num != 0) {
@@ -242,8 +243,11 @@ ast_error : t_error
                     ) {
                         IDN($$).valid_depth = now_block_depth = IDN($$).tab_num / block_depth_cell;
                     }
+                    else if (IDN($$).space_num == 0 && IDN($$).tab_num == 0) {
+                        assert(false && "you cannot get here, unless your lex for t_indent is wrong!!!");
+                    }
                     else {
-                        yyerror(ast_head, "!!! you cannot get here, unless your lex for t_indent is wrong !!!");
+                        yyerror(ast_head, "unindent does not match any outer indentation level");
                     }
                 }
             }
