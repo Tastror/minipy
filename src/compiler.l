@@ -136,6 +136,11 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 return t_newline;
             }
 
+<NEW_LINE_COUNT>{new_line} {
+                NEW_LINE_COLUMN_UPDATE;
+                return t_newline;
+            }
+
 <NEW_LINE_COUNT>({space}|{tab})+ {
                 yylval.token_ptr = make_token();
                 yylval.token_ptr->type = token_type::indent;
@@ -147,11 +152,6 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 SAME_LINE_COLUMN_UPDATE;
                 BEGIN(INITIAL);
                 return t_indent;
-            }
-
-<NEW_LINE_COUNT>{new_line} {
-                NEW_LINE_COLUMN_UPDATE;
-                return t_newline;
             }
 
 <NEW_LINE_COUNT>. {

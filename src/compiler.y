@@ -27,6 +27,12 @@ int now_block_depth = 0;
 
 #define LOG_ASTNODE(type_string) \
     do { Logger << Log::info << "astnode: " << type_string << Log::endl; } while(0)
+
+#define EMPTY(node) do { \
+    LOG_ASTNODE("empty"); \
+    node = make_astnode(); \
+    node->type = astnode_type::error; \
+} while(0)
 }
 
 %union {
@@ -40,8 +46,8 @@ int now_block_depth = 0;
 
 %token <token_ptr> t_error
 
-%token <token_ptr> t_indent
 %token <token_ptr> t_newline
+%token <token_ptr> t_indent
 
 %token <token_ptr> t_identifier
 %token <token_ptr> t_integer
@@ -274,24 +280,95 @@ ast_error : t_error
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
-        | t_operators_add
+        | t_raw_text
             {
-                LOG_ASTNODE("t_operators_add");
+                LOG_ASTNODE("t_raw_text");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
-        | t_bracket_parentheses_l
-            {
-                LOG_ASTNODE("t");
-                $$ = make_astnode();
-                $$->type = astnode_type::error;
-            }
-        | t_bracket_parentheses_r
-            {
-                LOG_ASTNODE("t");
-                $$ = make_astnode();
-                $$->type = astnode_type::error;
-            }
+        | t_underline { EMPTY($$); }
+        | t_delimiter_comma { EMPTY($$); }
+        | t_delimiter_colon { EMPTY($$); }
+        | t_delimiter_arrow { EMPTY($$); }
+        | t_delimiter_semicolon { EMPTY($$); }
+        | t_delimiter_dot { EMPTY($$); }
+        | t_operators_add { EMPTY($$); }
+        | t_operators_sub { EMPTY($$); }
+        | t_operators_mul { EMPTY($$); }
+        | t_operators_div { EMPTY($$); }
+        | t_operators_ediv { EMPTY($$); }
+        | t_operators_mod { EMPTY($$); }
+        | t_operators_pow { EMPTY($$); }
+        | t_operators_at { EMPTY($$); }
+        | t_operators_and { EMPTY($$); }
+        | t_operators_or { EMPTY($$); }
+        | t_operators_xor { EMPTY($$); }
+        | t_operators_not { EMPTY($$); }
+        | t_operators_sleft { EMPTY($$); }
+        | t_operators_sright { EMPTY($$); }
+        | t_operators_eq { EMPTY($$); }
+        | t_operators_neq { EMPTY($$); }
+        | t_operators_leq { EMPTY($$); }
+        | t_operators_geq { EMPTY($$); }
+        | t_operators_lt { EMPTY($$); }
+        | t_operators_gt { EMPTY($$); }
+        | t_operators_assign { EMPTY($$); }
+        | t_operators_add_assign { EMPTY($$); }
+        | t_operators_sub_assign { EMPTY($$); }
+        | t_operators_mul_assign { EMPTY($$); }
+        | t_operators_div_assign { EMPTY($$); }
+        | t_operators_ediv_assign { EMPTY($$); }
+        | t_operators_mod_assign { EMPTY($$); }
+        | t_operators_pow_assign { EMPTY($$); }
+        | t_operators_at_assign { EMPTY($$); }
+        | t_operators_and_assign { EMPTY($$); }
+        | t_operators_or_assign { EMPTY($$); }
+        | t_operators_xor_assign { EMPTY($$); }
+        | t_operators_not_assign { EMPTY($$); }
+        | t_operators_sleft_assign { EMPTY($$); }
+        | t_operators_sright_assign { EMPTY($$); }
+        | t_bracket_squotes { EMPTY($$); }
+        | t_bracket_dquotes { EMPTY($$); }
+        | t_bracket_parentheses_l { EMPTY($$); }
+        | t_bracket_parentheses_r { EMPTY($$); }
+        | t_bracket_square_l { EMPTY($$); }
+        | t_bracket_square_r { EMPTY($$); }
+        | t_bracket_curly_l { EMPTY($$); }
+        | t_bracket_curly_r { EMPTY($$); }
+        | t_keyword_None { EMPTY($$); }
+        | t_keyword_True { EMPTY($$); }
+        | t_keyword_False { EMPTY($$); }
+        | t_keyword_and { EMPTY($$); }
+        | t_keyword_or { EMPTY($$); }
+        | t_keyword_not { EMPTY($$); }
+        | t_keyword_is { EMPTY($$); }
+        | t_keyword_in { EMPTY($$); }
+        | t_keyword_pass { EMPTY($$); }
+        | t_keyword_def { EMPTY($$); }
+        | t_keyword_return { EMPTY($$); }
+        | t_keyword_yield { EMPTY($$); }
+        | t_keyword_class { EMPTY($$); }
+        | t_keyword_lambda { EMPTY($$); }
+        | t_keyword_if { EMPTY($$); }
+        | t_keyword_else { EMPTY($$); }
+        | t_keyword_elif { EMPTY($$); }
+        | t_keyword_for { EMPTY($$); }
+        | t_keyword_break { EMPTY($$); }
+        | t_keyword_continue { EMPTY($$); }
+        | t_keyword_match { EMPTY($$); }
+        | t_keyword_case { EMPTY($$); }
+        | t_keyword_global { EMPTY($$); }
+        | t_keyword_nonlocal { EMPTY($$); }
+        | t_keyword_del { EMPTY($$); }
+        | t_keyword_import { EMPTY($$); }
+        | t_keyword_from { EMPTY($$); }
+        | t_keyword_as { EMPTY($$); }
+        | t_keyword_raise { EMPTY($$); }
+        | t_keyword_try { EMPTY($$); }
+        | t_keyword_except { EMPTY($$); }
+        | t_keyword_finally { EMPTY($$); }
+        | t_keyword_assert { EMPTY($$); }
+        | t_keyword_tastror_out { EMPTY($$); }
 
 %%
 
