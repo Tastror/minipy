@@ -93,7 +93,7 @@ specifically,
     '<input_file>':                         input filename
     '-h' can be replaced by '--help':       show help menu
     '-d' can be replaced by '--debug':      choose a debug mode
-        '<debug_mode>' can be:              shell, lex, parse, ast, sym, ir, cfg, asm (lex == parse)
+        '<debug_mode>' can be:              shell, lex, parse, ast, sym, ir, cfg, asm (parse == ast)
         '<debug_file>':                     debug output filename, default is "debug/<debug_mode>.txt"
     '-S' can be replaced by '--assembly':   whether to assembly
         '-o' can be replaced by '--out':    next add assembly output filename

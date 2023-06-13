@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
     Logger << Log::std << "|begin| -> lexing & parsing begin" << Log::endl;
 
     // begin debug print
-    if (shell_config.debug_type() == debug::lex || shell_config.debug_type() == debug::parse) 
+    if (shell_config.debug_type() == debug::lex) 
         Logger.add_temp_output_file(debug_file);
     Logger << cmd_print;
 
@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
 
 
     // begin debug print
-    if (shell_config.debug_type() == debug::ast) 
+    if (shell_config.debug_type() == debug::parse || shell_config.debug_type() == debug::ast) 
         Logger.add_temp_output_file(debug_file);
     Logger << cmd_print;
 
