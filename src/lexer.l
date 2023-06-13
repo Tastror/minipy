@@ -48,7 +48,7 @@ struct BlockCell {
     }
     // check whether_use_tab(num) == whether_use_tab(use_tab) first
     // -1: not valid
-    bool get_absolute_depth(int num) {
+    int get_absolute_depth(int num) {
         if (total_num == num) return total_depth;
         if (num == 0) return 0;
         int res = 0;
@@ -273,7 +273,9 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                         (block_depth_cell.use_tab && IDN.space_num == 0 && IDN.tab_num != 0)
                     ) {
                         int num = block_depth_cell.use_tab ? IDN.tab_num : IDN.space_num;
-                        if (num > block_depth_cell.total_num) {
+                        if (num == block_depth_cell.total_num) {
+                            IDN.absolute_depth = block_depth_cell.total_depth;
+                        } else if (num > block_depth_cell.total_num) {
                             block_depth_cell.add(num - block_depth_cell.total_num);
                             IDN.absolute_depth = block_depth_cell.total_depth;
                         } else {
