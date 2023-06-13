@@ -1,4 +1,5 @@
 %{
+
 #include <iostream>
 #include <string>
 #include <memory>
@@ -69,16 +70,9 @@ Token* last_ptr = nullptr;
 
 #define YY_USER_INIT { BEGIN(NEW_LINE_COUNT); }
 
+#define IDN yylval.token_ptr->content.indent_num
 
 
-#define SAME_LINE_COLUMN_UPDATE \
-    do { last_string = std::string(yytext); last_string_length = last_string.size(); yycolumnno += last_string.size(); } while(0)
-
-#define NEW_LINE_COLUMN_UPDATE \
-    do { last_string = std::string("\n"); last_string_length = 1; yycolumnno = 1; } while(0)
-
-#define EOF_COLUMN_UPDATE \
-    do { last_string = std::string(); last_string_length = 0; } while(0)
 
 #define SET_TOKEN_LINE_COLUMN do { \
     yylval.token_ptr->lineno = yylineno; \
@@ -86,8 +80,6 @@ Token* last_ptr = nullptr;
 } while(0)
 
 
-
-#define IDN yylval.token_ptr->content.indent_num
 
 #define LOG_TOKEN(type_string) do { \
     Logger << Log::info \
@@ -100,6 +92,12 @@ Token* last_ptr = nullptr;
         << "line " << yylineno << ", column " << yycolumnno \
         << ": " << type_string << ": " << yytext \
         << ", value = " << data << Log::endl; \
+} while(0)
+
+#define LOG_TOKEN_NEWLINE() do { \
+    Logger << Log::info \
+        << "line " << yylineno << ", column " << yycolumnno \
+        << ": newline" << Log::endl; \
 } while(0)
 
 #define LOG_TOKEN_DENT() do { \
@@ -136,6 +134,17 @@ Token* last_ptr = nullptr;
 
 
 
+#define SAME_LINE_COLUMN_UPDATE \
+    do { last_string = std::string(yytext); last_string_length = last_string.size(); yycolumnno += last_string.size(); } while(0)
+
+#define NEW_LINE_COLUMN_UPDATE \
+    do { last_string = std::string("\n"); last_string_length = 1; yycolumnno = 1; } while(0)
+
+#define EOF_COLUMN_UPDATE \
+    do { last_string = std::string(); last_string_length = 0; } while(0)
+
+
+
 #define GENERAL_TOKEN_GEN(a, b) do { \
     yylval.token_ptr = make_token(); \
     yylval.token_ptr->type = a; \
@@ -143,6 +152,16 @@ Token* last_ptr = nullptr;
     SET_TOKEN_LINE_COLUMN; \
     LOG_TOKEN(b); \
     SAME_LINE_COLUMN_UPDATE; \
+} while(0)
+
+// this is because flex change the yylineno once I read \n, however I don't want it update this fast.
+#define NEWLINE_TOKEN_GEN do { \
+    yylval.token_ptr = make_token(); \
+    yylval.token_ptr->type = token_type::newline; \
+    SET_TOKEN_LINE_COLUMN; \
+    yylval.token_ptr->lineno--; \
+    LOG_TOKEN_NEWLINE(); \
+    NEW_LINE_COLUMN_UPDATE; \
 } while(0)
 
 #define DELIMITER_TOKEN_GEN \
@@ -156,6 +175,15 @@ Token* last_ptr = nullptr;
 
 #define KEYWORD_TOKEN_GEN \
     GENERAL_TOKEN_GEN(token_type::keyword, "keyword")
+
+// no indent, integer, floats, identifier, rawtext, error _TOKEN_GEN here
+
+
+
+// order:
+// make_token -> assign -> SET_TOKEN_LINE_COLUMN -> LOG_... -> ..._COLUMN_UPDATE -> BEGIN(...) -> return t_...
+// ..._GEN == ( make_token ~ ..._COLUMN_UPDATE )
+
 %}
 
 %option warn nodefault noyywrap yylineno case-sensitive pointer
@@ -189,7 +217,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 
 {new_line}  {
                 totally_new_line = true;
-                NEW_LINE_COLUMN_UPDATE;
+                NEWLINE_TOKEN_GEN;
                 BEGIN(NEW_LINE_COUNT);
                 return t_newline;
             }
@@ -202,12 +230,13 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 
 <LINE_COMMENT>{new_line} {
                 totally_new_line = true;
-                NEW_LINE_COLUMN_UPDATE;
+                NEWLINE_TOKEN_GEN;
                 BEGIN(NEW_LINE_COUNT);
                 return t_newline;
             }
 
 <LINE_COMMENT><<EOF>> {
+                EOF_COLUMN_UPDATE;
                 BEGIN(INITIAL);
             }
 
@@ -216,9 +245,15 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 SAME_LINE_COLUMN_UPDATE;
             }
 
-<NEW_LINE_COUNT>({space}|{tab})*{new_line} {
+<NEW_LINE_COUNT>({space}|{tab})+{new_line} {
+                yyless(yyleng - 1);  // strip the spaces and tabs before {new_line}
+                totally_new_line = false;
+                SAME_LINE_COLUMN_UPDATE;
+            }
+
+<NEW_LINE_COUNT>{new_line} {
                 totally_new_line = true;
-                NEW_LINE_COLUMN_UPDATE;
+                NEWLINE_TOKEN_GEN;
                 return t_newline;
             }
 
@@ -321,6 +356,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
             }
 
 <NEW_LINE_COUNT><<EOF>> {
+                    EOF_COLUMN_UPDATE;
                     BEGIN(INITIAL);
                 }
 
@@ -359,6 +395,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 <PRODUCE_INDENT><<EOF>> {
                 yylval.token_ptr = last_ptr;
                 LOG_TOKEN_INDENT();
+                EOF_COLUMN_UPDATE;
                 tmp_dent--;
                 if (tmp_dent <= 0)
                     BEGIN(INITIAL);
@@ -379,6 +416,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 <PRODUCE_DEDENT><<EOF>> {
                 yylval.token_ptr = last_ptr;
                 LOG_TOKEN_DEDENT();
+                EOF_COLUMN_UPDATE;
                 tmp_dent--;
                 if (tmp_dent <= 0)
                     BEGIN(INITIAL);
@@ -411,6 +449,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 
                     SET_TOKEN_LINE_COLUMN;
                     LOG_TOKEN_DENT();
+                    EOF_COLUMN_UPDATE;
 
                     if (tmp_dent == 0)
                         BEGIN(INITIAL);
@@ -421,6 +460,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                         BEGIN(PRODUCE_DEDENT);
                     }
                 } else {
+                    EOF_COLUMN_UPDATE;
                     return 0;
                 }    
             }

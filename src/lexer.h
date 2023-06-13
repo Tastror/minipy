@@ -17,6 +17,10 @@ extern std::string last_string;
 // --- 2 ---
 // type to_string and to_num
 
+// token only has indent
+//    indent_num.relative_depth > 0 means indent in astnode, 
+//    indent_num.relative_depth < 0 means dedent in astnode,
+//    indent_num.relative_depth == 0 means nothing in astnode.
 enum class token_type {
     error, newline, indent, identifier, integer, floats, rawtext, delimiter, bracket, operators, keyword,
 };
