@@ -21,6 +21,10 @@ extern std::string last_string;
 //    indent_num.relative_depth > 0 means indent in astnode, 
 //    indent_num.relative_depth < 0 means dedent in astnode,
 //    indent_num.relative_depth == 0 means nothing in astnode.
+
+// "" or '' will lexerize to <bracket: "> <strtext: (nothing)> <bracket: "> since flex does this more naturally...
+// but in ast, we'll still add rule <bracket: "> <bracket: ">
+
 enum class token_type {
     error, newline, indent, identifier, integer, floats, strtext, delimiter, bracket, operators, keyword,
 };
@@ -42,6 +46,7 @@ struct Token {
     uint32_t lineno;
     uint32_t columnno;
 
+    // bug occurred when use union, so recommend struct
     struct content_t {
 
         std::string message;  // error (error message), strtext (string text message)
@@ -62,12 +67,11 @@ struct Token {
 
         std::string name;  // identifier, delimiter, bracket, operators, keyword
 
-        // class with none-trivial union should implement those functions
         content_t();
         ~content_t();
     } content;
 
-    // class with none-trivial union should implement those functions
+    // better implement those functions
     Token();
     ~Token();
 
