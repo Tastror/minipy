@@ -107,7 +107,7 @@ Token* last_ptr = nullptr;
         << "line " << yylineno << ", column " << yycolumnno \
         << ": tab/space after a new line: " \
         << IDN.space_num << " space(s) and " \
-        << IDN.tab_num << " tab(s), valid = " \
+        << IDN.tab_num << " tab(s), absolute = " \
         << IDN.absolute_depth << ", relative = " \
         << IDN.relative_depth \
         << Log::endl; \
@@ -296,6 +296,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                         assert(false && "[2] you cannot get here, unless your flex is wrong!!!");
                     }
                     else {
+                        // use_tab but space, or not use_tab but tab
                         LOG_TOKEN_DENT_ERROR("unindent does not match any outer indentation level", IDN.space_num, IDN.tab_num);
                         IDN.absolute_depth = block_depth_cell.total_depth;
                     }
