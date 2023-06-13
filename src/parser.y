@@ -207,19 +207,16 @@ simple_stmts : _no_newline_simple_stmt t_newline
                 $$ = $1;
                 $$->type = astnode_type::simple_stmts;
             }
+        | _no_newline_simple_stmt t_delimiter_semicolon t_newline
+            {
+                $$ = $1;
+                $$->type = astnode_type::simple_stmts;
+            }
 
 _no_newline_simple_stmt : simple_stmt
             {
                 $$ = make_astnode();
                 $$->eat($1);
-            }
-        | t_delimiter_semicolon _no_newline_simple_stmt
-            {
-                $$ = $2;
-            }
-        | _no_newline_simple_stmt t_delimiter_semicolon
-            {
-                $$ = $1;
             }
         | _no_newline_simple_stmt t_delimiter_semicolon simple_stmt
             {
@@ -293,7 +290,7 @@ ast_error : t_error
         | t_delimiter_comma { DELIMITER($$, $1); }
         | t_delimiter_colon { DELIMITER($$, $1); }
         | t_delimiter_arrow { DELIMITER($$, $1); }
-        | t_delimiter_semicolon { DELIMITER($$, $1); }
+        // | t_delimiter_semicolon { DELIMITER($$, $1); }
         | t_delimiter_dot { DELIMITER($$, $1); }
         | t_bracket_squotes { BRACKET($$, $1); }
         | t_bracket_dquotes { BRACKET($$, $1); }
