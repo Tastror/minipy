@@ -164,8 +164,14 @@ Token* last_ptr = nullptr;
     NEW_LINE_COLUMN_UPDATE; \
 } while(0)
 
-#define RAWTEXT_TOKEN_GEN \
-    GENERAL_TOKEN_GEN(token_type::strtext, "strtext")
+#define STRTEXT_TOKEN_GEN do { \
+    yylval.token_ptr = make_token(); \
+    yylval.token_ptr->type = token_type::strtext; \
+    yylval.token_ptr->content.message = std::string(yytext); \
+    SET_TOKEN_LINE_COLUMN; \
+    LOG_TOKEN("strtext"); \
+    SAME_LINE_COLUMN_UPDATE; \
+} while(0)
 
 #define DELIMITER_TOKEN_GEN \
     GENERAL_TOKEN_GEN(token_type::delimiter, "delimiter")
@@ -522,7 +528,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 
 <SQUOTE_STR_TEXT>\' {
                 yyless(yyleng - 1);
-                RAWTEXT_TOKEN_GEN;
+                STRTEXT_TOKEN_GEN;
                 BEGIN(SQUOTE_STR_TEXT_END);
                 return t_strtext;
             }
@@ -554,7 +560,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 
 <DQUOTE_STR_TEXT>\" {
                 yyless(yyleng - 1);
-                RAWTEXT_TOKEN_GEN;
+                STRTEXT_TOKEN_GEN;
                 BEGIN(DQUOTE_STR_TEXT_END);
                 return t_strtext;
             }
