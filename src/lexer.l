@@ -518,7 +518,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
             }
 
 <SQUOTE_STR_TEXT_END><<EOF>> { assert(false && "[3] you cannot get here, unless your flex is wrong!!!"); }
-<SQUOTE_STR_TEXT_END>{all_noline} { assert(false && "[4] you cannot get here, unless your flex is wrong!!!"); }
+<SQUOTE_STR_TEXT_END>{all} { assert(false && "[4] you cannot get here, unless your flex is wrong!!!"); }
 
 <SQUOTE_STR_TEXT>\' {
                 yyless(yyleng - 1);
@@ -550,7 +550,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
             }
 
 <DQUOTE_STR_TEXT_END><<EOF>> { assert(false && "[5] you cannot get here, unless your flex is wrong!!!"); }
-<DQUOTE_STR_TEXT_END>{all_noline} { assert(false && "[6] you cannot get here, unless your flex is wrong!!!"); }
+<DQUOTE_STR_TEXT_END>{all} { assert(false && "[6] you cannot get here, unless your flex is wrong!!!"); }
 
 <DQUOTE_STR_TEXT>\" {
                 yyless(yyleng - 1);
