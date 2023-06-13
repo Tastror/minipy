@@ -1,9 +1,9 @@
 %{
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <memory>
 #include <algorithm>
+#include <cassert>
 
 #include "compiler_bison.h"
 #include "../src/log.h"
@@ -13,7 +13,14 @@ int yycolumnno = 1;
 size_t last_string_length;
 std::string last_string;
 
-std::stringstream debug_ss;
+bool block_depth_init = false;
+bool use_tab = false;
+int block_depth_cell = 0;
+int last_block_depth = 0;
+
+bool totally_new_line = true;
+int tmp_dent = 0;
+Token* last_ptr = nullptr;
 
 
 
@@ -37,6 +44,8 @@ std::stringstream debug_ss;
 
 
 
+#define IDN yylval.token_ptr->content.indent_num
+
 #define LOG_TOKEN(type_string) do { \
     Logger << Log::info \
         << "line " << yylineno << ", column " << yycolumnno \
@@ -50,18 +59,35 @@ std::stringstream debug_ss;
         << ", value = " << data << Log::endl; \
 } while(0)
 
-#define LOG_TOKEN_INDENT() do { \
+#define LOG_TOKEN_DENT() do { \
     Logger << Log::info \
         << "line " << yylineno << ", column " << yycolumnno \
         << ": tab/space after a new line: " \
-        << yylval.token_ptr->content.indent_num.space_num << " space(s) and " \
-        << yylval.token_ptr->content.indent_num.tab_num << " tab(s)" << Log::endl; \
+        << IDN.space_num << " space(s) and " \
+        << IDN.tab_num << " tab(s), valid = " \
+        << IDN.valid_depth \
+        << Log::endl; \
+} while(0)
+
+#define LOG_TOKEN_INDENT() do { \
+    Logger << Log::info << "line " << yylineno << ": indent" << Log::endl; \
+} while(0)
+
+#define LOG_TOKEN_DEDENT() do { \
+    Logger << Log::info << "line " << yylineno << ": dedent" << Log::endl; \
 } while(0)
 
 #define LOG_TOKEN_ERROR(type_string) do { \
     Logger << Log::error \
         << "line " << yylineno << ", column " << yycolumnno \
         << ": " << type_string << ": " << yytext << Log::endl; \
+} while(0)
+
+#define LOG_TOKEN_DENT_ERROR(type_string, space_num, tab_num) do { \
+    Logger << Log::error \
+        << "line " << yylineno << ", column " << yycolumnno \
+        << ": " << space_num << " space(s) and " << tab_num << " tab(s), " \
+        << type_string << Log::endl; \
 } while(0)
 
 
@@ -92,6 +118,8 @@ std::stringstream debug_ss;
 
 %x LINE_COMMENT
 %x NEW_LINE_COUNT
+%x PRODUCE_INDENT
+%x PRODUCE_DEDENT
 
 digit       [0-9]
 letter      [_a-zA-Z]
@@ -131,38 +159,143 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 {white}+    { SAME_LINE_COLUMN_UPDATE; }
 
 {new_line}  {
+                totally_new_line = true;
                 NEW_LINE_COLUMN_UPDATE;
                 BEGIN(NEW_LINE_COUNT);
                 return t_newline;
             }
 
 <NEW_LINE_COUNT>({space}|{tab})*{new_line} {
+                totally_new_line = true;
                 NEW_LINE_COLUMN_UPDATE;
                 return t_newline;
             }
 
 <NEW_LINE_COUNT>({space}|{tab})*[#] {
+                totally_new_line = false;
                 LOG_TOKEN("comment start sharp");
                 SAME_LINE_COLUMN_UPDATE;
                 BEGIN(LINE_COMMENT);
             }
 
 <NEW_LINE_COUNT>({space}|{tab})+ {
+                totally_new_line = false;
                 yylval.token_ptr = make_token();
                 yylval.token_ptr->type = token_type::indent;
                 std::string temp(yytext);
-                yylval.token_ptr->content.indent_num.space_num = std::count(temp.begin(), temp.end(), ' ');
-                yylval.token_ptr->content.indent_num.tab_num = std::count(temp.begin(), temp.end(), '\t');
+                IDN.space_num = std::count(temp.begin(), temp.end(), ' ');
+                IDN.tab_num = std::count(temp.begin(), temp.end(), '\t');
+
+                if (!block_depth_init) {
+                    block_depth_init = true;
+                    if (IDN.space_num != 0 && IDN.tab_num != 0) {
+                        LOG_TOKEN_DENT_ERROR("mix space and tab together", IDN.space_num, IDN.tab_num);
+                        block_depth_init = false;  // reinit next time
+                        IDN.valid_depth = last_block_depth;
+                    }
+                    else if (IDN.space_num != 0 && IDN.tab_num == 0) {
+                        use_tab = false;
+                        block_depth_cell = IDN.space_num;
+                        IDN.valid_depth = 1;
+                    }
+                    else if (IDN.space_num == 0 && IDN.tab_num != 0) {
+                        use_tab = true;
+                        block_depth_cell = IDN.tab_num;
+                        IDN.valid_depth = 1;
+                    }
+                    else {
+                        assert(false && "you cannot get here, unless your lex for t_indent is wrong!!!");
+                    }
+                } else {
+                    if (IDN.space_num != 0 && IDN.tab_num != 0) {
+                        LOG_TOKEN_DENT_ERROR("mix space and tab together", IDN.space_num, IDN.tab_num);
+                        IDN.valid_depth = last_block_depth;
+                    }
+                    else if (
+                        !use_tab &&
+                        IDN.space_num != 0 && IDN.tab_num == 0 &&
+                        IDN.space_num % block_depth_cell == 0
+                    ) {
+                        IDN.valid_depth = IDN.space_num / block_depth_cell;
+                    }
+                    else if (
+                        use_tab &&
+                        IDN.space_num == 0 && IDN.tab_num != 0 &&
+                        IDN.tab_num % block_depth_cell == 0
+                    ) {
+                        IDN.valid_depth = IDN.tab_num / block_depth_cell;
+                    }
+                    else if (IDN.space_num == 0 && IDN.tab_num == 0) {
+                        assert(false && "you cannot get here, unless your lex for t_indent is wrong!!!");
+                    }
+                    else {
+                        LOG_TOKEN_DENT_ERROR("unindent does not match any outer indentation level", IDN.space_num, IDN.tab_num);
+                        IDN.valid_depth = last_block_depth;
+                    }
+                }
+
                 SET_TOKEN_LINE_COLUMN;
-                LOG_TOKEN_INDENT();
+                LOG_TOKEN_DENT();
                 SAME_LINE_COLUMN_UPDATE;
-                BEGIN(INITIAL);
-                return t_indent;
+
+                tmp_dent = IDN.valid_depth - last_block_depth;
+                last_block_depth = IDN.valid_depth;
+                last_ptr = yylval.token_ptr;
+
+                if (tmp_dent == 0)
+                    BEGIN(INITIAL);
+                else if (tmp_dent > 0) {
+                    BEGIN(PRODUCE_INDENT);
+                } else {
+                    tmp_dent = -tmp_dent;
+                    BEGIN(PRODUCE_DEDENT);
+                }
             }
 
 <NEW_LINE_COUNT>. {
-                BEGIN(INITIAL);
                 yyless(0);
+
+                if (totally_new_line) {
+                    totally_new_line = false;
+                    yylval.token_ptr = make_token();
+                    tmp_dent = -last_block_depth;
+                    last_block_depth = 0;
+                    last_ptr = yylval.token_ptr;
+                    SET_TOKEN_LINE_COLUMN;
+
+                    if (tmp_dent == 0)
+                        BEGIN(INITIAL);
+                    else if (tmp_dent > 0) {
+                        BEGIN(PRODUCE_INDENT);
+                    } else {
+                        tmp_dent = -tmp_dent;
+                        BEGIN(PRODUCE_DEDENT);
+                    }
+                } else {
+                    BEGIN(INITIAL);
+                }
+            }
+
+<PRODUCE_INDENT>. {
+                yyless(0);
+                
+                yylval.token_ptr = last_ptr;
+                LOG_TOKEN_INDENT();
+                tmp_dent--;
+                if (tmp_dent <= 0)
+                    BEGIN(INITIAL);
+                return t_indent;
+            }
+
+<PRODUCE_DEDENT>. {
+                yyless(0);
+
+                yylval.token_ptr = last_ptr;
+                LOG_TOKEN_DEDENT();
+                tmp_dent--;
+                if (tmp_dent <= 0)
+                    BEGIN(INITIAL);
+                return t_dedent;
             }
 
 {pure_dec_value}|{hex_value}|{oct_value}|{bin_value} {

@@ -1,7 +1,6 @@
 %{
 #include <string>
 #include <memory>
-#include <cassert>
 
 #include "compiler_flex.h"
 #include "../src/common.h"
@@ -10,12 +9,6 @@
 #include "../src/parser.h"
 
 void yyerror(AstNode*& ast_head, char* msg);
-void yyerror(AstNode*& ast_head, char* msg, int space_num, int tab_num);
-
-bool block_depth_init = false;
-bool use_tab = false;
-int block_depth_cell = 0;
-int now_block_depth = 0;
 %}
 
 %code requires {
@@ -35,8 +28,6 @@ int now_block_depth = 0;
     node = make_astnode(); \
     node->type = astnode_type::error; \
 } while(0)
-
-#define IDN(node) node->token_leaf.content.indent_num
 }
 
 %union {
@@ -52,6 +43,7 @@ int now_block_depth = 0;
 
 %token <token_ptr> t_newline
 %token <token_ptr> t_indent
+%token <token_ptr> t_dedent
 
 %token <token_ptr> t_identifier
 %token <token_ptr> t_integer
@@ -199,58 +191,18 @@ ast_error : t_error
                 LOG_ASTNODE("t_newline");
                 $$ = make_astnode();
                 $$->type = astnode_type::error;
-                now_block_depth = 0;
             }
         | t_indent
             {
                 LOG_ASTNODE("t_indent");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
-
-                if (!block_depth_init) {
-                    block_depth_init = true;
-                    if (IDN($$).space_num != 0 && IDN($$).tab_num != 0) {
-                        yyerror(ast_head, "mix space and tab together", IDN($$).space_num, IDN($$).tab_num);
-                        block_depth_init = false;  // reinit next time
-                    }
-                    else if (IDN($$).space_num != 0 &&IDN($$).tab_num == 0) {
-                        use_tab = false;
-                        block_depth_cell = IDN($$).space_num;
-                        IDN($$).valid_depth = now_block_depth = 1;
-                    }
-                    else if (IDN($$).space_num == 0 && IDN($$).tab_num != 0) {
-                        use_tab = true;
-                        block_depth_cell = IDN($$).tab_num;
-                        IDN($$).valid_depth = now_block_depth = 1;
-                    }
-                    else {
-                        assert(false && "you cannot get here, unless your lex for t_indent is wrong!!!");
-                    }
-                } else {
-                    if (IDN($$).space_num != 0 && IDN($$).tab_num != 0) {
-                        yyerror(ast_head, "mix space and tab together", IDN($$).space_num, IDN($$).tab_num);
-                    }
-                    else if (
-                        !use_tab &&
-                        IDN($$).space_num != 0 && IDN($$).tab_num == 0 &&
-                        IDN($$).space_num % block_depth_cell == 0
-                    ) {
-                        IDN($$).valid_depth = now_block_depth = IDN($$).space_num / block_depth_cell;
-                    }
-                    else if (
-                        use_tab &&
-                        IDN($$).space_num == 0 && IDN($$).tab_num != 0 &&
-                        IDN($$).tab_num % block_depth_cell == 0
-                    ) {
-                        IDN($$).valid_depth = now_block_depth = IDN($$).tab_num / block_depth_cell;
-                    }
-                    else if (IDN($$).space_num == 0 && IDN($$).tab_num == 0) {
-                        assert(false && "you cannot get here, unless your lex for t_indent is wrong!!!");
-                    }
-                    else {
-                        yyerror(ast_head, "unindent does not match any outer indentation level", IDN($$).space_num, IDN($$).tab_num);
-                    }
-                }
+            }
+        | t_dedent
+            {
+                LOG_ASTNODE("t_dedent");
+                $$ = make_astnode_from_token($1);
+                $$->type = astnode_type::error;
             }
         | t_identifier
             {
@@ -368,12 +320,4 @@ void yyerror(AstNode*& ast_head, char* msg)
         << "line " << yylineno << ", column " << yycolumnno - last_string_length
         << ": '" << last_string << "' " << msg
         << Log::endl;
-}
-
-void yyerror(AstNode*& ast_head, char* msg, int space_num, int tab_num)
-{
-    Logger << Log::error
-        << "line " << yylineno << ", column " << yycolumnno - last_string_length
-        << ": " << space_num << " space(s) and " << tab_num << " tab(s), "
-        << msg << Log::endl;
 }
