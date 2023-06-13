@@ -211,7 +211,7 @@ tab         \t
 white       [ \t]
 new_line    (\n|\r|\r\n|\n\r)
 all_noline  (.)
-all         (.|\r\n|\n)
+all         (.|\n|\r)
 
 digit       [0-9]
 letter      [_a-zA-Z]
