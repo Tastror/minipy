@@ -56,7 +56,7 @@ void yyerror(AstNode*& ast_head, char* msg);
 %token <token_ptr> t_identifier
 %token <token_ptr> t_integer
 %token <token_ptr> t_floats
-%token <token_ptr> t_rawtext  // just for str
+%token <token_ptr> t_strtext  // just for str
 
 %token <token_ptr> t_delimiter_comma        // ,
 %token <token_ptr> t_delimiter_colon        // :
@@ -230,9 +230,9 @@ ast_error : t_error
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
-        | t_rawtext
+        | t_strtext
             {
-                LOG_ASTNODE("t_rawtext");
+                LOG_ASTNODE("t_strtext");
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }

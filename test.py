@@ -8,6 +8,8 @@ def input():
     else:
         return ""
 
+"" + "123" + "'" + "\"" + '' + '456' + '"' + '\''
+
 # test
     #testing
 

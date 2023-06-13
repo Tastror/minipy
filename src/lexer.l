@@ -164,6 +164,9 @@ Token* last_ptr = nullptr;
     NEW_LINE_COLUMN_UPDATE; \
 } while(0)
 
+#define RAWTEXT_TOKEN_GEN \
+    GENERAL_TOKEN_GEN(token_type::strtext, "strtext")
+
 #define DELIMITER_TOKEN_GEN \
     GENERAL_TOKEN_GEN(token_type::delimiter, "delimiter")
 
@@ -176,7 +179,7 @@ Token* last_ptr = nullptr;
 #define KEYWORD_TOKEN_GEN \
     GENERAL_TOKEN_GEN(token_type::keyword, "keyword")
 
-// no indent, integer, floats, identifier, rawtext, error _TOKEN_GEN here
+// indent, integer, floats, identifier, error _TOKEN_GEN are not here
 
 
 
@@ -192,11 +195,15 @@ Token* last_ptr = nullptr;
 %x NEW_LINE_COUNT
 %x PRODUCE_INDENT
 %x PRODUCE_DEDENT
+%x SQUOTE_STR_TEXT
+%x DQUOTE_STR_TEXT
+%x SQUOTE_STR_TEXT_END
+%x DQUOTE_STR_TEXT_END
 
 space       [ ]
 tab         \t
 white       [ \t]
-new_line    (\r\n|\n)
+new_line    (\n|\r|\r\n|\n\r)
 all_noline  (.)
 all         (.|\r\n|\n)
 
@@ -501,14 +508,78 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 return t_floats;
             }
 
+<SQUOTE_STR_TEXT>\\\' { yymore(); }
+<SQUOTE_STR_TEXT>[^'\n\r]+ { yymore(); }
+
+<SQUOTE_STR_TEXT_END>\' {
+                BRACKET_TOKEN_GEN;
+                BEGIN(INITIAL);
+                return t_bracket_squotes;
+            }
+
+<SQUOTE_STR_TEXT_END><<EOF>> { assert(false && "[3] you cannot get here, unless your flex is wrong!!!"); }
+<SQUOTE_STR_TEXT_END>{all_noline} { assert(false && "[4] you cannot get here, unless your flex is wrong!!!"); }
+
+<SQUOTE_STR_TEXT>\' {
+                yyless(yyleng - 1);
+                RAWTEXT_TOKEN_GEN;
+                BEGIN(SQUOTE_STR_TEXT_END);
+                return t_strtext;
+            }
+
+<SQUOTE_STR_TEXT>{new_line} {
+                LOG_TOKEN_ERROR("single quote does not close");
+                totally_new_line = true;
+                NEWLINE_TOKEN_GEN;
+                return t_newline;
+            }
+
+<SQUOTE_STR_TEXT><<EOF>> {
+                LOG_TOKEN_ERROR("single quote does not close");
+                EOF_COLUMN_UPDATE;
+                BEGIN(INITIAL);
+            }
+
+<DQUOTE_STR_TEXT>\\\" { yymore(); }
+<DQUOTE_STR_TEXT>[^"\n\r]+ { yymore(); }
+
+<DQUOTE_STR_TEXT_END>\" {
+                BRACKET_TOKEN_GEN;
+                BEGIN(INITIAL);
+                return t_bracket_squotes;
+            }
+
+<DQUOTE_STR_TEXT_END><<EOF>> { assert(false && "[5] you cannot get here, unless your flex is wrong!!!"); }
+<DQUOTE_STR_TEXT_END>{all_noline} { assert(false && "[6] you cannot get here, unless your flex is wrong!!!"); }
+
+<DQUOTE_STR_TEXT>\" {
+                yyless(yyleng - 1);
+                RAWTEXT_TOKEN_GEN;
+                BEGIN(DQUOTE_STR_TEXT_END);
+                return t_strtext;
+            }
+
+<DQUOTE_STR_TEXT>{new_line} {
+                LOG_TOKEN_ERROR("double quote does not close");
+                totally_new_line = true;
+                NEWLINE_TOKEN_GEN;
+                return t_newline;
+            }
+
+<DQUOTE_STR_TEXT><<EOF>> {
+                LOG_TOKEN_ERROR("double quote does not close");
+                EOF_COLUMN_UPDATE;
+                BEGIN(INITIAL);
+            }
+
 ,           { DELIMITER_TOKEN_GEN; return t_delimiter_comma; }
 :           { DELIMITER_TOKEN_GEN; return t_delimiter_colon; }
 ->          { DELIMITER_TOKEN_GEN; return t_delimiter_arrow; }
-\;          { DELIMITER_TOKEN_GEN; return t_delimiter_comma; }
+\;          { DELIMITER_TOKEN_GEN; return t_delimiter_semicolon; }
 \.          { DELIMITER_TOKEN_GEN; return t_delimiter_dot; }
 
-\"          { BRACKET_TOKEN_GEN; return t_bracket_squotes; }
-\'          { BRACKET_TOKEN_GEN; return t_bracket_dquotes; }
+\'          { BRACKET_TOKEN_GEN; BEGIN(SQUOTE_STR_TEXT); return t_bracket_squotes; }
+\"          { BRACKET_TOKEN_GEN; BEGIN(DQUOTE_STR_TEXT); return t_bracket_dquotes; }
 \(          { BRACKET_TOKEN_GEN; return t_bracket_parentheses_l; }
 \)          { BRACKET_TOKEN_GEN; return t_bracket_parentheses_r; }
 \[          { BRACKET_TOKEN_GEN; return t_bracket_square_l; }

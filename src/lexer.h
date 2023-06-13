@@ -22,7 +22,7 @@ extern std::string last_string;
 //    indent_num.relative_depth < 0 means dedent in astnode,
 //    indent_num.relative_depth == 0 means nothing in astnode.
 enum class token_type {
-    error, newline, indent, identifier, integer, floats, rawtext, delimiter, bracket, operators, keyword,
+    error, newline, indent, identifier, integer, floats, strtext, delimiter, bracket, operators, keyword,
 };
 
 namespace std {
@@ -44,7 +44,7 @@ struct Token {
 
     struct content_t {
 
-        std::string message;  // error (error message), rawtext (raw text message)
+        std::string message;  // error (error message), strtext (string text message)
 
         none no;  // newline
 

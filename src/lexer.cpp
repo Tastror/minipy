@@ -29,7 +29,7 @@ std::string std::to_string(token_type tt) {
         case token_type::identifier: return "identifier";
         case token_type::integer: return "integer";
         case token_type::floats: return "floats";
-        case token_type::rawtext: return "rawtext";
+        case token_type::strtext: return "strtext";
         case token_type::delimiter: return "delimiter";
         case token_type::bracket: return "bracket";
         case token_type::operators: return "operators";
@@ -69,7 +69,7 @@ Token::Token(const Token& other) {
     this->columnno = other.columnno;
     switch (other.type) {
     case token_type::error:
-    case token_type::rawtext:
+    case token_type::strtext:
         this->content.message = other.content.message;
         break;
     case token_type::newline:
@@ -98,7 +98,7 @@ Token& Token::operator=(Token&& other) {
     this->columnno = std::move(other.columnno);
     switch (other.type) {
     case token_type::error:
-    case token_type::rawtext:
+    case token_type::strtext:
         this->content.message = std::move(other.content.message);
         break;
     case token_type::newline:
@@ -139,7 +139,7 @@ std::string Token::to_string() {
     res += std::to_string(this->columnno);
     switch (this->type) {
     case token_type::error:
-    case token_type::rawtext:
+    case token_type::strtext:
         res += ", " + this->content.message;
         break;
     case token_type::newline:
