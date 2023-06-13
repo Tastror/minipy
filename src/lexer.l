@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <memory>
+#include <vector>
 #include <algorithm>
 #include <cassert>
 
@@ -14,9 +15,50 @@ size_t last_string_length;
 std::string last_string;
 
 bool block_depth_init = false;
-bool use_tab = false;
-int block_depth_cell = 0;
 int last_block_depth = 0;
+
+struct BlockCell {
+    bool use_tab = false;
+    std::vector<int> depth_vector;
+    int total_depth = 0;
+    int total_num = 0;
+    BlockCell() {};
+    ~BlockCell() {};
+    void to_tab() { use_tab = true; }
+    void to_space() { use_tab = false; }
+    void add(int num) {
+        depth_vector.push_back(num);
+        total_num += num;
+        total_depth++;
+    }
+    bool del(int times) {
+        for (int i = 0; i < times; ++i) {
+            if (depth_vector.empty()) {
+                return false;
+            }
+            total_depth--;
+            total_num -= depth_vector.back();
+            depth_vector.pop_back();
+        }
+        return true;
+    }
+    void clear() {
+        depth_vector.clear();
+        total_depth = total_num = 0;
+    }
+    // check whether_use_tab(num) == whether_use_tab(use_tab) first
+    // -1: not valid
+    bool get_absolute_depth(int num) {
+        if (total_num == num) return total_depth;
+        if (num == 0) return 0;
+        int res = 0;
+        for (unsigned long long i = 0; i < depth_vector.size(); ++i) {
+            res += depth_vector[i];
+            if (res == num) return i;
+        }
+        return -1;
+    }
+} block_depth_cell;
 
 bool totally_new_line = true;
 bool no_eof_yet = true;
@@ -66,7 +108,7 @@ Token* last_ptr = nullptr;
         << ": tab/space after a new line: " \
         << IDN.space_num << " space(s) and " \
         << IDN.tab_num << " tab(s), valid = " \
-        << IDN.valid_depth << ", relative = " \
+        << IDN.absolute_depth << ", relative = " \
         << IDN.relative_depth \
         << Log::endl; \
 } while(0)
@@ -206,51 +248,59 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                     if (IDN.space_num != 0 && IDN.tab_num != 0) {
                         LOG_TOKEN_DENT_ERROR("mix space and tab together", IDN.space_num, IDN.tab_num);
                         block_depth_init = false;  // reinit next time
-                        IDN.valid_depth = last_block_depth;
+                        IDN.absolute_depth = last_block_depth;
                     }
                     else if (IDN.space_num != 0 && IDN.tab_num == 0) {
-                        use_tab = false;
-                        block_depth_cell = IDN.space_num;
-                        IDN.valid_depth = 1;
+                        block_depth_cell.to_space();
+                        block_depth_cell.add(IDN.space_num);
+                        IDN.absolute_depth = block_depth_cell.total_depth;
                     }
                     else if (IDN.space_num == 0 && IDN.tab_num != 0) {
-                        use_tab = true;
-                        block_depth_cell = IDN.tab_num;
-                        IDN.valid_depth = 1;
+                        block_depth_cell.to_tab();
+                        block_depth_cell.add(IDN.tab_num);
+                        IDN.absolute_depth = block_depth_cell.total_depth;
                     }
                     else {
-                        assert(false && "you cannot get here, unless your lex for t_indent is wrong!!!");
+                        assert(false && "[0] you cannot get here, unless your lex for t_indent is wrong!!!");
                     }
                 } else {
                     if (IDN.space_num != 0 && IDN.tab_num != 0) {
                         LOG_TOKEN_DENT_ERROR("mix space and tab together", IDN.space_num, IDN.tab_num);
-                        IDN.valid_depth = last_block_depth;
+                        IDN.absolute_depth = block_depth_cell.total_depth;
                     }
                     else if (
-                        !use_tab &&
-                        IDN.space_num != 0 && IDN.tab_num == 0 &&
-                        IDN.space_num % block_depth_cell == 0
+                        (!block_depth_cell.use_tab && IDN.space_num != 0 && IDN.tab_num == 0) ||
+                        (block_depth_cell.use_tab && IDN.space_num == 0 && IDN.tab_num != 0)
                     ) {
-                        IDN.valid_depth = IDN.space_num / block_depth_cell;
-                    }
-                    else if (
-                        use_tab &&
-                        IDN.space_num == 0 && IDN.tab_num != 0 &&
-                        IDN.tab_num % block_depth_cell == 0
-                    ) {
-                        IDN.valid_depth = IDN.tab_num / block_depth_cell;
+                        int num = block_depth_cell.use_tab ? IDN.tab_num : IDN.space_num;
+                        if (num > block_depth_cell.total_num) {
+                            block_depth_cell.add(num - block_depth_cell.total_num);
+                            IDN.absolute_depth = block_depth_cell.total_depth;
+                        } else {
+                            int res = block_depth_cell.get_absolute_depth(num);
+                            if (res == -1) {
+                                LOG_TOKEN_DENT_ERROR("unindent does not match any outer indentation level", IDN.space_num, IDN.tab_num);
+                                IDN.absolute_depth = block_depth_cell.total_depth;
+                            } else {
+                                bool success = block_depth_cell.del(block_depth_cell.total_depth - res);
+                                IDN.absolute_depth = block_depth_cell.total_depth;
+                                if (!success) {
+                                    assert(false && "[1] you cannot get here, unless your flex is wrong!!!");
+                                }
+                            }
+                        }
                     }
                     else if (IDN.space_num == 0 && IDN.tab_num == 0) {
-                        assert(false && "you cannot get here, unless your lex for t_indent is wrong!!!");
+                        assert(false && "[2] you cannot get here, unless your flex is wrong!!!");
                     }
                     else {
                         LOG_TOKEN_DENT_ERROR("unindent does not match any outer indentation level", IDN.space_num, IDN.tab_num);
-                        IDN.valid_depth = last_block_depth;
+                        IDN.absolute_depth = block_depth_cell.total_depth;
                     }
                 }
 
-                IDN.relative_depth = tmp_dent = IDN.valid_depth - last_block_depth;
-                last_block_depth = IDN.valid_depth;
+                IDN.relative_depth = tmp_dent = IDN.absolute_depth - last_block_depth;
+                last_block_depth = IDN.absolute_depth;
                 last_ptr = yylval.token_ptr;
 
                 SET_TOKEN_LINE_COLUMN;
@@ -280,11 +330,11 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                     yylval.token_ptr->type = token_type::indent;
                     IDN.space_num = 0;
                     IDN.tab_num = 0;
-                    IDN.valid_depth = 0;
+                    IDN.absolute_depth = 0;
                     IDN.relative_depth = tmp_dent = -last_block_depth;
                     last_block_depth = 0;
                     last_ptr = yylval.token_ptr;
-                    SET_TOKEN_LINE_COLUMN;
+                    block_depth_cell.clear();
 
                     SET_TOKEN_LINE_COLUMN;
                     LOG_TOKEN_DENT();
@@ -350,11 +400,14 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                     yylval.token_ptr->type = token_type::indent;
                     IDN.space_num = 0;
                     IDN.tab_num = 0;
-                    IDN.valid_depth = 0;
+                    IDN.absolute_depth = 0;
                     IDN.relative_depth = tmp_dent = -last_block_depth;
                     last_block_depth = 0;
                     last_ptr = yylval.token_ptr;
+                    block_depth_cell.clear();
+
                     SET_TOKEN_LINE_COLUMN;
+                    LOG_TOKEN_DENT();
 
                     if (tmp_dent == 0)
                         BEGIN(INITIAL);
