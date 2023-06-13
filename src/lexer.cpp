@@ -148,7 +148,8 @@ std::string Token::to_string() {
     case token_type::indent:
         res +=
             "space: " + std::to_string(this->content.indent_num.space_num) +
-            ", tab: " + std::to_string(this->content.indent_num.tab_num) ;
+            ", tab: " + std::to_string(this->content.indent_num.tab_num) +
+            ", valid: " + std::to_string(this->content.indent_num.valid_depth) ;
         break;
     case token_type::integer:
         res += std::to_string(this->content.data.int_num);

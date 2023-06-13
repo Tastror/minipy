@@ -258,6 +258,10 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 if (totally_new_line) {
                     totally_new_line = false;
                     yylval.token_ptr = make_token();
+                    yylval.token_ptr->type = token_type::indent;
+                    IDN.space_num = 0;
+                    IDN.tab_num = 0;
+                    IDN.valid_depth = 0;
                     tmp_dent = -last_block_depth;
                     last_block_depth = 0;
                     last_ptr = yylval.token_ptr;
