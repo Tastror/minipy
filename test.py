@@ -1,5 +1,10 @@
 r = 0o12 + 1.5 - 2 * 0o13 / 0b1 % 0xaf12 + 123e1
 
+for i in range(1):
+    pass; pass ; pass
+    break; break; pass; continue;
+    ; pass
+
 def input():
     global has_input, input_buf
     if has_input:

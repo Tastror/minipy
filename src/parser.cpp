@@ -47,9 +47,15 @@ std::string std::to_string(astnode_type tt) {
     switch (tt) {
         case astnode_type::error: return "error";
         case astnode_type::file: return "file";
+
+        case astnode_type::statements: return "statements";
         case astnode_type::statement: return "statement";
+
+        case astnode_type::simple_stmts: return "simple_stmts";
         case astnode_type::simple_stmt: return "simple_stmt";
+
         case astnode_type::compound_stmt: return "compound_stmt";
+
         case astnode_type::assignment: return "assignment";
         case astnode_type::block: return "block";
         case astnode_type::expression: return "expression"; 

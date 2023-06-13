@@ -16,7 +16,11 @@ extern FILE* yyin;
 // type to_string
 
 enum class astnode_type {
-    error, file, statement, simple_stmt, compound_stmt, assignment, block, expression,
+    error, file,
+    statements, statement,
+    simple_stmts, simple_stmt,
+    compound_stmt,
+    assignment, block, expression,
 };
 
 namespace std {

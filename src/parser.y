@@ -24,17 +24,17 @@ void yyerror(AstNode*& ast_head, char* msg);
 #define LOG_ASTNODE(type_string) \
     do { Logger << Log::info << "astnode: " << type_string << Log::endl; } while(0)
 
-#define ERROR_NODE(string, node, leaf) do { \
+#define GEN_NODE(string, node, leaf, Ttype) do { \
     LOG_ASTNODE(string); \
     node = make_astnode_from_token(leaf); \
-    node->type = astnode_type::error; \
+    node->type = Ttype; \
 } while(0)
 
-#define EMPTY(node, leaf) ERROR_NODE("empty", node, leaf)
-#define DELIMITER(node, leaf) ERROR_NODE("t_delimiter", node, leaf)
-#define BRACKET(node, leaf) ERROR_NODE("t_bracket", node, leaf)
-#define OPERATORS(node, leaf) ERROR_NODE("t_operators", node, leaf)
-#define KEYWORD(node, leaf) ERROR_NODE("t_keyword", node, leaf)
+#define EMPTY(node, leaf) GEN_NODE("empty", node, leaf, astnode_type::error)
+#define DELIMITER(node, leaf) GEN_NODE("t_delimiter", node, leaf, astnode_type::error)
+#define BRACKET(node, leaf) GEN_NODE("t_bracket", node, leaf, astnode_type::error)
+#define OPERATORS(node, leaf) GEN_NODE("t_operators", node, leaf, astnode_type::error)
+#define KEYWORD(node, leaf) GEN_NODE("t_keyword", node, leaf, astnode_type::error)
 
 }
 
@@ -161,24 +161,39 @@ void yyerror(AstNode*& ast_head, char* msg);
 
 %type <astnode_ptr> ast_error
 
+%type <astnode_ptr> statements
 %type <astnode_ptr> statement
-// %type <astnode_ptr> simple_stmt
+%type <astnode_ptr> simple_stmts
+%type <astnode_ptr> simple_stmt
+%type <astnode_ptr> _no_newline_simple_stmt
 // %type <astnode_ptr> compound_stmt
+
 // %type <astnode_ptr> assignment
 // %type <astnode_ptr> block
 
 %%
 
-file : statement
+file : statements
             {
                 ast_head = make_astnode();
                 ast_head->eat($1);
                 ast_head->type = astnode_type::file;
             }
 
-statement : statement ast_error
+statements : statement
+            {
+                $$ = make_astnode();
+                $$->eat($1);
+                $$->type = astnode_type::statements;
+            }
+        | statements statement
             {
                 $$ = $1->eat($2);
+            }
+
+statement : simple_stmts
+            {
+                $$ = $1;
                 $$->type = astnode_type::statement;
             }
         | ast_error
@@ -186,6 +201,45 @@ statement : statement ast_error
                 $$ = $1;
                 $$->type = astnode_type::statement;
             }
+
+simple_stmts : _no_newline_simple_stmt t_newline
+            {
+                $$ = $1;
+                $$->type = astnode_type::simple_stmts;
+            }
+
+_no_newline_simple_stmt : simple_stmt
+            {
+                $$ = make_astnode();
+                $$->eat($1);
+            }
+        | t_delimiter_semicolon _no_newline_simple_stmt
+            {
+                $$ = $2;
+            }
+        | _no_newline_simple_stmt t_delimiter_semicolon
+            {
+                $$ = $1;
+            }
+        | _no_newline_simple_stmt t_delimiter_semicolon simple_stmt
+            {
+                $$ = $1;
+                $$->eat($3);
+            }
+
+simple_stmt : t_keyword_pass
+            {
+                GEN_NODE("t_keyword", $$, $1, astnode_type::simple_stmt);
+            }
+        | t_keyword_break
+            {
+                GEN_NODE("t_keyword", $$, $1, astnode_type::simple_stmt);
+            }
+        | t_keyword_continue
+            {
+                GEN_NODE("t_keyword", $$, $1, astnode_type::simple_stmt);
+            }
+
 
 
 ast_error : t_error
@@ -293,7 +347,7 @@ ast_error : t_error
         | t_keyword_not { KEYWORD($$, $1); }
         | t_keyword_is { KEYWORD($$, $1); }
         | t_keyword_in { KEYWORD($$, $1); }
-        | t_keyword_pass { KEYWORD($$, $1); }
+        // | t_keyword_pass { KEYWORD($$, $1); }
         | t_keyword_def { KEYWORD($$, $1); }
         | t_keyword_return { KEYWORD($$, $1); }
         | t_keyword_yield { KEYWORD($$, $1); }
@@ -303,8 +357,8 @@ ast_error : t_error
         | t_keyword_else { KEYWORD($$, $1); }
         | t_keyword_elif { KEYWORD($$, $1); }
         | t_keyword_for { KEYWORD($$, $1); }
-        | t_keyword_break { KEYWORD($$, $1); }
-        | t_keyword_continue { KEYWORD($$, $1); }
+        // | t_keyword_break { KEYWORD($$, $1); }
+        // | t_keyword_continue { KEYWORD($$, $1); }
         | t_keyword_match { KEYWORD($$, $1); }
         | t_keyword_case { KEYWORD($$, $1); }
         | t_keyword_global { KEYWORD($$, $1); }
