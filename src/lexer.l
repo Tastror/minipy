@@ -534,11 +534,9 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
             }
 
 <SQUOTE_STR_TEXT>{new_line} {
+                yyless(yyleng - 1);
                 LOG_TOKEN_ERROR("single quote does not close");
-                totally_new_line = true;
-                NEWLINE_TOKEN_GEN;
                 BEGIN(INITIAL);
-                return t_newline;
             }
 
 <SQUOTE_STR_TEXT><<EOF>> {
@@ -567,11 +565,9 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
             }
 
 <DQUOTE_STR_TEXT>{new_line} {
+                yyless(yyleng - 1);
                 LOG_TOKEN_ERROR("double quote does not close");
-                totally_new_line = true;
-                NEWLINE_TOKEN_GEN;
                 BEGIN(INITIAL);
-                return t_newline;
             }
 
 <DQUOTE_STR_TEXT><<EOF>> {

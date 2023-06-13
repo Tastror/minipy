@@ -14,7 +14,7 @@ def input():
         return ""
 
 "" + "123" + "'" + "\"" + '' + '456' + '"' + '\''
-" # wrong comment 2
+
 # test
     #testing
 
