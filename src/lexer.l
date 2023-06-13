@@ -19,6 +19,7 @@ int block_depth_cell = 0;
 int last_block_depth = 0;
 
 bool totally_new_line = true;
+bool no_eof_yet = true;
 int tmp_dent = 0;
 Token* last_ptr = nullptr;
 
@@ -65,7 +66,8 @@ Token* last_ptr = nullptr;
         << ": tab/space after a new line: " \
         << IDN.space_num << " space(s) and " \
         << IDN.tab_num << " tab(s), valid = " \
-        << IDN.valid_depth \
+        << IDN.valid_depth << ", relative = " \
+        << IDN.relative_depth \
         << Log::endl; \
 } while(0)
 
@@ -121,17 +123,19 @@ Token* last_ptr = nullptr;
 %x PRODUCE_INDENT
 %x PRODUCE_DEDENT
 
-digit       [0-9]
-letter      [_a-zA-Z]
-white       [ \t]
 space       [ ]
 tab         \t
+white       [ \t]
 new_line    (\r\n|\n)
+all_noline  (.)
+all         (.|\r\n|\n)
 
+digit       [0-9]
+letter      [_a-zA-Z]
+wrong_id    ([0-9]+[_a-zA-Z]+([_a-zA-Z]|[0-9])*)
 dec_value   [0-9]+
 pure_dec_value ([1-9][0-9]+|[0-9]|0+)
 wrong_dec_value (0+[1-9]+[0-9]*)
-wrong_id    ([0-9]+[_a-zA-Z]+([_a-zA-Z]|[0-9])*)
 hex_value   0x[0-9a-fA-F]+
 oct_value   0o[0-7]+
 bin_value   0b[01]+
@@ -145,17 +149,6 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 BEGIN(LINE_COMMENT);
             }
 
-<LINE_COMMENT>{new_line} {
-                NEW_LINE_COLUMN_UPDATE;
-                BEGIN(NEW_LINE_COUNT);
-                return t_newline;
-            }
-
-<LINE_COMMENT>.* {
-                LOG_TOKEN("comment");
-                SAME_LINE_COLUMN_UPDATE;
-            }
-
 {white}+    { SAME_LINE_COLUMN_UPDATE; }
 
 {new_line}  {
@@ -163,6 +156,22 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 NEW_LINE_COLUMN_UPDATE;
                 BEGIN(NEW_LINE_COUNT);
                 return t_newline;
+            }
+
+<LINE_COMMENT>{new_line} {
+                totally_new_line = true;
+                NEW_LINE_COLUMN_UPDATE;
+                BEGIN(NEW_LINE_COUNT);
+                return t_newline;
+            }
+
+<LINE_COMMENT><<EOF>> {
+                BEGIN(INITIAL);
+            }
+
+<LINE_COMMENT>{all_noline}* {
+                LOG_TOKEN("comment");
+                SAME_LINE_COLUMN_UPDATE;
             }
 
 <NEW_LINE_COUNT>({space}|{tab})*{new_line} {
@@ -238,7 +247,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 LOG_TOKEN_DENT();
                 SAME_LINE_COLUMN_UPDATE;
 
-                tmp_dent = IDN.valid_depth - last_block_depth;
+                IDN.relative_depth = tmp_dent = IDN.valid_depth - last_block_depth;
                 last_block_depth = IDN.valid_depth;
                 last_ptr = yylval.token_ptr;
 
@@ -252,7 +261,11 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 }
             }
 
-<NEW_LINE_COUNT>. {
+<NEW_LINE_COUNT><<EOF>> {
+                    BEGIN(INITIAL);
+                }
+
+<NEW_LINE_COUNT>{all} {
                 yyless(0);
 
                 if (totally_new_line) {
@@ -262,7 +275,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                     IDN.space_num = 0;
                     IDN.tab_num = 0;
                     IDN.valid_depth = 0;
-                    tmp_dent = -last_block_depth;
+                    IDN.relative_depth = tmp_dent = -last_block_depth;
                     last_block_depth = 0;
                     last_ptr = yylval.token_ptr;
                     SET_TOKEN_LINE_COLUMN;
@@ -280,7 +293,16 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 }
             }
 
-<PRODUCE_INDENT>. {
+<PRODUCE_INDENT><<EOF>> {
+                yylval.token_ptr = last_ptr;
+                LOG_TOKEN_INDENT();
+                tmp_dent--;
+                if (tmp_dent <= 0)
+                    BEGIN(INITIAL);
+                return t_indent;
+            }
+
+<PRODUCE_INDENT>{all} {
                 yyless(0);
                 
                 yylval.token_ptr = last_ptr;
@@ -291,7 +313,16 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 return t_indent;
             }
 
-<PRODUCE_DEDENT>. {
+<PRODUCE_DEDENT><<EOF>> {
+                yylval.token_ptr = last_ptr;
+                LOG_TOKEN_DEDENT();
+                tmp_dent--;
+                if (tmp_dent <= 0)
+                    BEGIN(INITIAL);
+                return t_dedent;
+            }
+
+<PRODUCE_DEDENT>{all} {
                 yyless(0);
 
                 yylval.token_ptr = last_ptr;
@@ -300,6 +331,32 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 if (tmp_dent <= 0)
                     BEGIN(INITIAL);
                 return t_dedent;
+            }
+
+<INITIAL><<EOF>> {
+                if (no_eof_yet) {
+                    no_eof_yet = false;
+                    yylval.token_ptr = make_token();
+                    yylval.token_ptr->type = token_type::indent;
+                    IDN.space_num = 0;
+                    IDN.tab_num = 0;
+                    IDN.valid_depth = 0;
+                    IDN.relative_depth = tmp_dent = -last_block_depth;
+                    last_block_depth = 0;
+                    last_ptr = yylval.token_ptr;
+                    SET_TOKEN_LINE_COLUMN;
+
+                    if (tmp_dent == 0)
+                        BEGIN(INITIAL);
+                    else if (tmp_dent > 0) {
+                        BEGIN(PRODUCE_INDENT);
+                    } else {
+                        tmp_dent = -tmp_dent;
+                        BEGIN(PRODUCE_DEDENT);
+                    }
+                } else {
+                    return 0;
+                }    
             }
 
 {pure_dec_value}|{hex_value}|{oct_value}|{bin_value} {
@@ -445,7 +502,7 @@ tastror_out { KEYWORD_TOKEN_GEN; return t_keyword_tastror_out; }
                 return t_identifier;
             }
 
-.|{wrong_dec_value}|{wrong_id} {
+{all_noline}|{wrong_dec_value}|{wrong_id} {
                 yylval.token_ptr = make_token();
                 yylval.token_ptr->type = token_type::error;
                 yylval.token_ptr->content.message = "invalid string '" + std::string(yytext) + "'";
