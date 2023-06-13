@@ -143,12 +143,6 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 
 %%
 
-"#"         {
-                LOG_TOKEN("comment start sharp");
-                SAME_LINE_COLUMN_UPDATE;
-                BEGIN(LINE_COMMENT);
-            }
-
 {white}+    { SAME_LINE_COLUMN_UPDATE; }
 
 {new_line}  {
@@ -156,6 +150,12 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 NEW_LINE_COLUMN_UPDATE;
                 BEGIN(NEW_LINE_COUNT);
                 return t_newline;
+            }
+
+"#"         {  // only use in "# <comment>" after a solid sentense (not just tabs or spaces)
+                LOG_TOKEN("comment start sharp");
+                SAME_LINE_COLUMN_UPDATE;
+                BEGIN(LINE_COMMENT);
             }
 
 <LINE_COMMENT>{new_line} {
@@ -180,7 +180,13 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                 return t_newline;
             }
 
-<NEW_LINE_COUNT>({space}|{tab})*[#] {
+<NEW_LINE_COUNT>({space}|{tab})+[#] {  // only use in "# <comment>" after tabs or spaces
+                yyless(yyleng - 1);  // strip the spaces and tabs before "#"
+                totally_new_line = false;
+                SAME_LINE_COLUMN_UPDATE;
+            }
+
+<NEW_LINE_COUNT>[#] {
                 totally_new_line = false;
                 LOG_TOKEN("comment start sharp");
                 SAME_LINE_COLUMN_UPDATE;
@@ -243,13 +249,13 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                     }
                 }
 
-                SET_TOKEN_LINE_COLUMN;
-                LOG_TOKEN_DENT();
-                SAME_LINE_COLUMN_UPDATE;
-
                 IDN.relative_depth = tmp_dent = IDN.valid_depth - last_block_depth;
                 last_block_depth = IDN.valid_depth;
                 last_ptr = yylval.token_ptr;
+
+                SET_TOKEN_LINE_COLUMN;
+                LOG_TOKEN_DENT();
+                SAME_LINE_COLUMN_UPDATE;
 
                 if (tmp_dent == 0)
                     BEGIN(INITIAL);
@@ -265,7 +271,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                     BEGIN(INITIAL);
                 }
 
-<NEW_LINE_COUNT>{all} {
+<NEW_LINE_COUNT>{all_noline} {
                 yyless(0);
 
                 if (totally_new_line) {
@@ -279,6 +285,10 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                     last_block_depth = 0;
                     last_ptr = yylval.token_ptr;
                     SET_TOKEN_LINE_COLUMN;
+
+                    SET_TOKEN_LINE_COLUMN;
+                    LOG_TOKEN_DENT();
+                    SAME_LINE_COLUMN_UPDATE;
 
                     if (tmp_dent == 0)
                         BEGIN(INITIAL);
