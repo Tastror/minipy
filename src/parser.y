@@ -54,8 +54,7 @@ void yyerror(AstNode*& ast_head, char* msg);
 %token <token_ptr> t_dedent
 
 %token <token_ptr> t_identifier
-%token <token_ptr> t_integer
-%token <token_ptr> t_floats
+%token <token_ptr> t_number
 %token <token_ptr> t_strtext  // just for str
 
 %token <token_ptr> t_delimiter_comma        // ,
@@ -63,6 +62,7 @@ void yyerror(AstNode*& ast_head, char* msg);
 %token <token_ptr> t_delimiter_arrow        // ->
 %token <token_ptr> t_delimiter_semicolon    // ;
 %token <token_ptr> t_delimiter_dot          // .
+%token <token_ptr> t_delimiter_3dot         // ...
 
 %token <token_ptr> t_bracket_squotes
 %token <token_ptr> t_bracket_dquotes
@@ -163,13 +163,198 @@ void yyerror(AstNode*& ast_head, char* msg);
 
 %type <astnode_ptr> statements
 %type <astnode_ptr> statement
+
 %type <astnode_ptr> simple_stmts
 %type <astnode_ptr> simple_stmt
 %type <astnode_ptr> _no_newline_simple_stmt
-// %type <astnode_ptr> compound_stmt
+%type <astnode_ptr> compound_stmt
 
-// %type <astnode_ptr> assignment
-// %type <astnode_ptr> block
+%type <astnode_ptr> assignment
+%type <astnode_ptr> annotated_rhs
+%type <astnode_ptr> augassign
+%type <astnode_ptr> return_stmt
+%type <astnode_ptr> raise_stmt
+%type <astnode_ptr> global_stmt
+%type <astnode_ptr> nonlocal_stmt
+%type <astnode_ptr> del_stmt
+%type <astnode_ptr> yield_stmt
+%type <astnode_ptr> import_stmt
+
+%type <astnode_ptr> import_from
+%type <astnode_ptr> import_from_targets
+%type <astnode_ptr> import_from_as_names
+%type <astnode_ptr> import_from_as_name
+%type <astnode_ptr> dotted_as_names
+%type <astnode_ptr> dotted_as_name
+%type <astnode_ptr> dotted_name
+
+%type <astnode_ptr> block
+%type <astnode_ptr> decorators
+
+%type <astnode_ptr> class_def
+%type <astnode_ptr> class_def_raw
+
+%type <astnode_ptr> function_def
+%type <astnode_ptr> function_def_raw
+
+%type <astnode_ptr> params
+%type <astnode_ptr> parameters
+%type <astnode_ptr> slash_no_default
+%type <astnode_ptr> slash_with_default
+%type <astnode_ptr> star_etc
+%type <astnode_ptr> kwds
+
+%type <astnode_ptr> param_no_default
+%type <astnode_ptr> param_no_default_star_annotation
+%type <astnode_ptr> param_with_default
+%type <astnode_ptr> param_maybe_default
+%type <astnode_ptr> param
+%type <astnode_ptr> param_star_annotation
+%type <astnode_ptr> annotation
+%type <astnode_ptr> star_annotation
+%type <astnode_ptr> default
+
+%type <astnode_ptr> if_stmt
+%type <astnode_ptr> elif_stmt
+%type <astnode_ptr> else_block
+%type <astnode_ptr> while_stmt
+%type <astnode_ptr> for_stmt
+%type <astnode_ptr> with_stmt
+%type <astnode_ptr> with_item
+
+%type <astnode_ptr> try_stmt
+%type <astnode_ptr> except_block
+%type <astnode_ptr> except_star_block
+%type <astnode_ptr> finally_block
+
+%type <astnode_ptr> match_stmt
+%type <astnode_ptr> subject_expr
+%type <astnode_ptr> case_block
+%type <astnode_ptr> guard
+%type <astnode_ptr> patterns
+%type <astnode_ptr> pattern
+%type <astnode_ptr> as_pattern
+%type <astnode_ptr> or_pattern
+%type <astnode_ptr> closed_pattern
+%type <astnode_ptr> literal_pattern
+%type <astnode_ptr> literal_expr
+%type <astnode_ptr> complex_number
+%type <astnode_ptr> signed_number
+%type <astnode_ptr> signed_real_number
+%type <astnode_ptr> real_number
+%type <astnode_ptr> imaginary_number
+%type <astnode_ptr> capture_pattern
+%type <astnode_ptr> pattern_capture_target
+%type <astnode_ptr> wildcard_pattern
+%type <astnode_ptr> value_pattern
+%type <astnode_ptr> attr
+%type <astnode_ptr> name_or_attr
+%type <astnode_ptr> group_pattern
+%type <astnode_ptr> sequence_pattern
+%type <astnode_ptr> open_sequence_pattern
+%type <astnode_ptr> maybe_sequence_pattern
+%type <astnode_ptr> maybe_star_pattern
+%type <astnode_ptr> star_pattern
+%type <astnode_ptr> mapping_pattern
+%type <astnode_ptr> items_pattern
+%type <astnode_ptr> key_value_pattern
+%type <astnode_ptr> double_star_pattern
+%type <astnode_ptr> class_pattern
+%type <astnode_ptr> positional_patterns
+%type <astnode_ptr> keyword_patterns
+%type <astnode_ptr> keyword_pattern
+
+%type <astnode_ptr> expressions
+%type <astnode_ptr> expression
+%type <astnode_ptr> yield_expr
+%type <astnode_ptr> star_expressions
+%type <astnode_ptr> star_expression
+%type <astnode_ptr> star_named_expressions
+%type <astnode_ptr> star_named_expression
+%type <astnode_ptr> assignment_expression
+%type <astnode_ptr> named_expression
+%type <astnode_ptr> disjunction
+%type <astnode_ptr> conjunction
+%type <astnode_ptr> inversion
+%type <astnode_ptr> comparison
+%type <astnode_ptr> compare_op_bitwise_or_pair
+%type <astnode_ptr> eq_bitwise_or
+%type <astnode_ptr> noteq_bitwise_or
+%type <astnode_ptr> lte_bitwise_or
+%type <astnode_ptr> lt_bitwise_or
+%type <astnode_ptr> gte_bitwise_or
+%type <astnode_ptr> gt_bitwise_or
+%type <astnode_ptr> notin_bitwise_or
+%type <astnode_ptr> in_bitwise_or
+%type <astnode_ptr> isnot_bitwise_or
+%type <astnode_ptr> is_bitwise_or
+%type <astnode_ptr> bitwise_or
+%type <astnode_ptr> bitwise_xor
+%type <astnode_ptr> bitwise_and
+%type <astnode_ptr> shift_expr
+%type <astnode_ptr> sum
+%type <astnode_ptr> term
+%type <astnode_ptr> factor
+%type <astnode_ptr> power
+
+%type <astnode_ptr> await_primary
+%type <astnode_ptr> primary
+%type <astnode_ptr> slices
+%type <astnode_ptr> slice
+%type <astnode_ptr> atom
+%type <astnode_ptr> group
+
+%type <astnode_ptr> lambdef
+%type <astnode_ptr> lambda_params
+%type <astnode_ptr> lambda_parameters
+%type <astnode_ptr> lambda_slash_no_default
+%type <astnode_ptr> lambda_slash_with_default
+%type <astnode_ptr> lambda_star_etc
+%type <astnode_ptr> lambda_kwds
+%type <astnode_ptr> lambda_param_no_default
+%type <astnode_ptr> lambda_param_with_default
+%type <astnode_ptr> lambda_param_maybe_default
+%type <astnode_ptr> lambda_param
+
+%type <astnode_ptr> strings
+%type <astnode_ptr> list
+%type <astnode_ptr> tuple
+%type <astnode_ptr> set
+%type <astnode_ptr> dict
+%type <astnode_ptr> double_starred_kvpairs
+%type <astnode_ptr> double_starred_kvpair
+%type <astnode_ptr> kvpair
+
+%type <astnode_ptr> for_if_clauses
+%type <astnode_ptr> for_if_clause
+%type <astnode_ptr> listcomp
+%type <astnode_ptr> setcomp
+%type <astnode_ptr> genexp
+%type <astnode_ptr> dictcomp
+
+%type <astnode_ptr> arguments
+%type <astnode_ptr> args
+%type <astnode_ptr> kwargs
+%type <astnode_ptr> starred_expression
+%type <astnode_ptr> kwarg_or_starred
+%type <astnode_ptr> kwarg_or_double_starred
+
+%type <astnode_ptr> star_targets
+%type <astnode_ptr> star_targets_list_seq
+%type <astnode_ptr> star_targets_tuple_seq
+%type <astnode_ptr> star_target
+%type <astnode_ptr> target_with_star_atom
+%type <astnode_ptr> star_atom
+%type <astnode_ptr> single_target
+%type <astnode_ptr> single_subscript_attribute_target
+%type <astnode_ptr> ast_primary
+%type <astnode_ptr> ast_lookahead
+
+%type <astnode_ptr> del_targets
+%type <astnode_ptr> del_target
+%type <astnode_ptr> del_t_atom
+%type <astnode_ptr> type_expressions
+%type <astnode_ptr> func_type_comment
 
 %%
 
@@ -226,18 +411,331 @@ _no_newline_simple_stmt : simple_stmt
 
 simple_stmt : t_keyword_pass
             {
-                GEN_NODE("t_keyword", $$, $1, astnode_type::simple_stmt);
+                KEYWORD($$, $1);
+                $$->type = astnode_type::simple_stmt;
             }
         | t_keyword_break
             {
-                GEN_NODE("t_keyword", $$, $1, astnode_type::simple_stmt);
+                KEYWORD($$, $1);
+                $$->type = astnode_type::simple_stmt;
             }
         | t_keyword_continue
             {
-                GEN_NODE("t_keyword", $$, $1, astnode_type::simple_stmt);
+                KEYWORD($$, $1);
+                $$->type = astnode_type::simple_stmt;
             }
 
+// TODO
 
+expressions:
+    | expression (',' expression )+ [','] 
+    | expression ',' 
+    | expression
+
+expression:
+    | disjunction 'if' disjunction 'else' expression 
+    | disjunction
+    | lambdef
+
+yield_expr:
+    | 'yield' 'from' expression 
+    | 'yield' [star_expressions] 
+
+star_expressions:
+    | star_expression (',' star_expression )+ [','] 
+    | star_expression ',' 
+    | star_expression
+
+star_expression:
+    | '*' bitwise_or 
+    | expression
+
+star_named_expressions: ','.star_named_expression+ [','] 
+
+star_named_expression:
+    | '*' bitwise_or 
+    | named_expression
+
+assignment_expression:
+    | NAME ':=' ~ expression 
+
+named_expression:
+    | assignment_expression
+    | expression !':='
+
+disjunction:
+    | conjunction ('or' conjunction )+ 
+    | conjunction
+
+conjunction:
+    | inversion ('and' inversion )+ 
+    | inversion
+
+inversion:
+    | 'not' inversion 
+    | comparison
+
+comparison:
+    | bitwise_or compare_op_bitwise_or_pair+ 
+    | bitwise_or
+
+compare_op_bitwise_or_pair:
+    | eq_bitwise_or
+    | noteq_bitwise_or
+    | lte_bitwise_or
+    | lt_bitwise_or
+    | gte_bitwise_or
+    | gt_bitwise_or
+    | notin_bitwise_or
+    | in_bitwise_or
+    | isnot_bitwise_or
+    | is_bitwise_or
+
+eq_bitwise_or: '==' bitwise_or 
+noteq_bitwise_or:
+    | ('!=' ) bitwise_or 
+lte_bitwise_or: '<=' bitwise_or 
+lt_bitwise_or: '<' bitwise_or 
+gte_bitwise_or: '>=' bitwise_or 
+gt_bitwise_or: '>' bitwise_or 
+notin_bitwise_or: 'not' 'in' bitwise_or 
+in_bitwise_or: 'in' bitwise_or 
+isnot_bitwise_or: 'is' 'not' bitwise_or 
+is_bitwise_or: 'is' bitwise_or 
+
+bitwise_or: | bitwise_or '|' bitwise_xor
+            {
+
+            }
+        | bitwise_xor
+            {
+                
+            }
+
+bitwise_xor:
+    | bitwise_xor '^' bitwise_and 
+    | bitwise_and
+
+bitwise_and:
+    | bitwise_and '&' shift_expr 
+    | shift_expr
+
+shift_expr:
+    | shift_expr '<<' sum 
+    | shift_expr '>>' sum 
+    | sum
+
+sum:
+    | sum '+' term 
+    | sum '-' term 
+    | term
+
+term:
+    | term '*' factor 
+    | term '/' factor 
+    | term '//' factor 
+    | term '%' factor 
+    | term '@' factor 
+    | factor
+
+factor:
+    | '+' factor 
+    | '-' factor 
+    | '~' factor 
+    | power
+
+power: | await_primary '|' factor
+            {
+
+            }
+        | await_primary
+            {
+                
+            }
+
+await_primary:
+    | AWAIT primary 
+    | primary
+
+primary:
+    | primary '.' NAME 
+    | primary genexp 
+    | primary '(' [arguments] ')' 
+    | primary '[' slices ']' 
+    | atom
+
+slices:
+    | slice !',' 
+    | ','.(slice | starred_expression)+ [','] 
+
+slice:
+    | [expression] ':' [expression] [':' [expression] ] 
+    | named_expression 
+
+atom:     t_identifier
+            {
+                KEYWORD($$, $1);
+                $$->type = astnode_type::atom;
+            }
+        | t_keyword_True
+            {
+                KEYWORD($$, $1);
+                $$->type = astnode_type::atom;
+            }
+        | t_keyword_False
+            {
+                KEYWORD($$, $1);
+                $$->type = astnode_type::atom;
+            }
+        | t_keyword_None
+            {
+                KEYWORD($$, $1);
+                $$->type = astnode_type::atom;
+            }
+        | t_number
+            {
+                KEYWORD($$, $1);
+                $$->type = astnode_type::atom;
+            }
+        | strings
+            {
+                $$ = make_astnode();
+                $$->eat($1);
+                $$->type = astnode_type::atom;
+            }
+        | tuple
+            {
+                $$ = make_astnode();
+                $$->eat($1);
+                $$->type = astnode_type::atom;
+            }
+        | group
+            {
+                $$ = make_astnode();
+                $$->eat($1);
+                $$->type = astnode_type::atom;
+            }
+        | genexp
+            {
+                $$ = make_astnode();
+                $$->eat($1);
+                $$->type = astnode_type::atom;
+            }
+        | list
+            {
+                $$ = make_astnode();
+                $$->eat($1);
+                $$->type = astnode_type::atom;  
+            }
+        | listcomp
+            {
+                $$ = make_astnode();
+                $$->eat($1);
+                $$->type = astnode_type::atom;
+            }
+        | dict
+            {
+                $$ = make_astnode();
+                $$->eat($1);
+                $$->type = astnode_type::atom;
+            }
+        | set
+            {
+                $$ = make_astnode();
+                $$->eat($1);
+                $$->type = astnode_type::atom;
+            }
+        | dictcomp
+            {
+                $$ = make_astnode();
+                $$->eat($1);
+                $$->type = astnode_type::atom;
+            }
+        | setcomp
+            {
+                $$ = make_astnode();
+                $$->eat($1);
+                $$->type = astnode_type::atom;
+            }
+        | t_delimiter_3dot
+            {
+                KEYWORD($$, $1);
+                $$->type = astnode_type::atom;
+            }
+
+group:    t_bracket_parentheses_l yield_expr t_bracket_parentheses_r
+            {
+                $$ = make_astnode();
+                $$->eat($2);
+                $$->type = astnode_type::group;
+            }
+        | t_bracket_parentheses_l named_expression t_bracket_parentheses_r
+            {
+                $$ = make_astnode();
+                $$->eat($2);
+                $$->type = astnode_type::group;
+            }
+
+// lambdef:
+//     | 'lambda' [lambda_params] ':' expression 
+
+// lambda_params:
+//     | lambda_parameters
+
+// lambda_parameters:
+//     | lambda_slash_no_default lambda_param_no_default* lambda_param_with_default* [lambda_star_etc] 
+//     | lambda_slash_with_default lambda_param_with_default* [lambda_star_etc] 
+//     | lambda_param_no_default+ lambda_param_with_default* [lambda_star_etc] 
+//     | lambda_param_with_default+ [lambda_star_etc] 
+//     | lambda_star_etc 
+
+// lambda_slash_no_default:
+//     | lambda_param_no_default+ '/' ',' 
+//     | lambda_param_no_default+ '/' &':' 
+
+// lambda_slash_with_default:
+//     | lambda_param_no_default* lambda_param_with_default+ '/' ',' 
+//     | lambda_param_no_default* lambda_param_with_default+ '/' &':' 
+
+// lambda_star_etc:
+//     | '*' lambda_param_no_default lambda_param_maybe_default* [lambda_kwds] 
+//     | '*' ',' lambda_param_maybe_default+ [lambda_kwds] 
+//     | lambda_kwds 
+
+// lambda_kwds:
+//     | '**' lambda_param_no_default 
+
+// lambda_param_no_default:
+//     | lambda_param ',' 
+//     | lambda_param &':' 
+// lambda_param_with_default:
+//     | lambda_param default ',' 
+//     | lambda_param default &':' 
+// lambda_param_maybe_default:
+//     | lambda_param default? ',' 
+//     | lambda_param default? &':' 
+// lambda_param: NAME 
+
+// strings: STRING+ 
+
+// list:
+//     | '[' [star_named_expressions] ']' 
+
+// tuple:
+//     | '(' [star_named_expression ',' [star_named_expressions]  ] ')' 
+
+// set: '{' star_named_expressions '}' 
+
+// dict:
+//     | '{' [double_starred_kvpairs] '}' 
+
+// double_starred_kvpairs: ','.double_starred_kvpair+ [','] 
+
+// double_starred_kvpair:
+//     | '**' bitwise_or 
+//     | kvpair
+
+// kvpair: expression ':' expression 
 
 ast_error : t_error
             {
@@ -263,24 +761,6 @@ ast_error : t_error
                 $$ = make_astnode_from_token($1);
                 $$->type = astnode_type::error;
             }
-        | t_identifier
-            {
-                LOG_ASTNODE("t_identifier");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
-            }
-        | t_integer
-            {
-                LOG_ASTNODE("t_integer");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
-            }
-        | t_floats
-            {
-                LOG_ASTNODE("t_floats");
-                $$ = make_astnode_from_token($1);
-                $$->type = astnode_type::error;
-            }
         | t_strtext
             {
                 LOG_ASTNODE("t_strtext");
@@ -292,10 +772,11 @@ ast_error : t_error
         | t_delimiter_arrow { DELIMITER($$, $1); }
         // | t_delimiter_semicolon { DELIMITER($$, $1); }
         | t_delimiter_dot { DELIMITER($$, $1); }
+        // | t_delimiter_3dot { DELIMITER($$, $1); }
         | t_bracket_squotes { BRACKET($$, $1); }
         | t_bracket_dquotes { BRACKET($$, $1); }
-        | t_bracket_parentheses_l { BRACKET($$, $1); }
-        | t_bracket_parentheses_r { BRACKET($$, $1); }
+        // | t_bracket_parentheses_l { BRACKET($$, $1); }
+        // | t_bracket_parentheses_r { BRACKET($$, $1); }
         | t_bracket_square_l { BRACKET($$, $1); }
         | t_bracket_square_r { BRACKET($$, $1); }
         | t_bracket_curly_l { BRACKET($$, $1); }
@@ -336,9 +817,9 @@ ast_error : t_error
         | t_operators_sleft_assign { OPERATORS($$, $1); }
         | t_operators_sright_assign { OPERATORS($$, $1); }
         | t_keyword_underline { KEYWORD($$, $1); }
-        | t_keyword_None { KEYWORD($$, $1); }
-        | t_keyword_True { KEYWORD($$, $1); }
-        | t_keyword_False { KEYWORD($$, $1); }
+        // | t_keyword_None { KEYWORD($$, $1); }
+        // | t_keyword_True { KEYWORD($$, $1); }
+        // | t_keyword_False { KEYWORD($$, $1); }
         | t_keyword_and { KEYWORD($$, $1); }
         | t_keyword_or { KEYWORD($$, $1); }
         | t_keyword_not { KEYWORD($$, $1); }

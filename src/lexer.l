@@ -487,7 +487,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                     "integer (string)", yylval.token_ptr->content.data.int_num
                 );
                 SAME_LINE_COLUMN_UPDATE;
-                return t_integer;
+                return t_number;  // integer
             }
 
 ({float_value}|{dec_value})e(\+|-)?[0-9]+ {
@@ -499,7 +499,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                     "float (string)", yylval.token_ptr->content.data.double_num
                 );
                 SAME_LINE_COLUMN_UPDATE;
-                return t_floats;
+                return t_number;  // floats
             }
 
 {float_value} {
@@ -511,7 +511,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                     "float (string)", yylval.token_ptr->content.data.double_num
                 );
                 SAME_LINE_COLUMN_UPDATE;
-                return t_floats;
+                return t_number;
             }
 
 <SQUOTE_STR_TEXT>\\\' { yymore(); }
@@ -581,6 +581,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 ->          { DELIMITER_TOKEN_GEN; return t_delimiter_arrow; }
 \;          { DELIMITER_TOKEN_GEN; return t_delimiter_semicolon; }
 \.          { DELIMITER_TOKEN_GEN; return t_delimiter_dot; }
+\.\.\.      { DELIMITER_TOKEN_GEN; return t_delimiter_3dot; }
 
 \'          { BRACKET_TOKEN_GEN; BEGIN(SQUOTE_STR_TEXT); return t_bracket_squotes; }
 \"          { BRACKET_TOKEN_GEN; BEGIN(DQUOTE_STR_TEXT); return t_bracket_dquotes; }

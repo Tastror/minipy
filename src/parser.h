@@ -17,10 +17,12 @@ extern FILE* yyin;
 
 enum class astnode_type {
     error, file,
+
     statements, statement,
+
     simple_stmts, simple_stmt,
-    compound_stmt,
-    assignment, block, expression,
+
+    atom, group,
 };
 
 namespace std {

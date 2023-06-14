@@ -54,11 +54,8 @@ std::string std::to_string(astnode_type tt) {
         case astnode_type::simple_stmts: return "simple_stmts";
         case astnode_type::simple_stmt: return "simple_stmt";
 
-        case astnode_type::compound_stmt: return "compound_stmt";
-
-        case astnode_type::assignment: return "assignment";
-        case astnode_type::block: return "block";
-        case astnode_type::expression: return "expression"; 
+        case astnode_type::atom: return "atom";
+        case astnode_type::group: return "group";
     }
     return "";
 }
