@@ -385,11 +385,14 @@ statement : simple_stmts
 
 simple_stmts : _no_newline_simple_stmt t_newline
             {
+                LOG_ASTNODE("t_newline (for simple_stmts)");
                 $$ = $1;
                 $$->type = astnode_type::simple_stmts;
             }
         | _no_newline_simple_stmt t_delimiter_semicolon t_newline
             {
+                LOG_ASTNODE("t_delimiter_semicolon (for simple_stmts)");
+                LOG_ASTNODE("t_newline (for simple_stmts)");
                 $$ = $1;
                 $$->type = astnode_type::simple_stmts;
             }
@@ -401,6 +404,7 @@ _no_newline_simple_stmt : simple_stmt
             }
         | _no_newline_simple_stmt t_delimiter_semicolon simple_stmt
             {
+                LOG_ASTNODE("t_delimiter_semicolon (for _no_newline_simple_stmt)");
                 $$ = $1;
                 $$->eat($3);
             }
@@ -960,6 +964,8 @@ simple_stmt : t_keyword_pass
 //     | slice !',' 
 //     | ','.(slice | starred_expression)+ [','] 
 
+/*
+
 slice:   t_delimiter_comma
             {
                 LOG_ASTNODE("t_delimiter_comma (for slice)");
@@ -1113,6 +1119,8 @@ group:    t_bracket_parentheses_l yield_expr t_bracket_parentheses_r
                 $$ = make_astnode(astnode_type::group);
                 $$->eat($2);
             }
+
+*/
 
 // lambdef:
 //     | 'lambda' [lambda_params] ':' expression 
