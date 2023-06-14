@@ -421,6 +421,404 @@ simple_stmt : t_keyword_pass
                 $$ = make_astnode_from_token($1, astnode_type::simple_stmt);
             }
 
+// # NOTE: assignment MUST precede expression, else parsing a simple assignment
+// # will throw a SyntaxError.
+// simple_stmt:
+//     | assignment
+//     | star_expressions 
+//     | return_stmt
+//     | import_stmt
+//     | raise_stmt
+//     | 'pass' 
+//     | del_stmt
+//     | yield_stmt
+//     | assert_stmt
+//     | 'break' 
+//     | 'continue' 
+//     | global_stmt
+//     | nonlocal_stmt
+
+// compound_stmt:
+//     | function_def
+//     | if_stmt
+//     | class_def
+//     | with_stmt
+//     | for_stmt
+//     | try_stmt
+//     | while_stmt
+//     | match_stmt
+
+// # SIMPLE STATEMENTS
+// # =================
+
+// # NOTE: annotated_rhs may start with 'yield'; yield_expr must start with 'yield'
+// assignment:
+//     | NAME ':' expression ['=' annotated_rhs ] 
+//     | ('(' single_target ')' 
+//         | single_subscript_attribute_target) ':' expression ['=' annotated_rhs ] 
+//     | (star_targets '=' )+ (yield_expr | star_expressions) !'=' [TYPE_COMMENT] 
+//     | single_target augassign ~ (yield_expr | star_expressions) 
+
+// annotated_rhs: yield_expr | star_expressions
+
+// augassign:
+//     | '+=' 
+//     | '-=' 
+//     | '*=' 
+//     | '@=' 
+//     | '/=' 
+//     | '%=' 
+//     | '&=' 
+//     | '|=' 
+//     | '^=' 
+//     | '<<=' 
+//     | '>>=' 
+//     | '**=' 
+//     | '//=' 
+
+// return_stmt:
+//     | 'return' [star_expressions] 
+
+// raise_stmt:
+//     | 'raise' expression ['from' expression ] 
+//     | 'raise' 
+
+// global_stmt: 'global' ','.NAME+ 
+
+// nonlocal_stmt: 'nonlocal' ','.NAME+ 
+
+// del_stmt:
+//     | 'del' del_targets &(';' | NEWLINE) 
+
+// yield_stmt: yield_expr 
+
+// assert_stmt: 'assert' expression [',' expression ] 
+
+// import_stmt: import_name | import_from
+
+// # Import statements
+// # -----------------
+
+// import_name: 'import' dotted_as_names 
+// # note below: the ('.' | '...') is necessary because '...' is tokenized as ELLIPSIS
+// import_from:
+//     | 'from' ('.' | '...')* dotted_name 'import' import_from_targets 
+//     | 'from' ('.' | '...')+ 'import' import_from_targets 
+// import_from_targets:
+//     | '(' import_from_as_names [','] ')' 
+//     | import_from_as_names !','
+//     | '*' 
+// import_from_as_names:
+//     | ','.import_from_as_name+ 
+// import_from_as_name:
+//     | NAME ['as' NAME ] 
+// dotted_as_names:
+//     | ','.dotted_as_name+ 
+// dotted_as_name:
+//     | dotted_name ['as' NAME ] 
+// dotted_name:
+//     | dotted_name '.' NAME 
+//     | NAME
+
+// # COMPOUND STATEMENTS
+// # ===================
+
+// # Common elements
+// # ---------------
+
+// block:
+//     | NEWLINE INDENT statements DEDENT 
+//     | simple_stmts
+
+// decorators: ('@' named_expression NEWLINE )+ 
+
+// # Class definitions
+// # -----------------
+
+// class_def:
+//     | decorators class_def_raw 
+//     | class_def_raw
+
+// class_def_raw:
+//     | 'class' NAME ['(' [arguments] ')' ] ':' block 
+
+// # Function definitions
+// # --------------------
+
+// function_def:
+//     | decorators function_def_raw 
+//     | function_def_raw
+
+// function_def_raw:
+//     | 'def' NAME '(' [params] ')' ['->' expression ] ':' [func_type_comment] block 
+//     | ASYNC 'def' NAME '(' [params] ')' ['->' expression ] ':' [func_type_comment] block 
+
+// # Function parameters
+// # -------------------
+
+// params:
+//     | parameters
+
+// parameters:
+//     | slash_no_default param_no_default* param_with_default* [star_etc] 
+//     | slash_with_default param_with_default* [star_etc] 
+//     | param_no_default+ param_with_default* [star_etc] 
+//     | param_with_default+ [star_etc] 
+//     | star_etc 
+
+// # Some duplication here because we can't write (',' | &')'),
+// # which is because we don't support empty alternatives (yet).
+
+// slash_no_default:
+//     | param_no_default+ '/' ',' 
+//     | param_no_default+ '/' &')' 
+// slash_with_default:
+//     | param_no_default* param_with_default+ '/' ',' 
+//     | param_no_default* param_with_default+ '/' &')' 
+
+// star_etc:
+//     | '*' param_no_default param_maybe_default* [kwds] 
+//     | '*' param_no_default_star_annotation param_maybe_default* [kwds] 
+//     | '*' ',' param_maybe_default+ [kwds] 
+//     | kwds 
+
+// kwds:
+//     | '**' param_no_default 
+
+// # One parameter.  This *includes* a following comma and type comment.
+// #
+// # There are three styles:
+// # - No default
+// # - With default
+// # - Maybe with default
+// #
+// # There are two alternative forms of each, to deal with type comments:
+// # - Ends in a comma followed by an optional type comment
+// # - No comma, optional type comment, must be followed by close paren
+// # The latter form is for a final parameter without trailing comma.
+// #
+
+// param_no_default:
+//     | param ',' TYPE_COMMENT? 
+//     | param TYPE_COMMENT? &')' 
+// param_no_default_star_annotation:
+//     | param_star_annotation ',' TYPE_COMMENT? 
+//     | param_star_annotation TYPE_COMMENT? &')' 
+// param_with_default:
+//     | param default ',' TYPE_COMMENT? 
+//     | param default TYPE_COMMENT? &')' 
+// param_maybe_default:
+//     | param default? ',' TYPE_COMMENT? 
+//     | param default? TYPE_COMMENT? &')' 
+// param: NAME annotation? 
+// param_star_annotation: NAME star_annotation 
+// annotation: ':' expression 
+// star_annotation: ':' star_expression 
+// default: '=' expression  | invalid_default
+
+// # If statement
+// # ------------
+
+// if_stmt:
+//     | 'if' named_expression ':' block elif_stmt 
+//     | 'if' named_expression ':' block [else_block] 
+// elif_stmt:
+//     | 'elif' named_expression ':' block elif_stmt 
+//     | 'elif' named_expression ':' block [else_block] 
+// else_block:
+//     | 'else' ':' block 
+
+// # While statement
+// # ---------------
+
+// while_stmt:
+//     | 'while' named_expression ':' block [else_block] 
+
+// # For statement
+// # -------------
+
+// for_stmt:
+//     | 'for' star_targets 'in' ~ star_expressions ':' [TYPE_COMMENT] block [else_block] 
+//     | ASYNC 'for' star_targets 'in' ~ star_expressions ':' [TYPE_COMMENT] block [else_block] 
+
+// # With statement
+// # --------------
+
+// with_stmt:
+//     | 'with' '(' ','.with_item+ ','? ')' ':' block 
+//     | 'with' ','.with_item+ ':' [TYPE_COMMENT] block 
+//     | ASYNC 'with' '(' ','.with_item+ ','? ')' ':' block 
+//     | ASYNC 'with' ','.with_item+ ':' [TYPE_COMMENT] block 
+
+// with_item:
+//     | expression 'as' star_target &(',' | ')' | ':') 
+//     | expression 
+
+// # Try statement
+// # -------------
+
+// try_stmt:
+//     | 'try' ':' block finally_block 
+//     | 'try' ':' block except_block+ [else_block] [finally_block] 
+//     | 'try' ':' block except_star_block+ [else_block] [finally_block] 
+
+
+// # Except statement
+// # ----------------
+
+// except_block:
+//     | 'except' expression ['as' NAME ] ':' block 
+//     | 'except' ':' block 
+// except_star_block:
+//     | 'except' '*' expression ['as' NAME ] ':' block 
+// finally_block:
+//     | 'finally' ':' block 
+
+// # Match statement
+// # ---------------
+
+// match_stmt:
+//     | "match" subject_expr ':' NEWLINE INDENT case_block+ DEDENT 
+
+// subject_expr:
+//     | star_named_expression ',' star_named_expressions? 
+//     | named_expression
+
+// case_block:
+//     | "case" patterns guard? ':' block 
+
+// guard: 'if' named_expression 
+
+// patterns:
+//     | open_sequence_pattern 
+//     | pattern
+
+// pattern:
+//     | as_pattern
+//     | or_pattern
+
+// as_pattern:
+//     | or_pattern 'as' pattern_capture_target 
+
+// or_pattern:
+//     | '|'.closed_pattern+ 
+
+// closed_pattern:
+//     | literal_pattern
+//     | capture_pattern
+//     | wildcard_pattern
+//     | value_pattern
+//     | group_pattern
+//     | sequence_pattern
+//     | mapping_pattern
+//     | class_pattern
+
+// # Literal patterns are used for equality and identity constraints
+// literal_pattern:
+//     | signed_number !('+' | '-') 
+//     | complex_number 
+//     | strings 
+//     | 'None' 
+//     | 'True' 
+//     | 'False' 
+
+// # Literal expressions are used to restrict permitted mapping pattern keys
+// literal_expr:
+//     | signed_number !('+' | '-')
+//     | complex_number
+//     | strings
+//     | 'None' 
+//     | 'True' 
+//     | 'False' 
+
+// complex_number:
+//     | signed_real_number '+' imaginary_number 
+//     | signed_real_number '-' imaginary_number  
+
+// signed_number:
+//     | NUMBER
+//     | '-' NUMBER 
+
+// signed_real_number:
+//     | real_number
+//     | '-' real_number 
+
+// real_number:
+//     | NUMBER 
+
+// imaginary_number:
+//     | NUMBER 
+
+// capture_pattern:
+//     | pattern_capture_target 
+
+// pattern_capture_target:
+//     | !"_" NAME !('.' | '(' | '=') 
+
+// wildcard_pattern:
+//     | "_" 
+
+// value_pattern:
+//     | attr !('.' | '(' | '=') 
+
+// attr:
+//     | name_or_attr '.' NAME 
+
+// name_or_attr:
+//     | attr
+//     | NAME
+
+// group_pattern:
+//     | '(' pattern ')' 
+
+// sequence_pattern:
+//     | '[' maybe_sequence_pattern? ']' 
+//     | '(' open_sequence_pattern? ')' 
+
+// open_sequence_pattern:
+//     | maybe_star_pattern ',' maybe_sequence_pattern? 
+
+// maybe_sequence_pattern:
+//     | ','.maybe_star_pattern+ ','? 
+
+// maybe_star_pattern:
+//     | star_pattern
+//     | pattern
+
+// star_pattern:
+//     | '*' pattern_capture_target 
+//     | '*' wildcard_pattern 
+
+// mapping_pattern:
+//     | '{' '}' 
+//     | '{' double_star_pattern ','? '}' 
+//     | '{' items_pattern ',' double_star_pattern ','? '}' 
+//     | '{' items_pattern ','? '}' 
+
+// items_pattern:
+//     | ','.key_value_pattern+
+
+// key_value_pattern:
+//     | (literal_expr | attr) ':' pattern 
+
+// double_star_pattern:
+//     | '**' pattern_capture_target 
+
+// class_pattern:
+//     | name_or_attr '(' ')' 
+//     | name_or_attr '(' positional_patterns ','? ')' 
+//     | name_or_attr '(' keyword_patterns ','? ')' 
+//     | name_or_attr '(' positional_patterns ',' keyword_patterns ','? ')' 
+
+// positional_patterns:
+//     | ','.pattern+ 
+
+// keyword_patterns:
+//     | ','.keyword_pattern+
+
+// keyword_pattern:
+//     | NAME '=' pattern 
+
 // expressions:
 //     | expression (',' expression )+ [','] 
 //     | expression ',' 
@@ -562,149 +960,159 @@ simple_stmt : t_keyword_pass
 //     | slice !',' 
 //     | ','.(slice | starred_expression)+ [','] 
 
-// slice:   t_delimiter_comma
-//             {
-//                 auto tmp1 = make_astnode(astnode_type::placeholder);
-//                 auto tmp2 = make_astnode(astnode_type::placeholder);
-//                 $$ = make_astnode(astnode_type::slice);
-//                 $$.eat(tmp1);
-//                 $$.eat(tmp2);
-//             }
-//         | expression t_delimiter_comma
-//             {
-//                 auto tmp = make_astnode(astnode_type::placeholder);
-//                 $$ = make_astnode(astnode_type::slice);
-//                 $$.eat($1);
-//                 $$.eat(tmp);
-//             }
-//         | t_delimiter_comma expression
-//             {
-//                 auto tmp = make_astnode(astnode_type::placeholder);
-//                 $$ = make_astnode(astnode_type::slice);
-//                 $$.eat(tmp);
-//                 $$.eat($2);
-//             }
-//         | expression t_delimiter_comma expression
-//             {
-//                 $$ = make_astnode(astnode_type::slice);
-//                 $$.eat($1);
-//                 $$.eat($3);
-//             }
-//         | slice _part_fo_slice
-//             {
+slice:   t_delimiter_comma
+            {
+                LOG_ASTNODE("t_delimiter_comma (for slice)");
+                auto tmp1 = make_astnode(astnode_type::placeholder);
+                auto tmp2 = make_astnode(astnode_type::placeholder);
+                $$ = make_astnode(astnode_type::slice);
+                $$.eat(tmp1);
+                $$.eat(tmp2);
+            }
+        | expression t_delimiter_comma
+            {
+                LOG_ASTNODE("t_delimiter_comma (for slice)");
+                auto tmp = make_astnode(astnode_type::placeholder);
+                $$ = make_astnode(astnode_type::slice);
+                $$.eat($1);
+                $$.eat(tmp);
+            }
+        | t_delimiter_comma expression
+            {
+                LOG_ASTNODE("t_delimiter_comma (for slice)");
+                auto tmp = make_astnode(astnode_type::placeholder);
+                $$ = make_astnode(astnode_type::slice);
+                $$.eat(tmp);
+                $$.eat($2);
+            }
+        | expression t_delimiter_comma expression
+            {
+                LOG_ASTNODE("t_delimiter_comma (for slice)");
+                $$ = make_astnode(astnode_type::slice);
+                $$.eat($1);
+                $$.eat($3);
+            }
+        | slice _part_fo_slice
+            {
+                $$ = $1;
+                $$.eat_sons($2);
+                remove_from_astnode_buff($2);
+            }
+        | named_expression
+            {
+                $$ = make_astnode(astnode_type::slice);
+                $$.eat($1);
+            }
 
-//             }
-//         | named_expression
-//             {
-//                 $$ = make_astnode(astnode_type::slice);
-//                 $$.eat($1);
-//             }
+_part_fo_slice: t_delimiter_comma expression
+            {
+                LOG_ASTNODE("t_delimiter_comma (for _part_fo_slice)");
+                $$ = make_astnode(astnode_type::placeholder);
+                $$.eat($2);
+            }
+        | t_delimiter_comma
+            {
+                LOG_ASTNODE("t_delimiter_comma (for _part_fo_slice)");
+                auto tmp = make_astnode(astnode_type::placeholder);
+                $$ = make_astnode(astnode_type::placeholder);
+                $$.eat(tmp);
+            }
 
-// _part_fo_slice: t_delimiter_comma expression
-//             {
-//                 auto tmp = make_astnode(astnode_type::placeholder);
-//                 $$ = make_astnode(astnode_type::slice);
-//                 $$.eat(tmp);
-//             }
-//         | t_delimiter_comma
-//             {
+atom:     t_identifier
+            {
+                LOG_ASTNODE("t_identifier (for atom)");
+                $$ = make_astnode_from_token($1, astnode_type::atom);
+            }
+        | t_keyword_True
+            {
+                LOG_ASTNODE("t_keyword_True (for atom)");
+                $$ = make_astnode_from_token($1, astnode_type::atom);
+            }
+        | t_keyword_False
+            {
+                LOG_ASTNODE("t_keyword_False (for atom)");
+                $$ = make_astnode_from_token($1, astnode_type::atom);
+            }
+        | t_keyword_None
+            {
+                LOG_ASTNODE("t_keyword_None (for atom)");
+                $$ = make_astnode_from_token($1, astnode_type::atom);
+            }
+        | t_number
+            {
+                LOG_ASTNODE("t_number (for atom)");
+                $$ = make_astnode_from_token($1, astnode_type::atom);
+            }
+        | strings
+            {
+                $$ = make_astnode(astnode_type::atom);
+                $$->eat($1);
+            }
+        | tuple
+            {
+                $$ = make_astnode(astnode_type::atom);
+                $$->eat($1);
+            }
+        | group
+            {
+                $$ = make_astnode(astnode_type::atom);
+                $$->eat($1);
+            }
+        | genexp
+            {
+                $$ = make_astnode(astnode_type::atom);
+                $$->eat($1);
+            }
+        | list
+            {
+                $$ = make_astnode(astnode_type::atom);
+                $$->eat($1);
+            }
+        | listcomp
+            {
+                $$ = make_astnode(astnode_type::atom);
+                $$->eat($1);
+            }
+        | dict
+            {
+                $$ = make_astnode(astnode_type::atom);
+                $$->eat($1);
+            }
+        | set
+            {
+                $$ = make_astnode(astnode_type::atom);
+                $$->eat($1);
+            }
+        | dictcomp
+            {
+                $$ = make_astnode(astnode_type::atom);
+                $$->eat($1);
+            }
+        | setcomp
+            {
+                $$ = make_astnode(astnode_type::atom);
+                $$->eat($1);
+            }
+        | t_delimiter_3dot
+            {
+                LOG_ASTNODE("t_delimiter_3dot (for atom)");
+                $$ = make_astnode_from_token($1, astnode_type::atom);
+            }
 
-//             }
-
-//     | [expression] ':' [expression] [':' [expression] ] 
-//     | named_expression 
-
-// atom:     t_identifier
-//             {
-//                 LOG_ASTNODE("t_identifier (for atom)");
-//                 $$ = make_astnode_from_token($1, astnode_type::atom);
-//             }
-//         | t_keyword_True
-//             {
-//                 LOG_ASTNODE("t_keyword_True (for atom)");
-//                 $$ = make_astnode_from_token($1, astnode_type::atom);
-//             }
-//         | t_keyword_False
-//             {
-//                 LOG_ASTNODE("t_keyword_False (for atom)");
-//                 $$ = make_astnode_from_token($1, astnode_type::atom);
-//             }
-//         | t_keyword_None
-//             {
-//                 LOG_ASTNODE("t_keyword_None (for atom)");
-//                 $$ = make_astnode_from_token($1, astnode_type::atom);
-//             }
-//         | t_number
-//             {
-//                 LOG_ASTNODE("t_number (for atom)");
-//                 $$ = make_astnode_from_token($1, astnode_type::atom);
-//             }
-//         | strings
-//             {
-//                 $$ = make_astnode(astnode_type::atom);
-//                 $$->eat($1);
-//             }
-//         | tuple
-//             {
-//                 $$ = make_astnode(astnode_type::atom);
-//                 $$->eat($1);
-//             }
-//         | group
-//             {
-//                 $$ = make_astnode(astnode_type::atom);
-//                 $$->eat($1);
-//             }
-//         | genexp
-//             {
-//                 $$ = make_astnode(astnode_type::atom);
-//                 $$->eat($1);
-//             }
-//         | list
-//             {
-//                 $$ = make_astnode(astnode_type::atom);
-//                 $$->eat($1);
-//             }
-//         | listcomp
-//             {
-//                 $$ = make_astnode(astnode_type::atom);
-//                 $$->eat($1);
-//             }
-//         | dict
-//             {
-//                 $$ = make_astnode(astnode_type::atom);
-//                 $$->eat($1);
-//             }
-//         | set
-//             {
-//                 $$ = make_astnode(astnode_type::atom);
-//                 $$->eat($1);
-//             }
-//         | dictcomp
-//             {
-//                 $$ = make_astnode(astnode_type::atom);
-//                 $$->eat($1);
-//             }
-//         | setcomp
-//             {
-//                 $$ = make_astnode(astnode_type::atom);
-//                 $$->eat($1);
-//             }
-//         | t_delimiter_3dot
-//             {
-//                 LOG_ASTNODE("t_delimiter_3dot (for atom)");
-//                 $$ = make_astnode_from_token($1, astnode_type::atom);
-//             }
-
-// group:    t_bracket_parentheses_l yield_expr t_bracket_parentheses_r
-//             {
-//                 $$ = make_astnode(astnode_type::group);
-//                 $$->eat($2);
-//             }
-//         | t_bracket_parentheses_l named_expression t_bracket_parentheses_r
-//             {
-//                 $$ = make_astnode(astnode_type::group);
-//                 $$->eat($2);
-//             }
+group:    t_bracket_parentheses_l yield_expr t_bracket_parentheses_r
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for group)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for group)");
+                $$ = make_astnode(astnode_type::group);
+                $$->eat($2);
+            }
+        | t_bracket_parentheses_l named_expression t_bracket_parentheses_r
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for group)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for group)");
+                $$ = make_astnode(astnode_type::group);
+                $$->eat($2);
+            }
 
 // lambdef:
 //     | 'lambda' [lambda_params] ':' expression 
@@ -766,6 +1174,127 @@ simple_stmt : t_keyword_pass
 //     | kvpair
 
 // kvpair: expression ':' expression 
+
+// for_if_clauses:
+//     | for_if_clause+ 
+
+// for_if_clause:
+//     | ASYNC 'for' star_targets 'in' ~ disjunction ('if' disjunction )* 
+//     | 'for' star_targets 'in' ~ disjunction ('if' disjunction )* 
+
+// listcomp:
+//     | '[' named_expression for_if_clauses ']' 
+
+// setcomp:
+//     | '{' named_expression for_if_clauses '}' 
+
+// genexp:
+//     | '(' ( assignment_expression | expression !':=') for_if_clauses ')' 
+
+// dictcomp:
+//     | '{' kvpair for_if_clauses '}' 
+
+// # FUNCTION CALL ARGUMENTS
+// # =======================
+
+// arguments:
+//     | args [','] &')' 
+
+// args:
+//     | ','.(starred_expression | ( assignment_expression | expression !':=') !'=')+ [',' kwargs ] 
+//     | kwargs 
+
+// kwargs:
+//     | ','.kwarg_or_starred+ ',' ','.kwarg_or_double_starred+ 
+//     | ','.kwarg_or_starred+
+//     | ','.kwarg_or_double_starred+
+
+// starred_expression:
+//     | '*' expression 
+
+// kwarg_or_starred:
+//     | NAME '=' expression 
+//     | starred_expression 
+
+// kwarg_or_double_starred:
+//     | NAME '=' expression 
+//     | '**' expression 
+
+// # ASSIGNMENT TARGETS
+// # ==================
+
+// # Generic targets
+// # ---------------
+
+// # NOTE: star_targets may contain *bitwise_or, targets may not.
+// star_targets:
+//     | star_target !',' 
+//     | star_target (',' star_target )* [','] 
+
+// star_targets_list_seq: ','.star_target+ [','] 
+
+// star_targets_tuple_seq:
+//     | star_target (',' star_target )+ [','] 
+//     | star_target ',' 
+
+// star_target:
+//     | '*' (!'*' star_target) 
+//     | target_with_star_atom
+
+// target_with_star_atom:
+//     | t_primary '.' NAME !t_lookahead 
+//     | t_primary '[' slices ']' !t_lookahead 
+//     | star_atom
+
+// star_atom:
+//     | NAME 
+//     | '(' target_with_star_atom ')' 
+//     | '(' [star_targets_tuple_seq] ')' 
+//     | '[' [star_targets_list_seq] ']' 
+
+// single_target:
+//     | single_subscript_attribute_target
+//     | NAME 
+//     | '(' single_target ')' 
+
+// single_subscript_attribute_target:
+//     | t_primary '.' NAME !t_lookahead 
+//     | t_primary '[' slices ']' !t_lookahead 
+
+// t_primary:
+//     | t_primary '.' NAME &t_lookahead 
+//     | t_primary '[' slices ']' &t_lookahead 
+//     | t_primary genexp &t_lookahead 
+//     | t_primary '(' [arguments] ')' &t_lookahead 
+//     | atom &t_lookahead 
+
+// t_lookahead: '(' | '[' | '.'
+
+// del_targets: ','.del_target+ [','] 
+
+// del_target:
+//     | t_primary '.' NAME !t_lookahead 
+//     | t_primary '[' slices ']' !t_lookahead 
+//     | del_t_atom
+
+// del_t_atom:
+//     | NAME 
+//     | '(' del_target ')' 
+//     | '(' [del_targets] ')' 
+//     | '[' [del_targets] ']' 
+
+// type_expressions:
+//     | ','.expression+ ',' '*' expression ',' '**' expression 
+//     | ','.expression+ ',' '*' expression 
+//     | ','.expression+ ',' '**' expression 
+//     | '*' expression ',' '**' expression 
+//     | '*' expression 
+//     | '**' expression 
+//     | ','.expression+ 
+
+// func_type_comment:
+//     | NEWLINE TYPE_COMMENT &(NEWLINE INDENT)   # Must be followed by indented block
+//     | TYPE_COMMENT
 
 ast_error : t_error { GEN_ERROR_NODE("t_error (for ast_error)", $$, $1); }
         | t_newline { GEN_ERROR_NODE("t_newline (for ast_error)", $$, $1); }
