@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
     Logger << cmd_print;
 
     // run & debug print
-    auto ast_head = make_astnode();
+    AstNode* ast_head = nullptr;
     yyin = input_file_ptr;
     Logger << Log::debug << "yyparse begin" << Log::endl;
     yyparse(ast_head);

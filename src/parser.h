@@ -16,13 +16,13 @@ extern FILE* yyin;
 // type to_string
 
 enum class astnode_type {
-    error, file,
+    error, placeholder, file,
 
     statements, statement,
 
     simple_stmts, simple_stmt,
 
-    atom, group,
+    slice, atom, group,
 };
 
 namespace std {
@@ -47,7 +47,7 @@ struct AstNode {
     ~AstNode();
 
     AstNode* eat(AstNode* son);
-    AstNode* give(AstNode* mother);
+    AstNode* eat_sons(AstNode* old_mother);
 
     std::string to_string();
 };
@@ -61,9 +61,10 @@ int yyparse(AstNode*& ast_head);
 
 // 所有权 (unique_ptr) 在这个 vector 里，其他函数只能获得 AstNode*，即 AstNode 的读写权限，并非所有权。
 extern std::vector<std::unique_ptr<AstNode>> astnode_buff;
-AstNode* make_astnode();
-AstNode* make_astnode_from_token(Token token);
-AstNode* make_astnode_from_token(Token* token);
+AstNode* make_astnode(astnode_type type = astnode_type::error);
+AstNode* make_astnode_from_token(Token token, astnode_type type = astnode_type::error);
+AstNode* make_astnode_from_token(Token* token, astnode_type type = astnode_type::error);
+void remove_from_astnode_buff(AstNode*& del);
 
 
 
