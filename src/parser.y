@@ -125,6 +125,7 @@ void yyerror(AstNode*& ast_head, char* msg);
 %token <token_ptr> t_keyword_yield
 %token <token_ptr> t_keyword_class
 %token <token_ptr> t_keyword_lambda
+%token <token_ptr> t_keyword_await
 
 %token <token_ptr> t_keyword_if
 %token <token_ptr> t_keyword_else
@@ -356,13 +357,13 @@ void yyerror(AstNode*& ast_head, char* msg);
 
 %%
 
-file : statements
+file: statements
             {
-                ast_head = make_astnode(astnode_type::file);
-                ast_head->eat($1);
+                ast_head = $1;
             }
 
-statements : statement
+statements:
+          statement
             {
                 $$ = make_astnode(astnode_type::statements);
                 $$->eat($1);
@@ -372,32 +373,26 @@ statements : statement
                 $$ = $1->eat($2);
             }
 
-statement : simple_stmts
-            {
-                $$ = $1;
-                $$->type = astnode_type::statement;
-            }
+statement:
+          simple_stmts
+        | compound_stmt
         | ast_error
-            {
-                $$ = $1;
-                $$->type = astnode_type::statement;
-            }
 
-simple_stmts : _no_newline_simple_stmt t_newline
+simple_stmts:
+          _no_newline_simple_stmt t_newline
             {
                 LOG_ASTNODE("t_newline (for simple_stmts)");
                 $$ = $1;
-                $$->type = astnode_type::simple_stmts;
             }
         | _no_newline_simple_stmt t_delimiter_semicolon t_newline
             {
                 LOG_ASTNODE("t_delimiter_semicolon (for simple_stmts)");
                 LOG_ASTNODE("t_newline (for simple_stmts)");
                 $$ = $1;
-                $$->type = astnode_type::simple_stmts;
             }
 
-_no_newline_simple_stmt : simple_stmt
+_no_newline_simple_stmt:
+          simple_stmt
             {
                 $$ = make_astnode(astnode_type::placeholder);
                 $$->eat($1);
@@ -409,82 +404,218 @@ _no_newline_simple_stmt : simple_stmt
                 $$->eat($3);
             }
 
-simple_stmt : t_keyword_pass
+simple_stmt:
+          assignment
+        | star_expressions
+        | return_stmt
+        | import_stmt
+        | raise_stmt
+        | t_keyword_pass
             {
                 LOG_ASTNODE("t_keyword_pass (for simple_stmt)");
-                $$ = make_astnode_from_token($1, astnode_type::simple_stmt);
+                $$ = make_astnode_from_token($1, astnode_type::pass_stmt);
             }
+        | del_stmt
+        | yield_stmt
+        | assert_stmt
         | t_keyword_break
             {
                 LOG_ASTNODE("t_keyword_break (for simple_stmt)");
-                $$ = make_astnode_from_token($1, astnode_type::simple_stmt);
+                $$ = make_astnode_from_token($1, astnode_type::break_stmt);
             }
         | t_keyword_continue
             {
                 LOG_ASTNODE("t_keyword_continue (for simple_stmt)");
-                $$ = make_astnode_from_token($1, astnode_type::simple_stmt);
+                $$ = make_astnode_from_token($1, astnode_type::continue_stmt);
+            }
+        | global_stmt
+        | nonlocal_stmt
+
+compound_stmt:
+          function_def
+        | if_stmt
+        | class_def
+        | with_stmt
+        | for_stmt
+        | try_stmt
+        | while_stmt
+        | match_stmt
+
+assignment:
+          t_identifier t_operators_assign annotated_rhs
+            {
+                LOG_ASTNODE("t_identifier (for assignment)");
+                LOG_ASTNODE("t_operators_assign (for assignment)");
+                $$ = make_astnode(astnode_type::assignment);
+                $$->eat(make_astnode_from_token($1, astnode_type::atom));
+                $$->eat(make_astnode(astnode_type::placeholder));
+                $$->eat($3);
+            }
+        | t_identifier t_delimiter_colon expression
+            {
+                LOG_ASTNODE("t_identifier (for assignment)");
+                LOG_ASTNODE("t_delimiter_colon (for assignment)");
+                $$ = make_astnode(astnode_type::assignment);
+                $$->eat(make_astnode_from_token($1, astnode_type::atom));
+                $$->eat($3);
+                $$->eat(make_astnode(astnode_type::placeholder));
+            }
+        | t_identifier t_delimiter_colon expression t_operators_assign annotated_rhs
+            {
+                LOG_ASTNODE("t_identifier (for assignment)");
+                LOG_ASTNODE("t_delimiter_colon (for assignment)");
+                LOG_ASTNODE("t_operators_assign (for assignment)");
+                $$ = make_astnode(astnode_type::assignment);
+                $$->eat(make_astnode_from_token($1, astnode_type::atom));
+                $$->eat($3);
+                $$->eat($5);
+            }
+       | t_bracket_parentheses_l single_target t_bracket_parentheses_r t_delimiter_colon expression
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for assignment)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for assignment)");
+                LOG_ASTNODE("t_delimiter_colon (for assignment)");
+                $$ = make_astnode(astnode_type::assignment);
+                $$->eat($2);
+                $$->eat($5);
+                $$->eat(make_astnode(astnode_type::placeholder));
+            }
+       | t_bracket_parentheses_l single_target t_bracket_parentheses_r t_operators_assign annotated_rhs
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for assignment)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for assignment)");
+                LOG_ASTNODE("t_operators_assign (for assignment)");
+                $$ = make_astnode(astnode_type::assignment);
+                $$->eat($2);
+                $$->eat(make_astnode(astnode_type::placeholder));
+                $$->eat($5);
+            }
+       | t_bracket_parentheses_l single_target t_bracket_parentheses_r t_delimiter_colon expression t_operators_assign annotated_rhs
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for assignment)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for assignment)");
+                LOG_ASTNODE("t_delimiter_colon (for assignment)");
+                LOG_ASTNODE("t_operators_assign (for assignment)");
+                $$ = make_astnode(astnode_type::assignment);
+                $$->eat($2);
+                $$->eat($5);
+                $$->eat($7);
+            }
+       | single_subscript_attribute_target t_delimiter_colon expression
+            {
+                LOG_ASTNODE("t_delimiter_colon (for assignment)");
+                $$ = make_astnode(astnode_type::assignment);
+                $$->eat($1);
+                $$->eat($3);
+                $$->eat(make_astnode(astnode_type::placeholder));
+            }
+       | single_subscript_attribute_target t_operators_assign annotated_rhs
+            {
+                LOG_ASTNODE("t_operators_assign (for assignment)");
+                $$ = make_astnode(astnode_type::assignment);
+                $$->eat($1);
+                $$->eat(make_astnode(astnode_type::placeholder));
+                $$->eat($3);
+            }
+       | single_subscript_attribute_target t_delimiter_colon expression t_operators_assign annotated_rhs
+            {
+                LOG_ASTNODE("t_delimiter_colon (for assignment)");
+                LOG_ASTNODE("t_operators_assign (for assignment)");
+                $$ = make_astnode(astnode_type::assignment);
+                $$->eat($1);
+                $$->eat($3);
+                $$->eat($5);
+            }
+//     | (star_targets '=' )+ (yield_expr | star_expressions) !'=' [TYPE_COMMENT] 
+//     | single_target augassign (yield_expr | star_expressions) 
+
+annotated_rhs:
+          yield_expr
+        | star_expressions
+
+augassign:
+          t_operators_add_assign
+            {
+                LOG_ASTNODE("t_operators_add_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
+            }
+        | t_operators_sub_assign
+            {
+                LOG_ASTNODE("t_operators_sub_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
+            }
+        | t_operators_mul_assign
+            {
+                LOG_ASTNODE("t_operators_mul_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
+            }
+        | t_operators_at_assign
+            {
+                LOG_ASTNODE("t_operators_at_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
+            }
+        | t_operators_div_assign
+            {
+                LOG_ASTNODE("t_operators_div_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
+            }
+        | t_operators_mod_assign
+            {
+                LOG_ASTNODE("t_operators_mod_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
+            }
+        | t_operators_and_assign
+            {
+                LOG_ASTNODE("t_operators_and_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
+            }
+        | t_operators_or_assign
+            {
+                LOG_ASTNODE("t_operators_or_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
+            }
+        | t_operators_xor_assign
+            {
+                LOG_ASTNODE("t_operators_xor_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
+            }
+        | t_operators_sleft_assign
+            {
+                LOG_ASTNODE("t_operators_sleft_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
+            }
+        | t_operators_sright_assign
+            {
+                LOG_ASTNODE("t_operators_sright_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
+            }
+        | t_operators_pow_assign
+            {
+                LOG_ASTNODE("t_operators_pow_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
+            }
+        | t_operators_ediv_assign
+            {
+                LOG_ASTNODE("t_operators_ediv_assign (for augassign)");
+                $$->make_astnode_from_token($1, astnode_type::placeholder);
             }
 
-// # NOTE: assignment MUST precede expression, else parsing a simple assignment
-// # will throw a SyntaxError.
-// simple_stmt:
-//     | assignment
-//     | star_expressions 
-//     | return_stmt
-//     | import_stmt
-//     | raise_stmt
-//     | 'pass' 
-//     | del_stmt
-//     | yield_stmt
-//     | assert_stmt
-//     | 'break' 
-//     | 'continue' 
-//     | global_stmt
-//     | nonlocal_stmt
-
-// compound_stmt:
-//     | function_def
-//     | if_stmt
-//     | class_def
-//     | with_stmt
-//     | for_stmt
-//     | try_stmt
-//     | while_stmt
-//     | match_stmt
-
-// # SIMPLE STATEMENTS
-// # =================
-
-// # NOTE: annotated_rhs may start with 'yield'; yield_expr must start with 'yield'
-// assignment:
-//     | NAME ':' expression ['=' annotated_rhs ] 
-//     | ('(' single_target ')' 
-//         | single_subscript_attribute_target) ':' expression ['=' annotated_rhs ] 
-//     | (star_targets '=' )+ (yield_expr | star_expressions) !'=' [TYPE_COMMENT] 
-//     | single_target augassign ~ (yield_expr | star_expressions) 
-
-// annotated_rhs: yield_expr | star_expressions
-
-// augassign:
-//     | '+=' 
-//     | '-=' 
-//     | '*=' 
-//     | '@=' 
-//     | '/=' 
-//     | '%=' 
-//     | '&=' 
-//     | '|=' 
-//     | '^=' 
-//     | '<<=' 
-//     | '>>=' 
-//     | '**=' 
-//     | '//=' 
-
-// return_stmt:
-//     | 'return' [star_expressions] 
+return_stmt:
+          t_keyword_return
+            {
+                LOG_ASTNODE("t_keyword_return (for return_stmt)");
+                $$->make_astnode_from_token($1, astnode_type::return_stmt);
+            }
+        | t_keyword_return star_expressions
+            {
+                LOG_ASTNODE("t_keyword_return (for return_stmt)");
+                $$->make_astnode_from_token($1, astnode_type::return_stmt);
+                $$->eat($2);
+            }
 
 // raise_stmt:
-//     | 'raise' expression ['from' expression ] 
+//     | 'raise' expression 'from' expression
+//     | 'raise' expression
 //     | 'raise' 
 
 // global_stmt: 'global' ','.NAME+ 
@@ -499,9 +630,6 @@ simple_stmt : t_keyword_pass
 // assert_stmt: 'assert' expression [',' expression ] 
 
 // import_stmt: import_name | import_from
-
-// # Import statements
-// # -----------------
 
 // import_name: 'import' dotted_as_names 
 // # note below: the ('.' | '...') is necessary because '...' is tokenized as ELLIPSIS
@@ -524,20 +652,11 @@ simple_stmt : t_keyword_pass
 //     | dotted_name '.' NAME 
 //     | NAME
 
-// # COMPOUND STATEMENTS
-// # ===================
-
-// # Common elements
-// # ---------------
-
 // block:
 //     | NEWLINE INDENT statements DEDENT 
 //     | simple_stmts
 
 // decorators: ('@' named_expression NEWLINE )+ 
-
-// # Class definitions
-// # -----------------
 
 // class_def:
 //     | decorators class_def_raw 
@@ -546,9 +665,6 @@ simple_stmt : t_keyword_pass
 // class_def_raw:
 //     | 'class' NAME ['(' [arguments] ')' ] ':' block 
 
-// # Function definitions
-// # --------------------
-
 // function_def:
 //     | decorators function_def_raw 
 //     | function_def_raw
@@ -556,9 +672,6 @@ simple_stmt : t_keyword_pass
 // function_def_raw:
 //     | 'def' NAME '(' [params] ')' ['->' expression ] ':' [func_type_comment] block 
 //     | ASYNC 'def' NAME '(' [params] ')' ['->' expression ] ':' [func_type_comment] block 
-
-// # Function parameters
-// # -------------------
 
 // params:
 //     | parameters
@@ -589,19 +702,6 @@ simple_stmt : t_keyword_pass
 // kwds:
 //     | '**' param_no_default 
 
-// # One parameter.  This *includes* a following comma and type comment.
-// #
-// # There are three styles:
-// # - No default
-// # - With default
-// # - Maybe with default
-// #
-// # There are two alternative forms of each, to deal with type comments:
-// # - Ends in a comma followed by an optional type comment
-// # - No comma, optional type comment, must be followed by close paren
-// # The latter form is for a final parameter without trailing comma.
-// #
-
 // param_no_default:
 //     | param ',' TYPE_COMMENT? 
 //     | param TYPE_COMMENT? &')' 
@@ -620,9 +720,6 @@ simple_stmt : t_keyword_pass
 // star_annotation: ':' star_expression 
 // default: '=' expression  | invalid_default
 
-// # If statement
-// # ------------
-
 // if_stmt:
 //     | 'if' named_expression ':' block elif_stmt 
 //     | 'if' named_expression ':' block [else_block] 
@@ -632,21 +729,12 @@ simple_stmt : t_keyword_pass
 // else_block:
 //     | 'else' ':' block 
 
-// # While statement
-// # ---------------
-
 // while_stmt:
 //     | 'while' named_expression ':' block [else_block] 
-
-// # For statement
-// # -------------
 
 // for_stmt:
 //     | 'for' star_targets 'in' ~ star_expressions ':' [TYPE_COMMENT] block [else_block] 
 //     | ASYNC 'for' star_targets 'in' ~ star_expressions ':' [TYPE_COMMENT] block [else_block] 
-
-// # With statement
-// # --------------
 
 // with_stmt:
 //     | 'with' '(' ','.with_item+ ','? ')' ':' block 
@@ -658,17 +746,10 @@ simple_stmt : t_keyword_pass
 //     | expression 'as' star_target &(',' | ')' | ':') 
 //     | expression 
 
-// # Try statement
-// # -------------
-
 // try_stmt:
 //     | 'try' ':' block finally_block 
 //     | 'try' ':' block except_block+ [else_block] [finally_block] 
 //     | 'try' ':' block except_star_block+ [else_block] [finally_block] 
-
-
-// # Except statement
-// # ----------------
 
 // except_block:
 //     | 'except' expression ['as' NAME ] ':' block 
@@ -677,9 +758,6 @@ simple_stmt : t_keyword_pass
 //     | 'except' '*' expression ['as' NAME ] ':' block 
 // finally_block:
 //     | 'finally' ':' block 
-
-// # Match statement
-// # ---------------
 
 // match_stmt:
 //     | "match" subject_expr ':' NEWLINE INDENT case_block+ DEDENT 
@@ -934,69 +1012,138 @@ simple_stmt : t_keyword_pass
 //     | term '@' factor 
 //     | factor
 
-// factor:
-//     | '+' factor 
-//     | '-' factor 
-//     | '~' factor 
-//     | power
+factor:
+          power
+            {
+                $$ = make_astnode(astnode_type::factor);
+                $$->eat($1);
+            }
+        | t_operators_add factor
+            {
+                LOG_ASTNODE("t_operators_add (for factor)");
+                $$ = make_astnode(astnode_type::factor);
+                $$->eat(make_astnode_from_token($1, astnode_type::atom))
+                $$->eat_sons($2);
+                remove_from_astnode_buff($2);
+            }
+        | t_operators_sub factor
+            {
+                LOG_ASTNODE("t_operators_sub (for factor)");
+                $$ = make_astnode(astnode_type::factor);
+                $$->eat(make_astnode_from_token($1, astnode_type::atom))
+                $$->eat_sons($2);
+                remove_from_astnode_buff($2);
+            }
+        | t_operators_not factor
+            {
+                LOG_ASTNODE("t_operators_not (for factor)");
+                $$ = make_astnode(astnode_type::factor);
+                $$->eat(make_astnode_from_token($1, astnode_type::atom))
+                $$->eat_sons($2);
+                remove_from_astnode_buff($2);
+            }
 
-// power: | await_primary '|' factor
-//             {
+power:
+          await_primary
+            {
+                $$ = make_astnode(astnode_type::power);
+                $$->eat($1);
+            }
+        | await_primary t_operators_or factor
+            {
+                LOG_ASTNODE("t_keyword_await (for power)");
+                $$ = make_astnode(astnode_type::power);
+                $$->eat($1);
+                $$->eat($3);
+            }
 
-//             }
-//         | await_primary
-//             {
-                
-//             }
+await_primary:
+          primary
+        | t_keyword_await primary
+            {
+                LOG_ASTNODE("t_keyword_await (for await_primary)");
+                $$ = $2;
+                $$->attribute.is_await = true;
+            }
 
-// await_primary:
-//     | AWAIT primary 
-//     | primary
+primary:
+          atom
+            {
+                $$ = $1;
+                $$->type = astnode_type::primary;
+            }
+        | primary t_delimiter_dot t_identifier
+            {
+                LOG_ASTNODE("t_delimiter_dot (for primary)");
+                LOG_ASTNODE("t_identifier (for primary)");
+                $$ = $1;
+                $$->type = astnode_type::primary_attr;
+                $$->eat(make_astnode_from_token($3, astnode_type::atom));
+            }
+        | primary t_bracket_parentheses_l t_bracket_parentheses_r
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for primary)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for primary)");
+                $$ = $1;
+                $$->type = astnode_type::primary_call;
+                $$->eat(make_astnode(astnode_type::placeholder));
+            }
+        | primary t_bracket_parentheses_l arguments t_bracket_parentheses_r
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for primary)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for primary)");
+                $$ = $1;
+                $$->type = astnode_type::primary_call;
+                $$->eat($3);
+            }
+        | primary t_bracket_square_l slices t_bracket_square_r
+            {
+                LOG_ASTNODE("t_bracket_square_l (for primary)");
+                LOG_ASTNODE("t_bracket_square_r (for primary)");
+                $$ = $1;
+                $$->type = astnode_type::primary_index;
+                $$->eat($3);
+            }
+//     | primary genexp  // to add
 
-// primary:
-//     | primary '.' NAME 
-//     | primary genexp 
-//     | primary '(' [arguments] ')' 
-//     | primary '[' slices ']' 
-//     | atom
+slices:   slice
+            {
+                $$ = make_astnode(astnode_type::slices);
+                $$->eat($1);
+            }
+//     | ','.(slice | starred_expression)+ [',']  // to add
 
-// slices:
-//     | slice !',' 
-//     | ','.(slice | starred_expression)+ [','] 
-
-/*
-
-slice:   t_delimiter_comma
+slice:    t_delimiter_comma
             {
                 LOG_ASTNODE("t_delimiter_comma (for slice)");
                 auto tmp1 = make_astnode(astnode_type::placeholder);
                 auto tmp2 = make_astnode(astnode_type::placeholder);
                 $$ = make_astnode(astnode_type::slice);
-                $$.eat(tmp1);
-                $$.eat(tmp2);
+                $$->eat(tmp1);
+                $$->eat(tmp2);
             }
         | expression t_delimiter_comma
             {
                 LOG_ASTNODE("t_delimiter_comma (for slice)");
                 auto tmp = make_astnode(astnode_type::placeholder);
                 $$ = make_astnode(astnode_type::slice);
-                $$.eat($1);
-                $$.eat(tmp);
+                $$->eat($1);
+                $$->eat(tmp);
             }
         | t_delimiter_comma expression
             {
                 LOG_ASTNODE("t_delimiter_comma (for slice)");
                 auto tmp = make_astnode(astnode_type::placeholder);
                 $$ = make_astnode(astnode_type::slice);
-                $$.eat(tmp);
-                $$.eat($2);
+                $$->eat(tmp);
+                $$->eat($2);
             }
         | expression t_delimiter_comma expression
             {
                 LOG_ASTNODE("t_delimiter_comma (for slice)");
                 $$ = make_astnode(astnode_type::slice);
-                $$.eat($1);
-                $$.eat($3);
+                $$->eat($1);
+                $$->eat($3);
             }
         | slice _part_fo_slice
             {
@@ -1007,21 +1154,21 @@ slice:   t_delimiter_comma
         | named_expression
             {
                 $$ = make_astnode(astnode_type::slice);
-                $$.eat($1);
+                $$->eat($1);
             }
 
 _part_fo_slice: t_delimiter_comma expression
             {
                 LOG_ASTNODE("t_delimiter_comma (for _part_fo_slice)");
                 $$ = make_astnode(astnode_type::placeholder);
-                $$.eat($2);
+                $$->eat($2);
             }
         | t_delimiter_comma
             {
                 LOG_ASTNODE("t_delimiter_comma (for _part_fo_slice)");
                 auto tmp = make_astnode(astnode_type::placeholder);
                 $$ = make_astnode(astnode_type::placeholder);
-                $$.eat(tmp);
+                $$->eat(tmp);
             }
 
 atom:     t_identifier
@@ -1120,8 +1267,6 @@ group:    t_bracket_parentheses_l yield_expr t_bracket_parentheses_r
                 $$->eat($2);
             }
 
-*/
-
 // lambdef:
 //     | 'lambda' [lambda_params] ':' expression 
 
@@ -1202,9 +1347,6 @@ group:    t_bracket_parentheses_l yield_expr t_bracket_parentheses_r
 // dictcomp:
 //     | '{' kvpair for_if_clauses '}' 
 
-// # FUNCTION CALL ARGUMENTS
-// # =======================
-
 // arguments:
 //     | args [','] &')' 
 
@@ -1227,12 +1369,6 @@ group:    t_bracket_parentheses_l yield_expr t_bracket_parentheses_r
 // kwarg_or_double_starred:
 //     | NAME '=' expression 
 //     | '**' expression 
-
-// # ASSIGNMENT TARGETS
-// # ==================
-
-// # Generic targets
-// # ---------------
 
 // # NOTE: star_targets may contain *bitwise_or, targets may not.
 // star_targets:

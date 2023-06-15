@@ -16,13 +16,14 @@ extern FILE* yyin;
 // type to_string
 
 enum class astnode_type {
-    error, placeholder, file,
+    error, placeholder, statements,
 
-    statements, statement,
+    assignment, pass_stmt, break_stmt, continue_stmt,
 
-    simple_stmts, simple_stmt,
+    power,
+    primary, primary_attr, primary_call, primary_index,
 
-    slice, atom, group,
+    slices, slice, atom, group,
 };
 
 namespace std {
@@ -34,6 +35,13 @@ namespace std {
 // --- 3 ---
 // class (include class to_string)
 
+struct Attribute {
+    bool is_await = false;
+
+    Attribute();
+    ~Attribute();
+};
+
 struct AstNode {
     astnode_type type;
     AstNode* parent;
@@ -42,6 +50,8 @@ struct AstNode {
     // made from token, expression (single)
     bool is_token_leaf;
     Token token_leaf;
+
+    Attribute attribute;
 
     AstNode();
     ~AstNode();
@@ -53,7 +63,6 @@ struct AstNode {
 };
 
 int yyparse(AstNode*& ast_head);
-
 
 
 // --- 1 ---

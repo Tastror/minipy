@@ -647,6 +647,7 @@ return      { KEYWORD_TOKEN_GEN; return t_keyword_return; }
 yield       { KEYWORD_TOKEN_GEN; return t_keyword_yield; }
 class       { KEYWORD_TOKEN_GEN; return t_keyword_class; }
 lambda      { KEYWORD_TOKEN_GEN; return t_keyword_lambda; }
+await       { KEYWORD_TOKEN_GEN; return t_keyword_await; }
 
 if          { KEYWORD_TOKEN_GEN; return t_keyword_if; }
 else        { KEYWORD_TOKEN_GEN; return t_keyword_else; }
