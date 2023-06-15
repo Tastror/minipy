@@ -604,19 +604,35 @@ return_stmt:
           t_keyword_return
             {
                 LOG_ASTNODE("t_keyword_return (for return_stmt)");
-                $$->make_astnode_from_token($1, astnode_type::return_stmt);
+                $$ = make_astnode(astnode_type::return_stmt);
             }
         | t_keyword_return star_expressions
             {
                 LOG_ASTNODE("t_keyword_return (for return_stmt)");
-                $$->make_astnode_from_token($1, astnode_type::return_stmt);
+                $$ = make_astnode(astnode_type::return_stmt);
                 $$->eat($2);
             }
 
-// raise_stmt:
-//     | 'raise' expression 'from' expression
-//     | 'raise' expression
-//     | 'raise' 
+raise_stmt:
+          t_keyword_raise expression t_keyword_from expression
+            {
+                LOG_ASTNODE("t_keyword_raise (for raise_stmt)");
+                LOG_ASTNODE("t_keyword_from (for raise_stmt)");
+                $$ = make_astnode(astnode_type::raise_stmt);
+                $$->eat($2);
+                $$->eat($4);
+            }
+        | t_keyword_raise expression
+            {
+                LOG_ASTNODE("t_keyword_raise (for raise_stmt)");
+                $$ = make_astnode(astnode_type::raise_stmt);
+                $$->eat($2);
+            }
+        | t_keyword_raise
+            {
+                LOG_ASTNODE("t_keyword_raise (for raise_stmt)");
+                $$ = make_astnode(astnode_type::raise_stmt);
+            }
 
 // global_stmt: 'global' ','.NAME+ 
 
