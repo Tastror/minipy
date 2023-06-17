@@ -128,13 +128,14 @@ std::string std::to_string(astnode_type tt) {
         case astnode_type::power: return "power";
         case astnode_type::await_primary: return "await_primary";
         case astnode_type::primary: return "primary";
-
-        case astnode_type::sign_annotate: return "sign_annotate";
         case astnode_type::atom: return "atom";
 
         case astnode_type::slices: return "slices";
         case astnode_type::slice: return "slice";
-        case astnode_type::group: return "group";
+        case astnode_type::strings: return "strings";
+        case astnode_type::string_text: return "string_text";
+
+        case astnode_type::sign_annotate: return "sign_annotate";
     }
     return "";
 }

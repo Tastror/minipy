@@ -556,7 +556,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 <DQUOTE_STR_TEXT_END>\" {
                 BRACKET_TOKEN_GEN;
                 BEGIN(INITIAL);
-                return t_bracket_squotes;
+                return t_bracket_dquotes;
             }
 
 <DQUOTE_STR_TEXT_END><<EOF>> { assert(false && "[5] you cannot get here, unless your flex is wrong!!!"); }

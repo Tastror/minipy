@@ -301,7 +301,6 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> slice
 %type <astnode_ptr> _part_fo_slice
 %type <astnode_ptr> atom
-%type <astnode_ptr> group
 
 %type <astnode_ptr> lambdef
 %type <astnode_ptr> lambda_params
@@ -315,7 +314,6 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> lambda_param_maybe_default
 %type <astnode_ptr> lambda_param
 
-%type <astnode_ptr> strings
 %type <astnode_ptr> list
 %type <astnode_ptr> tuple
 %type <astnode_ptr> set
@@ -323,6 +321,8 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> double_starred_kvpairs
 %type <astnode_ptr> double_starred_kvpair
 %type <astnode_ptr> kvpair
+%type <astnode_ptr> strings
+%type <astnode_ptr> string_text
 
 %type <astnode_ptr> expressions_lhs
 %type <astnode_ptr> _no_endcomma_expressions_lhs
@@ -590,7 +590,7 @@ _no_endcomma_expressions:
             }
 
 expression:
-          shift_expr
+          bitwise_or
 
 // yield_expr: 
 // star_expressions:
@@ -614,9 +614,36 @@ expression:
 // in_bitwise_or:
 // isnot_bitwise_or:
 // is_bitwise_or:
-// bitwise_or:
-// bitwise_xor:
-// bitwise_and:
+
+bitwise_or:
+          bitwise_xor
+        | bitwise_or t_operators_or bitwise_xor
+            {
+                LOG_ASTNODE("t_operators_or (for bitwise_or)");
+                $$ = make_astnode(astnode_type::bitwise_or);
+                $$->eat($1);
+                $$->eat($3);
+            }
+
+bitwise_xor:
+          bitwise_and
+        | bitwise_xor t_operators_xor bitwise_and
+            {
+                LOG_ASTNODE("t_operators_xor (for bitwise_xor)");
+                $$ = make_astnode(astnode_type::bitwise_xor);
+                $$->eat($1);
+                $$->eat($3);
+            }
+
+bitwise_and:
+          shift_expr
+        | bitwise_and t_operators_and shift_expr
+            {
+                LOG_ASTNODE("t_operators_and (for bitwise_and)");
+                $$ = make_astnode(astnode_type::bitwise_and);
+                $$->eat($1);
+                $$->eat($3);
+            }
 
 shift_expr:
           sum
@@ -776,10 +803,40 @@ atom:
                 LOG_ASTNODE("t_delimiter_3dot (for atom)");
                 $$ = make_astnode_from_token($1, astnode_type::atom);
             }
+        | strings
 
 
 
-// [5] errors
+// [5] basic defines
+
+strings:
+          string_text
+            {
+                $$ = make_astnode(astnode_type::strings);
+                $$->eat($1);
+            }
+        | strings string_text
+            {
+                $$ = $1->eat($2);
+            }
+
+string_text:
+          t_bracket_dquotes t_strtext t_bracket_dquotes
+            {
+                LOG_ASTNODE("t_bracket_dquotes (for string_text)");
+                LOG_ASTNODE("t_strtext (for string_text)");
+                LOG_ASTNODE("t_bracket_dquotes (for string_text)");
+                $$ = make_astnode_from_token($2, astnode_type::string_text);
+            }
+        | t_bracket_squotes t_strtext t_bracket_squotes
+            {
+                LOG_ASTNODE("t_bracket_squotes (for string_text)");
+                LOG_ASTNODE("t_strtext (for string_text)");
+                LOG_ASTNODE("t_bracket_squotes (for string_text)");
+                $$ = make_astnode_from_token($2, astnode_type::string_text);
+            }
+
+// [6] errors
 
 /* --- LEAF ONLY --- */
 ast_error :
@@ -789,7 +846,7 @@ ast_error :
         | t_dedent { GEN_ERROR_NODE("t_dedent (for ast_error)", $$, $1); }
         // | t_identifier { GEN_ERROR_NODE("t_identifier (for ast_error)", $$, $1); }
         // | t_number { GEN_ERROR_NODE("t_number (for ast_error)", $$, $1); }
-        | t_strtext { GEN_ERROR_NODE("t_strtext (for ast_error)", $$, $1); }
+        // | t_strtext { GEN_ERROR_NODE("t_strtext (for ast_error)", $$, $1); }
         | t_delimiter_comma { DELIMITER($$, $1); }
         | t_delimiter_colon { DELIMITER($$, $1); }
         | t_delimiter_arrow { DELIMITER($$, $1); }
@@ -804,20 +861,20 @@ ast_error :
         | t_bracket_square_r { BRACKET($$, $1); }
         | t_bracket_curly_l { BRACKET($$, $1); }
         | t_bracket_curly_r { BRACKET($$, $1); }
-        | t_operators_add { OPERATORS($$, $1); }
-        | t_operators_sub { OPERATORS($$, $1); }
-        | t_operators_mul { OPERATORS($$, $1); }
-        | t_operators_div { OPERATORS($$, $1); }
-        | t_operators_ediv { OPERATORS($$, $1); }
-        | t_operators_mod { OPERATORS($$, $1); }
-        | t_operators_pow { OPERATORS($$, $1); }
-        | t_operators_at { OPERATORS($$, $1); }
-        | t_operators_and { OPERATORS($$, $1); }
-        | t_operators_or { OPERATORS($$, $1); }
-        | t_operators_xor { OPERATORS($$, $1); }
-        | t_operators_not { OPERATORS($$, $1); }
-        | t_operators_sleft { OPERATORS($$, $1); }
-        | t_operators_sright { OPERATORS($$, $1); }
+        // | t_operators_add { OPERATORS($$, $1); }
+        // | t_operators_sub { OPERATORS($$, $1); }
+        // | t_operators_mul { OPERATORS($$, $1); }
+        // | t_operators_div { OPERATORS($$, $1); }
+        // | t_operators_ediv { OPERATORS($$, $1); }
+        // | t_operators_mod { OPERATORS($$, $1); }
+        // | t_operators_pow { OPERATORS($$, $1); }
+        // | t_operators_at { OPERATORS($$, $1); }
+        // | t_operators_and { OPERATORS($$, $1); }
+        // | t_operators_or { OPERATORS($$, $1); }
+        // | t_operators_xor { OPERATORS($$, $1); }
+        // | t_operators_not { OPERATORS($$, $1); }
+        // | t_operators_sleft { OPERATORS($$, $1); }
+        // | t_operators_sright { OPERATORS($$, $1); }
         | t_operators_eq { OPERATORS($$, $1); }
         | t_operators_neq { OPERATORS($$, $1); }
         | t_operators_leq { OPERATORS($$, $1); }
@@ -854,6 +911,7 @@ ast_error :
         | t_keyword_yield { KEYWORD($$, $1); }
         | t_keyword_class { KEYWORD($$, $1); }
         | t_keyword_lambda { KEYWORD($$, $1); }
+        // | t_keyword_await { KEYWORD($$, $1); }
         | t_keyword_if { KEYWORD($$, $1); }
         | t_keyword_else { KEYWORD($$, $1); }
         | t_keyword_elif { KEYWORD($$, $1); }

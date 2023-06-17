@@ -66,11 +66,14 @@ enum class astnode_type {
     power,          // 2 sons
     await_primary,  // 1 son
     primary,        // sons: (1) atom, (2) atom sign_annotate ...
-
-    sign_annotate,  // no son (token_leaf)
     atom,           // no son (token_leaf)
 
-    slices, slice, group,
+    slices,
+    slice,
+    strings,    // sons: (string_text) * n
+    string_text,    // no son (token_leaf)
+
+    sign_annotate,  // no son (token_leaf), use in primary, todo: change to primary_dot, primary_xxx, ...
 };
 
 namespace std {
