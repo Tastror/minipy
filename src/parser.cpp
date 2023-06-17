@@ -99,12 +99,11 @@ std::string std::to_string(astnode_type tt) {
         case astnode_type::conjunction: return "conjunction";
         case astnode_type::inversion: return "inversion";
         case astnode_type::comparison: return "comparison";
-        case astnode_type::compare_op_bitwise_or_pair: return "compare_op_bitwise_or_pair";
         case astnode_type::eq_bitwise_or: return "eq_bitwise_or";
-        case astnode_type::noteq_bitwise_or: return "noteq_bitwise_or";
-        case astnode_type::lte_bitwise_or: return "lte_bitwise_or";
+        case astnode_type::neq_bitwise_or: return "neq_bitwise_or";
+        case astnode_type::leq_bitwise_or: return "leq_bitwise_or";
         case astnode_type::lt_bitwise_or: return "lt_bitwise_or";
-        case astnode_type::gte_bitwise_or: return "gte_bitwise_or";
+        case astnode_type::geq_bitwise_or: return "geq_bitwise_or";
         case astnode_type::gt_bitwise_or: return "gt_bitwise_or";
         case astnode_type::notin_bitwise_or: return "notin_bitwise_or";
         case astnode_type::in_bitwise_or: return "in_bitwise_or";

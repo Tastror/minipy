@@ -44,21 +44,12 @@ enum class astnode_type {
     disjunction,
     conjunction,
     inversion,
-    comparison,
-    compare_op_bitwise_or_pair,
-    eq_bitwise_or,
-    noteq_bitwise_or,
-    lte_bitwise_or,
-    lt_bitwise_or,
-    gte_bitwise_or,
-    gt_bitwise_or,
-    notin_bitwise_or,
-    in_bitwise_or,
-    isnot_bitwise_or,
-    is_bitwise_or,
-    bitwise_or,
-    bitwise_xor,
-    bitwise_and,
+    comparison,     // sons: bitwise_or, (compare_op_bitwise_or_pair) * n
+    eq_bitwise_or, neq_bitwise_or, leq_bitwise_or, lt_bitwise_or, geq_bitwise_or,       // 1 son
+    gt_bitwise_or, notin_bitwise_or, in_bitwise_or, isnot_bitwise_or, is_bitwise_or,    // 1 son
+    bitwise_or,     // 2 sons
+    bitwise_xor,    // 2 sons
+    bitwise_and,    // 2 sons
     shift_left, shift_right,    // 2 sons
     sum_add, sum_sub,           // 2 sons
     term_mul, term_div, term_ediv, term_mod, term_at,   // 2 sons

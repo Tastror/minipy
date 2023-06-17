@@ -275,18 +275,9 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> disjunction
 %type <astnode_ptr> conjunction
 %type <astnode_ptr> inversion
+%type <astnode_ptr> _comparison_or_just_bitwise_or
 %type <astnode_ptr> comparison
 %type <astnode_ptr> compare_op_bitwise_or_pair
-%type <astnode_ptr> eq_bitwise_or
-%type <astnode_ptr> noteq_bitwise_or
-%type <astnode_ptr> lte_bitwise_or
-%type <astnode_ptr> lt_bitwise_or
-%type <astnode_ptr> gte_bitwise_or
-%type <astnode_ptr> gt_bitwise_or
-%type <astnode_ptr> notin_bitwise_or
-%type <astnode_ptr> in_bitwise_or
-%type <astnode_ptr> isnot_bitwise_or
-%type <astnode_ptr> is_bitwise_or
 %type <astnode_ptr> bitwise_or
 %type <astnode_ptr> bitwise_xor
 %type <astnode_ptr> bitwise_and
@@ -590,7 +581,7 @@ _no_endcomma_expressions:
             }
 
 expression:
-          bitwise_or
+          _comparison_or_just_bitwise_or
 
 // yield_expr: 
 // star_expressions:
@@ -602,18 +593,86 @@ expression:
 // disjunction:
 // conjunction:
 // inversion:
-// comparison:
-// compare_op_bitwise_or_pair:
-// eq_bitwise_or:
-// noteq_bitwise_or:
-// lte_bitwise_or:
-// lt_bitwise_or:
-// gte_bitwise_or:
-// gt_bitwise_or:
-// notin_bitwise_or:
-// in_bitwise_or:
-// isnot_bitwise_or:
-// is_bitwise_or:
+
+_comparison_or_just_bitwise_or:
+          bitwise_or
+        | comparison
+
+comparison:
+          bitwise_or compare_op_bitwise_or_pair
+            {
+                $$ = make_astnode(astnode_type::comparison);
+                $$->eat($1);
+                $$->eat($2);
+            }
+        | comparison compare_op_bitwise_or_pair
+            {
+                $$ = $1->eat($2);
+            }
+
+compare_op_bitwise_or_pair:
+          t_operators_eq bitwise_or
+            {
+                LOG_ASTNODE("t_operators_eq (for compare_op_bitwise_or_pair)");
+                $$ = make_astnode(astnode_type::eq_bitwise_or);
+                $$->eat($2);
+            }
+        | t_operators_neq bitwise_or
+            {
+                LOG_ASTNODE("t_operators_neq (for compare_op_bitwise_or_pair)");
+                $$ = make_astnode(astnode_type::neq_bitwise_or);
+                $$->eat($2);
+            }
+        | t_operators_leq bitwise_or
+            {
+                LOG_ASTNODE("t_operators_leq (for compare_op_bitwise_or_pair)");
+                $$ = make_astnode(astnode_type::leq_bitwise_or);
+                $$->eat($2);
+            }
+        | t_operators_lt bitwise_or
+            {
+                LOG_ASTNODE("t_operators_lt (for compare_op_bitwise_or_pair)");
+                $$ = make_astnode(astnode_type::lt_bitwise_or);
+                $$->eat($2);
+            }
+        | t_operators_geq bitwise_or
+            {
+                LOG_ASTNODE("t_operators_geq (for compare_op_bitwise_or_pair)");
+                $$ = make_astnode(astnode_type::geq_bitwise_or);
+                $$->eat($2);
+            }
+        | t_operators_gt bitwise_or
+            {
+                LOG_ASTNODE("t_operators_gt (for compare_op_bitwise_or_pair)");
+                $$ = make_astnode(astnode_type::gt_bitwise_or);
+                $$->eat($2);
+            }
+        | t_keyword_not t_keyword_in bitwise_or
+            {
+                LOG_ASTNODE("t_keyword_not (for compare_op_bitwise_or_pair)");
+                LOG_ASTNODE("t_keyword_in (for compare_op_bitwise_or_pair)");
+                $$ = make_astnode(astnode_type::notin_bitwise_or);
+                $$->eat($3);
+            }
+        | t_keyword_in bitwise_or
+            {
+                LOG_ASTNODE("t_keyword_in (for compare_op_bitwise_or_pair)");
+                $$ = make_astnode(astnode_type::in_bitwise_or);
+                $$->eat($2);
+            }
+        | t_keyword_is t_keyword_not bitwise_or
+            {
+                LOG_ASTNODE("t_keyword_is (for compare_op_bitwise_or_pair)");
+                LOG_ASTNODE("t_keyword_not (for compare_op_bitwise_or_pair)");
+                $$ = make_astnode(astnode_type::isnot_bitwise_or);
+                $$->eat($3);
+            }
+        | t_keyword_is bitwise_or
+            {
+                LOG_ASTNODE("t_keyword_is (for compare_op_bitwise_or_pair)");
+                $$ = make_astnode(astnode_type::is_bitwise_or);
+                $$->eat($2);
+            }
 
 bitwise_or:
           bitwise_xor
@@ -753,16 +812,12 @@ await_primary:
         | t_keyword_await primary
             {
                 LOG_ASTNODE("t_keyword_await (for await_primary)");
-                $$ = $2;
-                $$->type = astnode_type::await_primary;
+                $$ = make_astnode(astnode_type::await_primary);
+                $$->eat($2);
             }
 
 primary:
           atom
-            {
-                $$ = make_astnode(astnode_type::primary);
-                $$->eat($1);
-            }
         | primary t_delimiter_dot t_identifier
             {
                 LOG_ASTNODE("t_delimiter_dot (for primary)");
@@ -875,12 +930,12 @@ ast_error :
         // | t_operators_not { OPERATORS($$, $1); }
         // | t_operators_sleft { OPERATORS($$, $1); }
         // | t_operators_sright { OPERATORS($$, $1); }
-        | t_operators_eq { OPERATORS($$, $1); }
-        | t_operators_neq { OPERATORS($$, $1); }
-        | t_operators_leq { OPERATORS($$, $1); }
-        | t_operators_geq { OPERATORS($$, $1); }
-        | t_operators_lt { OPERATORS($$, $1); }
-        | t_operators_gt { OPERATORS($$, $1); }
+        // | t_operators_eq { OPERATORS($$, $1); }
+        // | t_operators_neq { OPERATORS($$, $1); }
+        // | t_operators_leq { OPERATORS($$, $1); }
+        // | t_operators_geq { OPERATORS($$, $1); }
+        // | t_operators_lt { OPERATORS($$, $1); }
+        // | t_operators_gt { OPERATORS($$, $1); }
         // | t_operators_assign { OPERATORS($$, $1); }
         | t_operators_add_assign { OPERATORS($$, $1); }
         | t_operators_sub_assign { OPERATORS($$, $1); }
@@ -902,9 +957,9 @@ ast_error :
         // | t_keyword_False { KEYWORD($$, $1); }
         | t_keyword_and { KEYWORD($$, $1); }
         | t_keyword_or { KEYWORD($$, $1); }
-        | t_keyword_not { KEYWORD($$, $1); }
-        | t_keyword_is { KEYWORD($$, $1); }
-        | t_keyword_in { KEYWORD($$, $1); }
+        // | t_keyword_not { KEYWORD($$, $1); }
+        // | t_keyword_is { KEYWORD($$, $1); }
+        // | t_keyword_in { KEYWORD($$, $1); }
         // | t_keyword_pass { KEYWORD($$, $1); }
         | t_keyword_def { KEYWORD($$, $1); }
         | t_keyword_return { KEYWORD($$, $1); }
