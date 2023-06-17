@@ -272,7 +272,9 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> star_named_expression
 %type <astnode_ptr> assignment_expression
 %type <astnode_ptr> named_expression
+%type <astnode_ptr> _disjunction_or_just_conjunction
 %type <astnode_ptr> disjunction
+%type <astnode_ptr> _conjunction_or_just_inversion
 %type <astnode_ptr> conjunction
 %type <astnode_ptr> inversion
 %type <astnode_ptr> _comparison_or_just_bitwise_or
@@ -581,7 +583,7 @@ _no_endcomma_expressions:
             }
 
 expression:
-          _comparison_or_just_bitwise_or
+          _disjunction_or_just_conjunction
 
 // yield_expr: 
 // star_expressions:
@@ -590,9 +592,51 @@ expression:
 // star_named_expression:
 // assignment_expression:
 // named_expression:
-// disjunction:
-// conjunction:
-// inversion:
+
+_disjunction_or_just_conjunction:
+          _conjunction_or_just_inversion
+        | disjunction
+
+disjunction:
+          _conjunction_or_just_inversion t_keyword_or _conjunction_or_just_inversion
+            {
+                LOG_ASTNODE("t_keyword_or (for disjunction)");
+                $$ = make_astnode(astnode_type::disjunction);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        | disjunction t_keyword_or _conjunction_or_just_inversion
+            {
+                LOG_ASTNODE("t_keyword_or (for disjunction)");
+                $$ = $1->eat($3);
+            }
+
+_conjunction_or_just_inversion:
+          inversion
+        | conjunction
+
+conjunction:
+          inversion t_keyword_and inversion
+            {
+                LOG_ASTNODE("t_keyword_and (for conjunction)");
+                $$ = make_astnode(astnode_type::conjunction);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        | conjunction t_keyword_and inversion
+            {
+                LOG_ASTNODE("t_keyword_and (for conjunction)");
+                $$ = $1->eat($3);
+            }
+
+inversion:
+          _comparison_or_just_bitwise_or
+        | t_keyword_not inversion
+            {
+                LOG_ASTNODE("t_keyword_not (for inversion)");
+                $$ = make_astnode(astnode_type::inversion);
+                $$->eat($2);
+            }
 
 _comparison_or_just_bitwise_or:
           bitwise_or
@@ -955,8 +999,8 @@ ast_error :
         // | t_keyword_None { KEYWORD($$, $1); }
         // | t_keyword_True { KEYWORD($$, $1); }
         // | t_keyword_False { KEYWORD($$, $1); }
-        | t_keyword_and { KEYWORD($$, $1); }
-        | t_keyword_or { KEYWORD($$, $1); }
+        // | t_keyword_and { KEYWORD($$, $1); }
+        // | t_keyword_or { KEYWORD($$, $1); }
         // | t_keyword_not { KEYWORD($$, $1); }
         // | t_keyword_is { KEYWORD($$, $1); }
         // | t_keyword_in { KEYWORD($$, $1); }

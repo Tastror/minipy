@@ -22,3 +22,6 @@ y: str = "123" '456' + "789"
 
 # test compare expression (is, not, in, <=, <, >, >=)
 z: bool = 1 <= 2 < 3 + x is not y > 0
+
+# test and, or, not
+w: bool = 1 and 2 or not 3 and 4 or not 5
