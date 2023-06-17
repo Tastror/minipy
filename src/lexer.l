@@ -45,6 +45,7 @@ struct BlockCell {
     }
     void clear() {
         depth_vector.clear();
+        depth_vector = decltype(depth_vector)();  // free the capacity
         total_depth = total_num = 0;
     }
     // check whether_use_tab(num) == whether_use_tab(use_tab) first

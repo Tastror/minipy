@@ -123,6 +123,7 @@ AstNode* AstNode::eat_sons(AstNode* old_mother) {
         i->parent = this;
     }
     old_mother->sons.clear();
+    old_mother->sons = decltype(old_mother->sons)();  // free the capacity
     return this;
 }
 

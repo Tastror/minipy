@@ -295,7 +295,6 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> term
 %type <astnode_ptr> factor
 %type <astnode_ptr> power
-
 %type <astnode_ptr> await_primary
 %type <astnode_ptr> primary
 %type <astnode_ptr> slices
@@ -595,6 +594,38 @@ expression:
             {
                 $$->type = astnode_type::expression;
             }
+
+// yield_expr:
+// star_expressions:
+// star_expression:
+// star_named_expressions:
+// star_named_expression:
+// assignment_expression:
+// named_expression:
+// disjunction:
+// conjunction:
+// inversion:
+// comparison:
+// compare_op_bitwise_or_pair:
+// eq_bitwise_or:
+// noteq_bitwise_or:
+// lte_bitwise_or:
+// lt_bitwise_or:
+// gte_bitwise_or:
+// gt_bitwise_or:
+// notin_bitwise_or:
+// in_bitwise_or:
+// isnot_bitwise_or:
+// is_bitwise_or:
+// bitwise_or:
+// bitwise_xor:
+// bitwise_and:
+// shift_expr:
+// sum:
+// term:
+// factor:
+// power:
+// await_primary:
 
 primary:
           atom

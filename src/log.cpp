@@ -29,6 +29,7 @@ void LoggerType::add_temp_output_file(std::ofstream& f) {
 
 void LoggerType::del_all_temp_output_file() {
     tmp.clear();
+    tmp = decltype(tmp)();  // free the capacity
 }
 
 
