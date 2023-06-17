@@ -16,14 +16,30 @@ extern FILE* yyin;
 // type to_string
 
 enum class astnode_type {
-    error, placeholder, statements,
+    error,          // error, no son (token_leaf)
+    temp,           // may use in the generation of ast, but will change or delete at last
+    placeholder,    // empty, no son (if had, must be error)
+    
+    statements,     // sons: (ast_error | assignment | xxx_stmt | ...) * n
 
-    assignment, pass_stmt, break_stmt, continue_stmt,
+    assignment,     // sons: lhs, type, rhs
+    pass_stmt,      // no son (token_leaf)
+    break_stmt,     // no son (token_leaf)
+    continue_stmt,  // no son (token_leaf)
 
-    power,
-    primary, primary_attr, primary_call, primary_index,
+    expression_type,    // same as primary_lhs
+    expressions_lhs,    // sons: (expression_lhs) * n
+    expression_lhs,     // same as primary_lhs
+    primary_lhs,        // sons: (1) atom, (2) atom sign_annotate ...
 
-    slices, slice, atom, group,
+    expressions,    // sons: (expression) * n
+    expression,
+    primary,        // sons: (1) atom, (2) atom sign_annotate ...
+
+    sign_annotate,  // no son (token_leaf)
+    atom,           // no son (token_leaf)
+
+    slices, slice, group,
 };
 
 namespace std {
@@ -46,6 +62,8 @@ struct AstNode {
     astnode_type type;
     AstNode* parent;
     std::vector<AstNode*> sons;
+
+    bool is_empty;
 
     // made from token, expression (single)
     bool is_token_leaf;
@@ -71,6 +89,7 @@ int yyparse(AstNode*& ast_head);
 // 所有权 (unique_ptr) 在这个 vector 里，其他函数只能获得 AstNode*，即 AstNode 的读写权限，并非所有权。
 extern std::vector<std::unique_ptr<AstNode>> astnode_buff;
 AstNode* make_astnode(astnode_type type = astnode_type::error);
+AstNode* make_empty_astnode();
 AstNode* make_astnode_from_token(Token token, astnode_type type = astnode_type::error);
 AstNode* make_astnode_from_token(Token* token, astnode_type type = astnode_type::error);
 void remove_from_astnode_buff(AstNode*& del);

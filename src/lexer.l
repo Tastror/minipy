@@ -63,6 +63,7 @@ struct BlockCell {
 
 bool totally_new_line = true;
 bool no_eof_yet = true;
+bool no_newline_before_eof_yet = true;
 int tmp_dent = 0;
 Token* last_ptr = nullptr;
 
@@ -472,10 +473,13 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
                         tmp_dent = -tmp_dent;
                         BEGIN(PRODUCE_DEDENT);
                     }
-                } else {
+                } else if (no_newline_before_eof_yet) {
+                    no_newline_before_eof_yet = false;
                     EOF_COLUMN_UPDATE;
+                    return t_newline;  // always add a new line before EOF
+                } else {
                     return 0;
-                }    
+                }
             }
 
 {pure_dec_value}|{hex_value}|{oct_value}|{bin_value} {
