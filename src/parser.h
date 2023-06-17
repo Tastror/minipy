@@ -27,23 +27,27 @@ enum class astnode_type {
     break_stmt,     // no son (token_leaf)
     continue_stmt,  // no son (token_leaf)
 
-    expression_type,    // same as primary_lhs
+    expressions_type,   // same as primary_lhs
     expressions_lhs,    // sons: (expression_lhs) * n
-    expression_lhs,     // same as primary_lhs
+    stars_lhs,
+    star_lhs,
     primary_lhs,        // sons: (1) atom, (2) atom sign_annotate ...
+    expressions_rhs,
 
     expressions,    // sons: (expression) * n
-    expression,
-    yield_expr, 
-    star_expressions,
-    star_expression,
-    star_named_expressions,
-    star_named_expression,
-    assignment_expression,
-    named_expression,
-    disjunction,
-    conjunction,
-    inversion,
+    expression_if_else,
+
+    yield_expr,         // 1 son
+    yield_from_expr,    // 1 son
+    star_expressions,   // >= 1 son
+    star_expression,    // 1 son
+    // star_named_expressions,
+    // star_named_expression,
+    // assignment_expression,
+    // named_expression,
+    disjunction,    // >= 2 sons
+    conjunction,    // >= 2 sons
+    inversion,      // 1 son
     comparison,     // sons: bitwise_or, (compare_op_bitwise_or_pair) * n
     eq_bitwise_or, neq_bitwise_or, leq_bitwise_or, lt_bitwise_or, geq_bitwise_or,       // 1 son
     gt_bitwise_or, notin_bitwise_or, in_bitwise_or, isnot_bitwise_or, is_bitwise_or,    // 1 son
