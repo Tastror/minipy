@@ -590,12 +590,9 @@ _no_endcomma_expressions:
             }
 
 expression:
-          primary
-            {
-                $$->type = astnode_type::expression;
-            }
+          shift_expr
 
-// yield_expr:
+// yield_expr: 
 // star_expressions:
 // star_expression:
 // star_named_expressions:
@@ -620,12 +617,118 @@ expression:
 // bitwise_or:
 // bitwise_xor:
 // bitwise_and:
-// shift_expr:
-// sum:
-// term:
-// factor:
-// power:
-// await_primary:
+
+shift_expr:
+          sum
+        | shift_expr t_operators_sleft sum
+            {
+                LOG_ASTNODE("t_operators_sleft (for shift_expr)");
+                $$ = make_astnode(astnode_type::shift_left);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        | shift_expr t_operators_sright sum
+            {
+                LOG_ASTNODE("t_operators_sright (for shift_expr)");
+                $$ = make_astnode(astnode_type::shift_right);
+                $$->eat($1);
+                $$->eat($3);
+            }
+
+sum:
+          term
+        | sum t_operators_add term
+            {
+                LOG_ASTNODE("t_operators_add (for sum)");
+                $$ = make_astnode(astnode_type::sum_add);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        | sum t_operators_sub term
+            {
+                LOG_ASTNODE("t_operators_sub (for sum)");
+                $$ = make_astnode(astnode_type::sum_sub);
+                $$->eat($1);
+                $$->eat($3);
+            }
+
+term:
+          factor
+        | term t_operators_mul factor
+            {
+                LOG_ASTNODE("t_operators_mul (for term)");
+                $$ = make_astnode(astnode_type::term_mul);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        | term t_operators_div factor
+            {
+                LOG_ASTNODE("t_operators_div (for term)");
+                $$ = make_astnode(astnode_type::term_div);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        | term t_operators_ediv factor
+            {
+                LOG_ASTNODE("t_operators_ediv (for term)");
+                $$ = make_astnode(astnode_type::term_ediv);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        | term t_operators_mod factor
+            {
+                LOG_ASTNODE("t_operators_mod (for term)");
+                $$ = make_astnode(astnode_type::term_mod);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        | term t_operators_at factor
+            {
+                LOG_ASTNODE("t_operators_at (for term)");
+                $$ = make_astnode(astnode_type::term_at);
+                $$->eat($1);
+                $$->eat($3);
+            }
+
+factor:
+          power
+        | t_operators_add factor
+            {
+                LOG_ASTNODE("t_operators_add (for factor)");
+                $$ = make_astnode(astnode_type::factor_positive);
+                $$->eat($2);
+            }
+        | t_operators_sub factor
+            {
+                LOG_ASTNODE("t_operators_sub (for factor)");
+                $$ = make_astnode(astnode_type::factor_negative);
+                $$->eat($2);
+            }
+        | t_operators_not factor
+            {
+                LOG_ASTNODE("t_operators_not (for factor)");
+                $$ = make_astnode(astnode_type::factor_not);
+                $$->eat($2);
+            }
+
+power:
+          await_primary
+        | await_primary t_operators_pow factor
+            {
+                LOG_ASTNODE("t_operators_pow (for power)");
+                $$ = make_astnode(astnode_type::power);
+                $$->eat($1);
+                $$->eat($3);
+            }
+
+await_primary:
+          primary
+        | t_keyword_await primary
+            {
+                LOG_ASTNODE("t_keyword_await (for await_primary)");
+                $$ = $2;
+                $$->type = astnode_type::await_primary;
+            }
 
 primary:
           atom

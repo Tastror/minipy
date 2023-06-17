@@ -34,6 +34,37 @@ enum class astnode_type {
 
     expressions,    // sons: (expression) * n
     expression,
+    yield_expr, 
+    star_expressions,
+    star_expression,
+    star_named_expressions,
+    star_named_expression,
+    assignment_expression,
+    named_expression,
+    disjunction,
+    conjunction,
+    inversion,
+    comparison,
+    compare_op_bitwise_or_pair,
+    eq_bitwise_or,
+    noteq_bitwise_or,
+    lte_bitwise_or,
+    lt_bitwise_or,
+    gte_bitwise_or,
+    gt_bitwise_or,
+    notin_bitwise_or,
+    in_bitwise_or,
+    isnot_bitwise_or,
+    is_bitwise_or,
+    bitwise_or,
+    bitwise_xor,
+    bitwise_and,
+    shift_left, shift_right,    // 2 sons
+    sum_add, sum_sub,           // 2 sons
+    term_mul, term_div, term_ediv, term_mod, term_at,   // 2 sons
+    factor_positive, factor_negative, factor_not,       // 1 son
+    power,          // 2 sons
+    await_primary,  // 1 son
     primary,        // sons: (1) atom, (2) atom sign_annotate ...
 
     sign_annotate,  // no son (token_leaf)
