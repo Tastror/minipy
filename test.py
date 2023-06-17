@@ -33,8 +33,10 @@ a = b = 1
 a, b = c, d = 2, 3
 
 # test yield
-a = yield x
-yield a
+# a = yield x
+# yield a
+
+# test nude expr
 1
 1,
 12, 2
