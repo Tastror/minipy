@@ -363,6 +363,9 @@ void yyerror(AstNode*& ast_head, char* msg);
 
 %%
 
+
+// [1] file, statements
+
 file: statements
             {
                 ast_head = $1;
@@ -384,6 +387,10 @@ statements:
 statement:
           simple_stmts
 
+
+
+// [2] simple statements
+
 simple_stmts:
           _no_newline_simple_stmt t_newline
             {
@@ -399,7 +406,7 @@ simple_stmts:
         | t_newline /* --- LEAF ONLY --- */
             {
                 LOG_ASTNODE("t_newline (for simple_stmts)");
-                $$ = make_empty_astnode();
+                $$ = make_empty_astnode();  // will be eat_sons by statements, which is just empty~
             }
 
 _no_newline_simple_stmt:
@@ -471,6 +478,16 @@ assignment:
                 $$->eat($3);
                 $$->eat($5);
             }
+
+
+
+// [3] compound (block) statements
+
+// TODO
+
+
+
+// [4] expressions
 
 // expression (lhs and type) order
 // (no genexp yet)
@@ -625,6 +642,10 @@ atom:
                 LOG_ASTNODE("t_delimiter_3dot (for atom)");
                 $$ = make_astnode_from_token($1, astnode_type::atom);
             }
+
+
+
+// [5] errors
 
 /* --- LEAF ONLY --- */
 ast_error :
