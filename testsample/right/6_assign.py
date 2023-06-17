@@ -4,9 +4,6 @@ s = 2
 # test floats, hexs, decs, octs, bins
 s = 0o12 + 1.5 - 2 * 0o13 / 0b1 % 0xAaf12 + 123e-1 + 01.23e12
 
-# test tuple assign
-x, y = 0x456, 1.85
-
 # test type assign
 a: int
 x: int = 3
@@ -25,3 +22,22 @@ z: bool = 1 <= 2 < 3 + x is not y > 0
 
 # test and, or, not
 w: bool = 1 and 2 or not 3 and 4 or not 5
+
+# test tuple assign and star assign
+x, y = 0x456, 1.85
+x, *y = 1, 2, 3
+x, a, b = *y, x
+
+# test assign expr
+a = b = 1
+a, b = c, d = 2, 3
+
+# test yield
+# a = yield x
+# yield a
+
+# test nude expr
+1
+1,
+12, 2
+x, *y
