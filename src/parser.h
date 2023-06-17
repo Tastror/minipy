@@ -29,22 +29,19 @@ enum class astnode_type {
 
     expressions_type,   // same as primary_lhs
     expressions_lhs,    // sons: (expression_lhs) * n
-    stars_lhs,
-    star_lhs,
-    primary_lhs,        // sons: (1) atom, (2) atom sign_annotate ...
     expressions_rhs,
 
-    expressions,    // sons: (expression) * n
-    expression_if_else,
-
-    yield_expr,         // 1 son
-    yield_from_expr,    // 1 son
-    star_expressions,   // >= 1 son
-    star_expression,    // 1 son
     // star_named_expressions,
     // star_named_expression,
     // assignment_expression,
     // named_expression,
+
+    yield_expr,         // 1 son
+    yield_from_expr,    // 1 son
+    expressions,        // sons: (expression) * n
+    star_expressions,   // >= 1 son
+    star_expression,    // 1 son
+    expression_if_else, // 3 sons
     disjunction,    // >= 2 sons
     conjunction,    // >= 2 sons
     inversion,      // 1 son

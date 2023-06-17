@@ -83,21 +83,19 @@ std::string std::to_string(astnode_type tt) {
         
         case astnode_type::expressions_type: return "expressions_type";
         case astnode_type::expressions_lhs: return "expressions_lhs";
-        case astnode_type::stars_lhs: return "stars_lhs";
-        case astnode_type::star_lhs: return "star_lhs";
-        case astnode_type::primary_lhs: return "primary_lhs";
         case astnode_type::expressions_rhs: return "expressions_rhs";
 
-        case astnode_type::expressions: return "expressions";
-        case astnode_type::expression_if_else: return "expression_if_else";
-        case astnode_type::yield_expr: return "yield_expr"; 
-        case astnode_type::yield_from_expr: return "yield_from_expr"; 
-        case astnode_type::star_expressions: return "star_expressions";
-        case astnode_type::star_expression: return "star_expression";
         // case astnode_type::star_named_expressions: return "star_named_expressions";
         // case astnode_type::star_named_expression: return "star_named_expression";
         // case astnode_type::assignment_expression: return "assignment_expression";
         // case astnode_type::named_expression: return "named_expression";
+
+        case astnode_type::yield_expr: return "yield_expr"; 
+        case astnode_type::yield_from_expr: return "yield_from_expr"; 
+        case astnode_type::expressions: return "expressions";
+        case astnode_type::star_expressions: return "star_expressions";
+        case astnode_type::star_expression: return "star_expression";
+        case astnode_type::expression_if_else: return "expression_if_else";
         case astnode_type::disjunction: return "disjunction";
         case astnode_type::conjunction: return "conjunction";
         case astnode_type::inversion: return "inversion";
