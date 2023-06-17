@@ -163,8 +163,8 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> statement
 
 %type <astnode_ptr> simple_stmts
-%type <astnode_ptr> simple_stmt
 %type <astnode_ptr> _no_newline_simple_stmt
+%type <astnode_ptr> simple_stmt
 %type <astnode_ptr> compound_stmt
 
 %type <astnode_ptr> assignment
@@ -264,27 +264,26 @@ void yyerror(AstNode*& ast_head, char* msg);
 
 %type <astnode_ptr> expressions_type
 %type <astnode_ptr> expressions_lhs
-%type <astnode_ptr> _stars_lhs_or_single_lhs
-%type <astnode_ptr> stars_lhs
-%type <astnode_ptr> _no_endcomma_star_lhs
-%type <astnode_ptr> star_lhs
-%type <astnode_ptr> single_lhs
-%type <astnode_ptr> primary_lhs
-%type <astnode_ptr> lookahead_lhs
 %type <astnode_ptr> expressions_rhs
 
-%type <astnode_ptr> expressions
-%type <astnode_ptr> _no_endcomma_expressions
-%type <astnode_ptr> expression
+// %type <astnode_ptr> _stars_lhs_or_single_lhs
+// %type <astnode_ptr> stars_lhs
+// %type <astnode_ptr> _no_endcomma_star_lhs
+// %type <astnode_ptr> star_lhs
+// %type <astnode_ptr> single_lhs
+// %type <astnode_ptr> primary_lhs
+
+// %type <astnode_ptr> star_named_expressions
+// %type <astnode_ptr> star_named_expression
+// %type <astnode_ptr> assignment_expression
+// %type <astnode_ptr> named_expression
+
 %type <astnode_ptr> yield_expr
-%type <astnode_ptr> _star_expressions_or_normal_expression
+%type <astnode_ptr> _normal_expression
 %type <astnode_ptr> star_expressions
 %type <astnode_ptr> _no_endcomma_star_expressions
 %type <astnode_ptr> star_expression
-%type <astnode_ptr> star_named_expressions
-%type <astnode_ptr> star_named_expression
-%type <astnode_ptr> assignment_expression
-%type <astnode_ptr> named_expression
+%type <astnode_ptr> _expression_if_else
 %type <astnode_ptr> _disjunction_or_just_conjunction
 %type <astnode_ptr> disjunction
 %type <astnode_ptr> _conjunction_or_just_inversion
@@ -303,9 +302,6 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> power
 %type <astnode_ptr> await_primary
 %type <astnode_ptr> primary
-%type <astnode_ptr> slices
-%type <astnode_ptr> slice
-%type <astnode_ptr> _part_fo_slice
 %type <astnode_ptr> atom
 
 %type <astnode_ptr> lambdef
@@ -320,6 +316,9 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> lambda_param_maybe_default
 %type <astnode_ptr> lambda_param
 
+%type <astnode_ptr> slices
+%type <astnode_ptr> slice
+%type <astnode_ptr> _part_fo_slice
 %type <astnode_ptr> list
 %type <astnode_ptr> tuple
 %type <astnode_ptr> set
@@ -429,7 +428,7 @@ simple_stmt:
                 $$ = make_astnode_from_token($1, astnode_type::continue_stmt);
             }
         | assignment
-        | _star_expressions_or_normal_expression
+        | _normal_expression
         | yield_expr
         // | return_stmt
         // | import_stmt
@@ -442,7 +441,7 @@ simple_stmt:
 
 assignment:
           _no_type_assign
-        | expression t_delimiter_colon expressions_type
+        | primary t_delimiter_colon expressions_type
             {
                 LOG_ASTNODE("t_delimiter_colon (for assignment)");
                 $$ = make_astnode(astnode_type::assignment);
@@ -450,7 +449,7 @@ assignment:
                 $$->eat($3);
                 $$->eat(make_empty_astnode());
             }
-        | expression t_delimiter_colon expressions_type t_operators_assign expressions_rhs
+        | primary t_delimiter_colon expressions_type t_operators_assign expressions_rhs
             {
                 LOG_ASTNODE("t_delimiter_colon (for assignment)");
                 LOG_ASTNODE("t_operators_assign (for assignment)");
@@ -479,6 +478,8 @@ _no_type_assign:
                 $$->eat($3);
             }
 
+
+
 // [3] compound (block) statements
 
 // TODO
@@ -495,10 +496,29 @@ _no_type_assign:
 // p = a
 
 expressions_type:
-          expression
+          _normal_expression
             {
                 $$ = $1;
                 $$->type = astnode_type::expressions_type;
+            }
+
+expressions_lhs:
+          _normal_expression
+            {
+                $$ = make_astnode(astnode_type::expressions_lhs);
+                $$->eat($1);
+            }
+
+expressions_rhs:
+          _normal_expression
+            {
+                $$ = make_astnode(astnode_type::expressions_rhs);
+                $$->eat($1);
+            }
+        | yield_expr
+            {
+                $$ = make_astnode(astnode_type::expressions_rhs);
+                $$->eat($1);
             }
 
 // It cannot define which is lhs or rhs (so will go error), so i use another lhs below.
@@ -574,25 +594,6 @@ expressions_type:
 //             }
 //         // | primary_lhs '[' slices ']'   // wait for slices
 
-expressions_lhs:
-          _star_expressions_or_normal_expression
-            {
-                $$ = make_astnode(astnode_type::expressions_lhs);
-                $$->eat($1);
-            }
-
-expressions_rhs:
-          _star_expressions_or_normal_expression
-            {
-                $$ = make_astnode(astnode_type::expressions_rhs);
-                $$->eat($1);
-            }
-        | yield_expr
-            {
-                $$ = make_astnode(astnode_type::expressions_rhs);
-                $$->eat($1);
-            }
-
 // expression order
 // (no genexp yet)
 // i means identifier, p means primary, g means arguments, s means slices, a means atom
@@ -618,6 +619,18 @@ expressions_rhs:
 // p.i p(g) p() p[s]
 // p = a
 
+// below are not normal
+
+// star_named_expressions:
+// star_named_expression:
+// named_expression:
+//           assignment_expression
+//         | expressions
+// assignment_expression:
+//           t_identifier ':=' expression
+
+// above are not normal
+
 yield_expr:
           t_keyword_yield
             {
@@ -625,13 +638,13 @@ yield_expr:
                 $$ = make_astnode(astnode_type::yield_expr);
                 $$->eat(make_empty_astnode());
             }
-        | t_keyword_yield _star_expressions_or_normal_expression
+        | t_keyword_yield _normal_expression
             {
                 LOG_ASTNODE("t_keyword_yield (for yield_expr)");
                 $$ = make_astnode(astnode_type::yield_expr);
                 $$->eat($2);
             }
-        | t_keyword_yield t_keyword_from _star_expressions_or_normal_expression
+        | t_keyword_yield t_keyword_from _normal_expression
             {
                 LOG_ASTNODE("t_keyword_yield (for yield_expr)");
                 LOG_ASTNODE("t_keyword_from (for yield_expr)");
@@ -639,7 +652,7 @@ yield_expr:
                 $$->eat($3);
             }
 
-_star_expressions_or_normal_expression:
+_normal_expression:
           star_expressions
         | star_expression
 
@@ -672,37 +685,17 @@ _no_endcomma_star_expressions:
             }
 
 star_expression:
-          expression
-        | t_operators_mul expression
+          _expression_if_else
+        | t_operators_mul _expression_if_else
             {
                 LOG_ASTNODE("t_operators_mul (for star_expression)");
                 $$ = make_astnode(astnode_type::star_expression);
                 $$->eat($2);
             }
 
-// expressions:
-//           _no_endcomma_expressions
-//         | _no_endcomma_expressions t_delimiter_comma
-//             {
-//                 LOG_ASTNODE("t_delimiter_comma (for expressions)");
-//                 $$ = $1;
-//             }
-
-// _no_endcomma_expressions:
-//           expression
-//             {
-//                 $$ = make_astnode(astnode_type::expressions);
-//                 $$->eat($1);
-//             }
-//         | _no_endcomma_expressions t_delimiter_comma expression
-//             {
-//                 LOG_ASTNODE("t_delimiter_comma (for _no_endcomma_expressions)");
-//                 $$ = $1->eat($3);
-//             }
-
-expression:
+_expression_if_else:
           _disjunction_or_just_conjunction
-        | _disjunction_or_just_conjunction t_keyword_if _disjunction_or_just_conjunction t_keyword_else expression
+        | _disjunction_or_just_conjunction t_keyword_if _disjunction_or_just_conjunction t_keyword_else _expression_if_else
             {
                 $$ = make_astnode(astnode_type::expression_if_else);
                 $$->eat($1);
@@ -710,18 +703,6 @@ expression:
                 $$->eat($5);
             } 
         // | lambdef
-
-// below are not normal
-
-// star_named_expressions:
-// star_named_expression:
-// named_expression:
-//           assignment_expression
-//         | expressions
-// assignment_expression:
-//           t_identifier ':=' expression
-
-// above are not normal
 
 _disjunction_or_just_conjunction:
           _conjunction_or_just_inversion
@@ -1064,6 +1045,8 @@ string_text:
                 LOG_ASTNODE("t_bracket_squotes (for string_text)");
                 $$ = make_astnode_from_token($2, astnode_type::string_text);
             }
+
+
 
 // [6] errors
 
