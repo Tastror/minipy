@@ -1011,6 +1011,18 @@ atom:
                 $$ = make_astnode_from_token($1, astnode_type::atom);
             }
         | strings
+        | t_bracket_parentheses_l yield_expr t_bracket_parentheses_r
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for atom)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for atom)");
+                $$ = $2;
+            }
+        | t_bracket_parentheses_l _normal_expression t_bracket_parentheses_r
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for atom)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for atom)");
+                $$ = $2;
+            }
 
 
 
@@ -1109,8 +1121,8 @@ ast_error :
         // | t_delimiter_3dot { DELIMITER($$, $1); }
         // | t_bracket_squotes { BRACKET($$, $1); }
         // | t_bracket_dquotes { BRACKET($$, $1); }
-        | t_bracket_parentheses_l { BRACKET($$, $1); }
-        | t_bracket_parentheses_r { BRACKET($$, $1); }
+        // | t_bracket_parentheses_l { BRACKET($$, $1); }
+        // | t_bracket_parentheses_r { BRACKET($$, $1); }
         | t_bracket_square_l { BRACKET($$, $1); }
         | t_bracket_square_r { BRACKET($$, $1); }
         | t_bracket_curly_l { BRACKET($$, $1); }
