@@ -135,6 +135,12 @@ std::string std::to_string(astnode_type tt) {
         case astnode_type::strings: return "strings";
         case astnode_type::string_text: return "string_text";
 
+        case astnode_type::arguments: return "arguments";
+        case astnode_type::kwarg_star: return "kwarg_star";
+        case astnode_type::kwarg_dstar: return "kwarg_dstar"; 
+        case astnode_type::kwarg_equ: return "kwarg_equ"; 
+        case astnode_type::kwarg: return "kwarg";
+
         case astnode_type::sign_annotate: return "sign_annotate";
     }
     return "";

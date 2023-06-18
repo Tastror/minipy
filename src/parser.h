@@ -65,6 +65,12 @@ enum class astnode_type {
     strings,    // sons: (string_text) * n
     string_text,    // no son (token_leaf)
 
+    arguments,
+    kwarg_star,
+    kwarg_dstar, 
+    kwarg_equ, 
+    kwarg,
+
     sign_annotate,  // no son (token_leaf), use in primary, todo: change to primary_dot, primary_xxx, ...
 };
 

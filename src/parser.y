@@ -337,11 +337,8 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> dictcomp
 
 %type <astnode_ptr> arguments
-%type <astnode_ptr> args
 %type <astnode_ptr> kwargs
-%type <astnode_ptr> starred_expression
-%type <astnode_ptr> kwarg_or_starred
-%type <astnode_ptr> kwarg_or_double_starred
+%type <astnode_ptr> kwarg
 
 %type <astnode_ptr> del_targets
 %type <astnode_ptr> del_target
@@ -1046,6 +1043,51 @@ string_text:
                 $$ = make_astnode_from_token($2, astnode_type::string_text);
             }
 
+arguments:
+          kwargs
+        | kwargs t_delimiter_comma
+            {
+                LOG_ASTNODE("t_delimiter_comma (for arguments)");
+                $$ = $1;
+            }
+
+kwargs:
+          kwarg
+            {
+                $$ = make_astnode(astnode_type::kwargs);
+                $$->eat($1);
+            }
+        | kwargs t_delimiter_comma kwarg
+            {
+                LOG_ASTNODE("t_delimiter_comma (for kwargs)");
+                $$ = $1->eat($3);
+            }
+
+kwarg:
+          t_operators_mul _expression_if_else
+            {
+                LOG_ASTNODE("t_operators_mul (for kwarg)");
+                $$ = make_astnode(astnode_type::kwarg_star);
+                $$->eat($2);
+            }
+        | t_operators_pow _expression_if_else
+            {
+                LOG_ASTNODE("t_operators_pow (for kwarg)");
+                $$ = make_astnode(astnode_type::kwarg_dstar);
+                $$->eat($2);
+            }
+        | primary t_operators_eq _expression_if_else
+            {
+                LOG_ASTNODE("t_operators_eq (for kwarg)");
+                $$ = make_astnode(astnode_type::kwarg_equ);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        | primary
+            {
+                $$ = make_astnode(astnode_type::kwarg);
+                $$->eat($1);
+            }
 
 
 // [6] errors

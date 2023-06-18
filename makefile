@@ -9,7 +9,7 @@ BUILD_DIR = build
 DEBUG_DIR = debug
 
 TARGET_FILE = compiler.exe
-SRC_FILES = compiler.cpp common.cpp log.cpp shell.cpp lexer.cpp parser.cpp
+SRC_FILES = compiler.cpp common.cpp log.cpp shell.cpp lexer.cpp parser.cpp symbol.cpp
 
 TARGET = $(BUILD_DIR)/$(TARGET_FILE)
 SRCS = $(addprefix $(SOURCE_DIR)/, $(SRC_FILES))
