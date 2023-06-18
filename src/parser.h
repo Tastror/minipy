@@ -57,7 +57,8 @@ enum class astnode_type {
     factor_positive, factor_negative, factor_not,       // 1 son
     power,          // 2 sons
     await_primary,  // 1 son
-    primary,        // sons: (1) atom, (2) atom sign_annotate ...
+    primary_dot,    // 2 sons
+    primary_func,   // 2 sons
     atom,           // no son (token_leaf)
 
     slices,
@@ -65,13 +66,11 @@ enum class astnode_type {
     strings,    // sons: (string_text) * n
     string_text,    // no son (token_leaf)
 
-    arguments,
+    arg_or_pram,
     kwarg_star,
     kwarg_dstar, 
     kwarg_equ, 
     kwarg,
-
-    sign_annotate,  // no son (token_leaf), use in primary, todo: change to primary_dot, primary_xxx, ...
 };
 
 namespace std {

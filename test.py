@@ -32,6 +32,10 @@ x, a, b = *y, x
 a = b = 1
 a, b = c, d = 2, 3
 
+# test func use
+a(1, 2, 3 == 1)
+b(a, b, **c)
+
 # test yield
 # a = yield x
 # yield a

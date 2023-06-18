@@ -195,23 +195,6 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> function_def
 %type <astnode_ptr> function_def_raw
 
-%type <astnode_ptr> params
-%type <astnode_ptr> parameters
-%type <astnode_ptr> slash_no_default
-%type <astnode_ptr> slash_with_default
-%type <astnode_ptr> star_etc
-%type <astnode_ptr> kwds
-
-%type <astnode_ptr> param_no_default
-%type <astnode_ptr> param_no_default_star_annotation
-%type <astnode_ptr> param_with_default
-%type <astnode_ptr> param_maybe_default
-%type <astnode_ptr> param
-%type <astnode_ptr> param_star_annotation
-%type <astnode_ptr> annotation
-%type <astnode_ptr> star_annotation
-%type <astnode_ptr> default
-
 %type <astnode_ptr> if_stmt
 %type <astnode_ptr> elif_stmt
 %type <astnode_ptr> else_block
@@ -335,6 +318,10 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> setcomp
 %type <astnode_ptr> genexp
 %type <astnode_ptr> dictcomp
+
+%type <astnode_ptr> parameters
+%type <astnode_ptr> params
+%type <astnode_ptr> param
 
 %type <astnode_ptr> arguments
 %type <astnode_ptr> kwargs
@@ -974,10 +961,27 @@ primary:
             {
                 LOG_ASTNODE("t_delimiter_dot (for primary)");
                 LOG_ASTNODE("t_identifier (for primary)");
-                $$->eat(make_astnode_from_token($2, astnode_type::sign_annotate));
+                $$ = make_astnode(astnode_type::primary_dot);
+                $$->eat($1);
                 $$->eat(make_astnode_from_token($3, astnode_type::atom));
             }
-        // | primary_lhs t_bracket_square_l   // wait for slices
+        | primary t_bracket_parentheses_l t_bracket_parentheses_r
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for primary)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for primary)");
+                $$ = make_astnode(astnode_type::primary_func);
+                $$->eat($1);
+                $$->eat(make_empty_astnode());
+            }
+        | primary t_bracket_parentheses_l arguments t_bracket_parentheses_r
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for primary)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for primary)");
+                $$ = make_astnode(astnode_type::primary_func);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        // | primary t_bracket_square_l   // wait for slices
 
 atom:
          t_identifier /* --- LEAF ONLY --- */
@@ -1055,6 +1059,52 @@ string_text:
                 $$ = make_astnode_from_token($2, astnode_type::string_text);
             }
 
+parameters:
+          params
+        | params t_delimiter_comma
+            {
+                LOG_ASTNODE("t_delimiter_comma (for parameters)");
+                $$ = $1;
+            }
+
+params:
+          param
+            {
+                $$ = make_astnode(astnode_type::arg_or_pram);
+                $$->eat($1);
+            }
+        | params t_delimiter_comma param
+            {
+                LOG_ASTNODE("t_delimiter_comma (for params)");
+                $$ = $1->eat($3);
+            }
+
+param:
+          t_operators_mul primary
+            {
+                LOG_ASTNODE("t_operators_mul (for param)");
+                $$ = make_astnode(astnode_type::kwarg_star);
+                $$->eat($2);
+            }
+        | t_operators_pow primary
+            {
+                LOG_ASTNODE("t_operators_pow (for param)");
+                $$ = make_astnode(astnode_type::kwarg_dstar);
+                $$->eat($2);
+            }
+        | primary t_operators_assign _expression_if_else
+            {
+                LOG_ASTNODE("t_operators_assign (for param)");
+                $$ = make_astnode(astnode_type::kwarg_equ);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        | primary
+            {
+                $$ = make_astnode(astnode_type::kwarg);
+                $$->eat($1);
+            }
+
 arguments:
           kwargs
         | kwargs t_delimiter_comma
@@ -1066,7 +1116,7 @@ arguments:
 kwargs:
           kwarg
             {
-                $$ = make_astnode(astnode_type::kwargs);
+                $$ = make_astnode(astnode_type::arg_or_pram);
                 $$->eat($1);
             }
         | kwargs t_delimiter_comma kwarg
@@ -1088,14 +1138,14 @@ kwarg:
                 $$ = make_astnode(astnode_type::kwarg_dstar);
                 $$->eat($2);
             }
-        | primary t_operators_eq _expression_if_else
+        | primary t_operators_assign _expression_if_else
             {
-                LOG_ASTNODE("t_operators_eq (for kwarg)");
+                LOG_ASTNODE("t_operators_assign (for kwarg)");
                 $$ = make_astnode(astnode_type::kwarg_equ);
                 $$->eat($1);
                 $$->eat($3);
             }
-        | primary
+        | _expression_if_else
             {
                 $$ = make_astnode(astnode_type::kwarg);
                 $$->eat($1);

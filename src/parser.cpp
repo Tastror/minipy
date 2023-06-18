@@ -127,7 +127,8 @@ std::string std::to_string(astnode_type tt) {
         case astnode_type::factor_not: return "factor_not";
         case astnode_type::power: return "power";
         case astnode_type::await_primary: return "await_primary";
-        case astnode_type::primary: return "primary";
+        case astnode_type::primary_dot: return "primary_dot";
+        case astnode_type::primary_func: return "primary_func";
         case astnode_type::atom: return "atom";
 
         case astnode_type::slices: return "slices";
@@ -135,13 +136,11 @@ std::string std::to_string(astnode_type tt) {
         case astnode_type::strings: return "strings";
         case astnode_type::string_text: return "string_text";
 
-        case astnode_type::arguments: return "arguments";
+        case astnode_type::arg_or_pram: return "arg_or_pram";
         case astnode_type::kwarg_star: return "kwarg_star";
         case astnode_type::kwarg_dstar: return "kwarg_dstar"; 
         case astnode_type::kwarg_equ: return "kwarg_equ"; 
         case astnode_type::kwarg: return "kwarg";
-
-        case astnode_type::sign_annotate: return "sign_annotate";
     }
     return "";
 }
