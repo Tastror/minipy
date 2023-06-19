@@ -170,7 +170,6 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> assignment
 %type <astnode_ptr> _no_type_assign
 %type <astnode_ptr> augassign
-%type <astnode_ptr> return_stmt
 %type <astnode_ptr> raise_stmt
 %type <astnode_ptr> global_stmt
 %type <astnode_ptr> nonlocal_stmt
@@ -319,19 +318,9 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> genexp
 %type <astnode_ptr> dictcomp
 
-%type <astnode_ptr> parameters
-%type <astnode_ptr> params
-%type <astnode_ptr> param
-
-%type <astnode_ptr> arguments
+%type <astnode_ptr> arguments_or_parameters
 %type <astnode_ptr> kwargs
 %type <astnode_ptr> kwarg
-
-%type <astnode_ptr> del_targets
-%type <astnode_ptr> del_target
-%type <astnode_ptr> del_t_atom
-%type <astnode_ptr> type_expressions
-%type <astnode_ptr> func_type_comment
 
 %%
 
@@ -375,7 +364,7 @@ simple_stmts:
                 LOG_ASTNODE("t_newline (for simple_stmts)");
                 $$ = $1;
             }
-        | t_newline /* --- LEAF ONLY --- */
+        | t_newline
             {
                 LOG_ASTNODE("t_newline (for simple_stmts)");
                 $$ = make_empty_astnode();  // will be eat_sons by statements, which is just empty~
@@ -396,17 +385,17 @@ _no_newline_simple_stmt:
 
 simple_stmt:
           ast_error
-        | t_keyword_pass /* --- LEAF ONLY --- */
+        | t_keyword_pass
             {
                 LOG_ASTNODE("t_keyword_pass (for simple_stmt)");
                 $$ = make_astnode(astnode_type::zero_op_pass);
             }
-        | t_keyword_break /* --- LEAF ONLY --- */
+        | t_keyword_break
             {
                 LOG_ASTNODE("t_keyword_break (for simple_stmt)");
                 $$ = make_astnode(astnode_type::zero_op_break);
             }
-        | t_keyword_continue /* --- LEAF ONLY --- */
+        | t_keyword_continue
             {
                 LOG_ASTNODE("t_keyword_continue (for simple_stmt)");
                 $$ = make_astnode(astnode_type::zero_op_continue);
@@ -414,7 +403,18 @@ simple_stmt:
         | assignment
         | _normal_expression
         | yield_expr
-        // | return_stmt
+        | t_keyword_return
+            {
+                LOG_ASTNODE("t_keyword_return (for simple_stmt)");
+                $$ = make_astnode(astnode_type::sin_op_return);
+                $$->eat(make_empty_astnode());
+            }
+        | t_keyword_return _normal_expression
+            {
+                LOG_ASTNODE("t_keyword_return (for simple_stmt)");
+                $$ = make_astnode(astnode_type::sin_op_return);
+                $$->eat($2);
+            }
         // | import_stmt
         // | raise_stmt
         // | global_stmt
@@ -493,13 +493,6 @@ augassign:
 
 // [4] expressions
 
-// expression (type, lhs, rhs) order
-// (no genexp yet)
-// i means identifier, p means primary_lhs, g means arguments, s means slices, a means atom
-
-// p.i p(g) p() p[s]
-// p = a
-
 expressions_type:
           _normal_expression
 
@@ -510,82 +503,9 @@ expressions_rhs:
           _normal_expression
         | yield_expr
 
-// It cannot define which is lhs or rhs (so will go error), so i use another lhs below.
-
-// expressions_lhs:
-//           _stars_lhs_or_single_lhs
-//             {
-//                 $$ = make_astnode(astnode_type::expressions_lhs);
-//                 $$->eat($1);
-//             }
-
-// _stars_lhs_or_single_lhs:
-//           stars_lhs
-//         | star_lhs
-
-// stars_lhs:
-//           _no_endcomma_star_lhs
-//         | _no_endcomma_star_lhs t_delimiter_comma
-//             {
-//                 LOG_ASTNODE("t_delimiter_comma (for stars_lhs)");
-//                 $$ = $1;
-//             }
-//         | star_lhs t_delimiter_comma
-//             {
-//                 LOG_ASTNODE("t_delimiter_comma (for stars_lhs)");
-//                 $$ = make_astnode(astnode_type::stars_lhs);
-//                 $$->eat($1);
-//             }
-
-// _no_endcomma_star_lhs:
-//           star_lhs t_delimiter_comma star_lhs
-//             {
-//                 LOG_ASTNODE("t_delimiter_comma (for _no_endcomma_star_lhs)");
-//                 $$ = make_astnode(astnode_type::stars_lhs);
-//                 $$->eat($1);
-//                 $$->eat($3);
-//             }
-//         | _no_endcomma_star_lhs t_delimiter_comma star_lhs
-//             {
-//                 LOG_ASTNODE("t_delimiter_comma (for _no_endcomma_star_lhs)");
-//                 $$ = $1->eat($3);
-//             }
-
-// star_lhs:
-//           single_lhs
-//         | t_operators_mul single_lhs
-//             {
-//                 $$ = make_astnode(astnode_type::star_lhs);
-//                 $$->eat($2);
-//             }
-
-// single_lhs:
-//           primary_lhs
-//         | t_bracket_parentheses_l single_lhs t_bracket_parentheses_r
-//             {
-//                 LOG_ASTNODE("t_bracket_parentheses_l (for single_lhs)");
-//                 LOG_ASTNODE("t_bracket_parentheses_r (for single_lhs)");
-//                 $$ = $2;
-//             }
-
-// primary_lhs:
-//           atom
-//             {
-//                 $$ = make_astnode(astnode_type::primary_lhs);
-//                 $$->eat($1);
-//             }
-//         | primary_lhs t_delimiter_dot t_identifier
-//             {
-//                 LOG_ASTNODE("t_delimiter_dot (for primary_lhs)");
-//                 LOG_ASTNODE("t_identifier (for primary_lhs)");
-//                 $$->eat(make_astnode_from_token($2, astnode_type::sign_annotate));
-//                 $$->eat(make_astnode_from_token($3, astnode_type::atom));
-//             }
-//         // | primary_lhs '[' slices ']'   // wait for slices
-
 // expression order
 // (no genexp yet)
-// i means identifier, p means primary, g means arguments, s means slices, a means atom
+// i means identifier, p means primary, g means arguments_or_parameters, s means slices, a means atom
 
 // xx if xx else xx
 // yield xx, yield from xx
@@ -978,7 +898,7 @@ primary:
                 $$->eat($1);
                 $$->eat(make_empty_astnode());
             }
-        | primary t_bracket_parentheses_l arguments t_bracket_parentheses_r
+        | primary t_bracket_parentheses_l arguments_or_parameters t_bracket_parentheses_r
             {
                 LOG_ASTNODE("t_bracket_parentheses_l (for primary)");
                 LOG_ASTNODE("t_bracket_parentheses_r (for primary)");
@@ -989,32 +909,32 @@ primary:
         // | primary t_bracket_square_l   // wait for slices
 
 atom:
-         t_identifier /* --- LEAF ONLY --- */
+         t_identifier
             {
                 LOG_ASTNODE("t_identifier (for atom)");
                 $$ = make_astnode_from_token($1, astnode_type::atom);
             }
-        | t_keyword_True /* --- LEAF ONLY --- */
+        | t_keyword_True
             {
                 LOG_ASTNODE("t_keyword_True (for atom)");
                 $$ = make_astnode_from_token($1, astnode_type::atom);
             }
-        | t_keyword_False /* --- LEAF ONLY --- */
+        | t_keyword_False
             {
                 LOG_ASTNODE("t_keyword_False (for atom)");
                 $$ = make_astnode_from_token($1, astnode_type::atom);
             }
-        | t_keyword_None /* --- LEAF ONLY --- */
+        | t_keyword_None
             {
                 LOG_ASTNODE("t_keyword_None (for atom)");
                 $$ = make_astnode_from_token($1, astnode_type::atom);
             }
-        | t_number /* --- LEAF ONLY --- */
+        | t_number
             {
                 LOG_ASTNODE("t_number (for atom)");
                 $$ = make_astnode_from_token($1, astnode_type::atom);
             }
-        | t_delimiter_3dot /* --- LEAF ONLY --- */
+        | t_delimiter_3dot
             {
                 LOG_ASTNODE("t_delimiter_3dot (for atom)");
                 $$ = make_astnode_from_token($1, astnode_type::atom);
@@ -1064,49 +984,7 @@ string_text:
                 $$ = make_astnode_from_token($2, astnode_type::atom);
             }
 
-parameters:
-          params
-        | params t_delimiter_comma
-            {
-                LOG_ASTNODE("t_delimiter_comma (for parameters)");
-                $$ = $1;
-            }
-
-params:
-          param
-            {
-                $$ = make_astnode(astnode_type::list_op_args_or_prams);
-                $$->eat($1);
-            }
-        | params t_delimiter_comma param
-            {
-                LOG_ASTNODE("t_delimiter_comma (for params)");
-                $$ = $1->eat($3);
-            }
-
-param:
-          t_operators_mul primary
-            {
-                LOG_ASTNODE("t_operators_mul (for param)");
-                $$ = make_astnode(astnode_type::sin_op_kwstar);
-                $$->eat($2);
-            }
-        | t_operators_pow primary
-            {
-                LOG_ASTNODE("t_operators_pow (for param)");
-                $$ = make_astnode(astnode_type::sin_op_kwdstar);
-                $$->eat($2);
-            }
-        | primary t_operators_assign _expression_if_else
-            {
-                LOG_ASTNODE("t_operators_assign (for param)");
-                $$ = make_astnode(astnode_type::bin_op_kwequ);
-                $$->eat($1);
-                $$->eat($3);
-            }
-        | primary
-
-arguments:
+arguments_or_parameters:
           kwargs
         | kwargs t_delimiter_comma
             {
@@ -1151,7 +1029,6 @@ kwarg:
 
 // [6] errors
 
-/* --- LEAF ONLY --- */
 ast_error :
           t_error { GEN_ERROR_NODE("t_error (for ast_error)", $$, $1); }
         // | t_newline { GEN_ERROR_NODE("t_newline (for ast_error)", $$, $1); }
@@ -1220,7 +1097,7 @@ ast_error :
         // | t_keyword_in { KEYWORD($$, $1); }
         // | t_keyword_pass { KEYWORD($$, $1); }
         | t_keyword_def { KEYWORD($$, $1); }
-        | t_keyword_return { KEYWORD($$, $1); }
+        // | t_keyword_return { KEYWORD($$, $1); }
         // | t_keyword_yield { KEYWORD($$, $1); }
         | t_keyword_class { KEYWORD($$, $1); }
         | t_keyword_lambda { KEYWORD($$, $1); }

@@ -37,8 +37,10 @@ a(1, 2, not 3 == 1, y = 2)
 b(a, b, **c)
 
 # test yield
-# a = yield x
-# yield a
+a = yield x
+yield a
+return a
+return
 
 # test nude expr
 1

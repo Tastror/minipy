@@ -48,6 +48,7 @@ enum class astnode_type {
     zero_op_pass,
     zero_op_break,
     zero_op_continue,
+    sin_op_return,
 
     sin_op_yield,
     sin_op_yield_from,

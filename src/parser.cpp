@@ -83,6 +83,7 @@ std::string std::to_string(astnode_type tt) {
         case astnode_type::zero_op_pass: return "zero_op_pass";
         case astnode_type::zero_op_break: return "zero_op_break";
         case astnode_type::zero_op_continue: return "zero_op_continue";
+        case astnode_type::sin_op_return: return "sin_op_return";
 
         case astnode_type::sin_op_yield: return "sin_op_yield"; 
         case astnode_type::sin_op_yield_from: return "sin_op_yield_from"; 
