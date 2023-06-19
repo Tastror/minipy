@@ -71,76 +71,65 @@ void remove_from_astnode_buff(AstNode*& del) {
 std::string std::to_string(astnode_type tt) {
     switch (tt) {
         case astnode_type::error: return "error";
-        case astnode_type::temp: return "temp";
-        case astnode_type::placeholder: return "placeholder";
-        
-        case astnode_type::statements: return "statements";
-
-        case astnode_type::assignment: return "assignment";
-        case astnode_type::pass_stmt: return "pass_stmt";
-        case astnode_type::break_stmt: return "break_stmt";
-        case astnode_type::continue_stmt: return "continue_stmt";
-        
-        case astnode_type::expressions_type: return "expressions_type";
-        case astnode_type::expressions_lhs: return "expressions_lhs";
-        case astnode_type::expressions_rhs: return "expressions_rhs";
-
-        // case astnode_type::star_named_expressions: return "star_named_expressions";
-        // case astnode_type::star_named_expression: return "star_named_expression";
-        // case astnode_type::assignment_expression: return "assignment_expression";
-        // case astnode_type::named_expression: return "named_expression";
-
-        case astnode_type::yield_expr: return "yield_expr"; 
-        case astnode_type::yield_from_expr: return "yield_from_expr"; 
-        case astnode_type::expressions: return "expressions";
-        case astnode_type::star_expressions: return "star_expressions";
-        case astnode_type::star_expression: return "star_expression";
-        case astnode_type::expression_if_else: return "expression_if_else";
-        case astnode_type::disjunction: return "disjunction";
-        case astnode_type::conjunction: return "conjunction";
-        case astnode_type::inversion: return "inversion";
-        case astnode_type::comparison: return "comparison";
-        case astnode_type::eq_bitwise_or: return "eq_bitwise_or";
-        case astnode_type::neq_bitwise_or: return "neq_bitwise_or";
-        case astnode_type::leq_bitwise_or: return "leq_bitwise_or";
-        case astnode_type::lt_bitwise_or: return "lt_bitwise_or";
-        case astnode_type::geq_bitwise_or: return "geq_bitwise_or";
-        case astnode_type::gt_bitwise_or: return "gt_bitwise_or";
-        case astnode_type::notin_bitwise_or: return "notin_bitwise_or";
-        case astnode_type::in_bitwise_or: return "in_bitwise_or";
-        case astnode_type::isnot_bitwise_or: return "isnot_bitwise_or";
-        case astnode_type::is_bitwise_or: return "is_bitwise_or";
-        case astnode_type::bitwise_or: return "bitwise_or";
-        case astnode_type::bitwise_xor: return "bitwise_xor";
-        case astnode_type::bitwise_and: return "bitwise_and";
-        case astnode_type::shift_left: return "shift_left";
-        case astnode_type::shift_right: return "shift_right";
-        case astnode_type::sum_add: return "sum_add";
-        case astnode_type::sum_sub: return "sum_sub";
-        case astnode_type::term_mul: return "term_mul";
-        case astnode_type::term_div: return "term_div";
-        case astnode_type::term_ediv: return "term_ediv";
-        case astnode_type::term_mod: return "term_mod";
-        case astnode_type::term_at: return "term_at";
-        case astnode_type::factor_positive: return "factor_positive";
-        case astnode_type::factor_negative: return "factor_negative";
-        case astnode_type::factor_not: return "factor_not";
-        case astnode_type::power: return "power";
-        case astnode_type::await_primary: return "await_primary";
-        case astnode_type::primary_dot: return "primary_dot";
-        case astnode_type::primary_func: return "primary_func";
         case astnode_type::atom: return "atom";
+        case astnode_type::placeholder: return "placeholder";
 
-        case astnode_type::slices: return "slices";
-        case astnode_type::slice: return "slice";
-        case astnode_type::strings: return "strings";
-        case astnode_type::string_text: return "string_text";
+        case astnode_type::temp: return "temp";
+        
+        case astnode_type::files: return "files";
 
-        case astnode_type::arg_or_pram: return "arg_or_pram";
-        case astnode_type::kwarg_star: return "kwarg_star";
-        case astnode_type::kwarg_dstar: return "kwarg_dstar"; 
-        case astnode_type::kwarg_equ: return "kwarg_equ"; 
-        case astnode_type::kwarg: return "kwarg";
+        case astnode_type::tri_op_assign: return "tri_op_assign";
+        case astnode_type::tri_op_augassign: return "tri_op_augassign";
+        case astnode_type::zero_op_pass: return "zero_op_pass";
+        case astnode_type::zero_op_break: return "zero_op_break";
+        case astnode_type::zero_op_continue: return "zero_op_continue";
+
+        case astnode_type::sin_op_yield: return "sin_op_yield"; 
+        case astnode_type::sin_op_yield_from: return "sin_op_yield_from"; 
+        case astnode_type::expressions: return "expressions";
+        case astnode_type::sin_op_star: return "sin_op_star";
+        case astnode_type::tri_op_if_else_expr: return "tri_op_if_else_expr";
+        case astnode_type::list_op_or: return "list_op_or";
+        case astnode_type::list_op_and: return "list_op_and";
+        case astnode_type::sin_op_not: return "sin_op_not";
+        case astnode_type::list_op_comparison: return "list_op_comparison";
+        case astnode_type::comp_op_eq: return "comp_op_eq";
+        case astnode_type::comp_op_neq: return "comp_op_neq";
+        case astnode_type::comp_op_leq: return "comp_op_leq";
+        case astnode_type::comp_op_lt: return "comp_op_lt";
+        case astnode_type::comp_op_geq: return "comp_op_geq";
+        case astnode_type::comp_op_gt: return "comp_op_gt";
+        case astnode_type::comp_op_notin: return "comp_op_notin";
+        case astnode_type::comp_op_in: return "comp_op_in";
+        case astnode_type::comp_op_isnot: return "comp_op_isnot";
+        case astnode_type::comp_op_is: return "comp_op_is";
+        case astnode_type::bin_op_or: return "bin_op_or";
+        case astnode_type::bin_op_xor: return "bin_op_xor";
+        case astnode_type::bin_op_and: return "bin_op_and";
+        case astnode_type::bin_op_sleft: return "bin_op_sleft";
+        case astnode_type::bin_op_sright: return "bin_op_sright";
+        case astnode_type::bin_op_add: return "bin_op_add";
+        case astnode_type::bin_op_sub: return "bin_op_sub";
+        case astnode_type::bin_op_mul: return "bin_op_mul";
+        case astnode_type::bin_op_div: return "bin_op_div";
+        case astnode_type::bin_op_ediv: return "bin_op_ediv";
+        case astnode_type::bin_op_mod: return "bin_op_mod";
+        case astnode_type::bin_op_at: return "bin_op_at";
+        case astnode_type::sin_op_positive: return "sin_op_positive";
+        case astnode_type::sin_op_negative: return "sin_op_negative";
+        case astnode_type::sin_op_wavenot: return "sin_op_wavenot";
+        case astnode_type::bin_op_power: return "bin_op_power";
+        case astnode_type::sin_op_await: return "sin_op_await";
+        case astnode_type::bin_op_dot: return "bin_op_dot";
+        case astnode_type::bin_op_fcall: return "bin_op_fcall";
+
+        case astnode_type::list_op_slices: return "list_op_slices";
+        case astnode_type::list_op_strings: return "list_op_strings";
+        case astnode_type::list_op_args_or_prams: return "list_op_args_or_prams";
+
+        case astnode_type::sin_op_kwstar: return "sin_op_kwstar";
+        case astnode_type::sin_op_kwdstar: return "sin_op_kwdstar"; 
+        case astnode_type::bin_op_kwequ: return "bin_op_kwequ";
     }
     return "";
 }
@@ -178,7 +167,7 @@ std::string AstNode::to_string() {
     else if (this->is_token_leaf)
         return std::to_string(this->type) + " >> " + this->token_leaf.to_string();
     else
-        return std::to_string(this->type) + " | inner";
+        return std::to_string(this->type) + " | OT";
 }
 
 

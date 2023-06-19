@@ -33,7 +33,7 @@ a = b = 1
 a, b = c, d = 2, 3
 
 # test func use
-a(1, 2, 3 == 1)
+a(1, 2, not 3 == 1, y = 2)
 b(a, b, **c)
 
 # test yield

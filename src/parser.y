@@ -346,7 +346,7 @@ file: statements
 statements:
           statement
             {
-                $$ = make_astnode(astnode_type::statements);
+                $$ = make_astnode(astnode_type::files);
                 $$->eat_sons($1);
                 remove_from_astnode_buff($1);
             }
@@ -399,17 +399,17 @@ simple_stmt:
         | t_keyword_pass /* --- LEAF ONLY --- */
             {
                 LOG_ASTNODE("t_keyword_pass (for simple_stmt)");
-                $$ = make_astnode_from_token($1, astnode_type::pass_stmt);
+                $$ = make_astnode(astnode_type::zero_op_pass);
             }
         | t_keyword_break /* --- LEAF ONLY --- */
             {
                 LOG_ASTNODE("t_keyword_break (for simple_stmt)");
-                $$ = make_astnode_from_token($1, astnode_type::break_stmt);
+                $$ = make_astnode(astnode_type::zero_op_break);
             }
         | t_keyword_continue /* --- LEAF ONLY --- */
             {
                 LOG_ASTNODE("t_keyword_continue (for simple_stmt)");
-                $$ = make_astnode_from_token($1, astnode_type::continue_stmt);
+                $$ = make_astnode(astnode_type::zero_op_continue);
             }
         | assignment
         | _normal_expression
@@ -428,19 +428,26 @@ assignment:
         | primary t_delimiter_colon expressions_type
             {
                 LOG_ASTNODE("t_delimiter_colon (for assignment)");
-                $$ = make_astnode(astnode_type::assignment);
-                $$->eat($1);
+                $$ = make_astnode(astnode_type::tri_op_assign);
                 $$->eat($3);
+                $$->eat($1);
                 $$->eat(make_empty_astnode());
             }
         | primary t_delimiter_colon expressions_type t_operators_assign expressions_rhs
             {
                 LOG_ASTNODE("t_delimiter_colon (for assignment)");
                 LOG_ASTNODE("t_operators_assign (for assignment)");
-                $$ = make_astnode(astnode_type::assignment);
+                $$ = make_astnode(astnode_type::tri_op_assign);
+                $$->eat($3);
+                $$->eat($1);
+                $$->eat($5);
+            }
+        | primary augassign expressions_rhs
+            {
+                $$ = make_astnode(astnode_type::tri_op_augassign);
+                $$->eat($2);
                 $$->eat($1);
                 $$->eat($3);
-                $$->eat($5);
             }
 
 // only notype assign can use expressions_lhs and "a = b = c = ..."
@@ -448,21 +455,35 @@ _no_type_assign:
           expressions_lhs t_operators_assign expressions_rhs
             {
                 LOG_ASTNODE("t_operators_assign (for _no_type_assign)");
-                $$ = make_astnode(astnode_type::assignment);
-                $$->eat($1);
+                $$ = make_astnode(astnode_type::tri_op_assign);
                 $$->eat(make_empty_astnode());
+                $$->eat($1);
                 $$->eat($3);
             }
         | expressions_lhs t_operators_assign _no_type_assign
             {
                 LOG_ASTNODE("t_operators_assign (for _no_type_assign)");
-                $$ = make_astnode(astnode_type::assignment);
-                $$->eat($1);
+                $$ = make_astnode(astnode_type::tri_op_assign);
                 $$->eat(make_empty_astnode());
+                $$->eat($1);
                 $$->eat($3);
             }
 
-
+augassign:
+          t_operators_add_assign    { LOG_ASTNODE("t_operators_add_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_sub_assign    { LOG_ASTNODE("t_operators_sub_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_mul_assign    { LOG_ASTNODE("t_operators_mul_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_div_assign    { LOG_ASTNODE("t_operators_div_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_ediv_assign   { LOG_ASTNODE("t_operators_ediv_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_mod_assign    { LOG_ASTNODE("t_operators_mod_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_pow_assign    { LOG_ASTNODE("t_operators_pow_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_at_assign     { LOG_ASTNODE("t_operators_at_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_and_assign    { LOG_ASTNODE("t_operators_and_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_or_assign     { LOG_ASTNODE("t_operators_or_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_xor_assign    { LOG_ASTNODE("t_operators_xor_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_not_assign    { LOG_ASTNODE("t_operators_not_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_sleft_assign  { LOG_ASTNODE("t_operators_sleft_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
+        | t_operators_sright_assign { LOG_ASTNODE("t_operators_sright_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
 
 // [3] compound (block) statements
 
@@ -481,29 +502,13 @@ _no_type_assign:
 
 expressions_type:
           _normal_expression
-            {
-                $$ = $1;
-                $$->type = astnode_type::expressions_type;
-            }
 
 expressions_lhs:
           _normal_expression
-            {
-                $$ = make_astnode(astnode_type::expressions_lhs);
-                $$->eat($1);
-            }
 
 expressions_rhs:
           _normal_expression
-            {
-                $$ = make_astnode(astnode_type::expressions_rhs);
-                $$->eat($1);
-            }
         | yield_expr
-            {
-                $$ = make_astnode(astnode_type::expressions_rhs);
-                $$->eat($1);
-            }
 
 // It cannot define which is lhs or rhs (so will go error), so i use another lhs below.
 
@@ -619,20 +624,20 @@ yield_expr:
           t_keyword_yield
             {
                 LOG_ASTNODE("t_keyword_yield (for yield_expr)");
-                $$ = make_astnode(astnode_type::yield_expr);
+                $$ = make_astnode(astnode_type::sin_op_yield);
                 $$->eat(make_empty_astnode());
             }
         | t_keyword_yield _normal_expression
             {
                 LOG_ASTNODE("t_keyword_yield (for yield_expr)");
-                $$ = make_astnode(astnode_type::yield_expr);
+                $$ = make_astnode(astnode_type::sin_op_yield);
                 $$->eat($2);
             }
         | t_keyword_yield t_keyword_from _normal_expression
             {
                 LOG_ASTNODE("t_keyword_yield (for yield_expr)");
                 LOG_ASTNODE("t_keyword_from (for yield_expr)");
-                $$ = make_astnode(astnode_type::yield_from_expr);
+                $$ = make_astnode(astnode_type::sin_op_yield_from);
                 $$->eat($3);
             }
 
@@ -673,7 +678,7 @@ star_expression:
         | t_operators_mul _expression_if_else
             {
                 LOG_ASTNODE("t_operators_mul (for star_expression)");
-                $$ = make_astnode(astnode_type::star_expression);
+                $$ = make_astnode(astnode_type::sin_op_star);
                 $$->eat($2);
             }
 
@@ -681,9 +686,9 @@ _expression_if_else:
           _disjunction_or_just_conjunction
         | _disjunction_or_just_conjunction t_keyword_if _disjunction_or_just_conjunction t_keyword_else _expression_if_else
             {
-                $$ = make_astnode(astnode_type::expression_if_else);
-                $$->eat($1);
+                $$ = make_astnode(astnode_type::tri_op_if_else_expr);
                 $$->eat($3);
+                $$->eat($1);
                 $$->eat($5);
             } 
         // | lambdef
@@ -696,7 +701,7 @@ disjunction:
           _conjunction_or_just_inversion t_keyword_or _conjunction_or_just_inversion
             {
                 LOG_ASTNODE("t_keyword_or (for disjunction)");
-                $$ = make_astnode(astnode_type::disjunction);
+                $$ = make_astnode(astnode_type::list_op_or);
                 $$->eat($1);
                 $$->eat($3);
             }
@@ -714,7 +719,7 @@ conjunction:
           inversion t_keyword_and inversion
             {
                 LOG_ASTNODE("t_keyword_and (for conjunction)");
-                $$ = make_astnode(astnode_type::conjunction);
+                $$ = make_astnode(astnode_type::list_op_and);
                 $$->eat($1);
                 $$->eat($3);
             }
@@ -729,7 +734,7 @@ inversion:
         | t_keyword_not inversion
             {
                 LOG_ASTNODE("t_keyword_not (for inversion)");
-                $$ = make_astnode(astnode_type::inversion);
+                $$ = make_astnode(astnode_type::sin_op_not);
                 $$->eat($2);
             }
 
@@ -740,7 +745,7 @@ _comparison_or_just_bitwise_or:
 comparison:
           bitwise_or compare_op_bitwise_or_pair
             {
-                $$ = make_astnode(astnode_type::comparison);
+                $$ = make_astnode(astnode_type::list_op_comparison);
                 $$->eat($1);
                 $$->eat($2);
             }
@@ -753,63 +758,63 @@ compare_op_bitwise_or_pair:
           t_operators_eq bitwise_or
             {
                 LOG_ASTNODE("t_operators_eq (for compare_op_bitwise_or_pair)");
-                $$ = make_astnode(astnode_type::eq_bitwise_or);
+                $$ = make_astnode(astnode_type::comp_op_eq);
                 $$->eat($2);
             }
         | t_operators_neq bitwise_or
             {
                 LOG_ASTNODE("t_operators_neq (for compare_op_bitwise_or_pair)");
-                $$ = make_astnode(astnode_type::neq_bitwise_or);
+                $$ = make_astnode(astnode_type::comp_op_neq);
                 $$->eat($2);
             }
         | t_operators_leq bitwise_or
             {
                 LOG_ASTNODE("t_operators_leq (for compare_op_bitwise_or_pair)");
-                $$ = make_astnode(astnode_type::leq_bitwise_or);
+                $$ = make_astnode(astnode_type::comp_op_leq);
                 $$->eat($2);
             }
         | t_operators_lt bitwise_or
             {
                 LOG_ASTNODE("t_operators_lt (for compare_op_bitwise_or_pair)");
-                $$ = make_astnode(astnode_type::lt_bitwise_or);
+                $$ = make_astnode(astnode_type::comp_op_lt);
                 $$->eat($2);
             }
         | t_operators_geq bitwise_or
             {
                 LOG_ASTNODE("t_operators_geq (for compare_op_bitwise_or_pair)");
-                $$ = make_astnode(astnode_type::geq_bitwise_or);
+                $$ = make_astnode(astnode_type::comp_op_geq);
                 $$->eat($2);
             }
         | t_operators_gt bitwise_or
             {
                 LOG_ASTNODE("t_operators_gt (for compare_op_bitwise_or_pair)");
-                $$ = make_astnode(astnode_type::gt_bitwise_or);
+                $$ = make_astnode(astnode_type::comp_op_gt);
                 $$->eat($2);
             }
         | t_keyword_not t_keyword_in bitwise_or
             {
                 LOG_ASTNODE("t_keyword_not (for compare_op_bitwise_or_pair)");
                 LOG_ASTNODE("t_keyword_in (for compare_op_bitwise_or_pair)");
-                $$ = make_astnode(astnode_type::notin_bitwise_or);
+                $$ = make_astnode(astnode_type::comp_op_notin);
                 $$->eat($3);
             }
         | t_keyword_in bitwise_or
             {
                 LOG_ASTNODE("t_keyword_in (for compare_op_bitwise_or_pair)");
-                $$ = make_astnode(astnode_type::in_bitwise_or);
+                $$ = make_astnode(astnode_type::comp_op_in);
                 $$->eat($2);
             }
         | t_keyword_is t_keyword_not bitwise_or
             {
                 LOG_ASTNODE("t_keyword_is (for compare_op_bitwise_or_pair)");
                 LOG_ASTNODE("t_keyword_not (for compare_op_bitwise_or_pair)");
-                $$ = make_astnode(astnode_type::isnot_bitwise_or);
+                $$ = make_astnode(astnode_type::comp_op_isnot);
                 $$->eat($3);
             }
         | t_keyword_is bitwise_or
             {
                 LOG_ASTNODE("t_keyword_is (for compare_op_bitwise_or_pair)");
-                $$ = make_astnode(astnode_type::is_bitwise_or);
+                $$ = make_astnode(astnode_type::comp_op_is);
                 $$->eat($2);
             }
 
@@ -818,7 +823,7 @@ bitwise_or:
         | bitwise_or t_operators_or bitwise_xor
             {
                 LOG_ASTNODE("t_operators_or (for bitwise_or)");
-                $$ = make_astnode(astnode_type::bitwise_or);
+                $$ = make_astnode(astnode_type::bin_op_or);
                 $$->eat($1);
                 $$->eat($3);
             }
@@ -828,7 +833,7 @@ bitwise_xor:
         | bitwise_xor t_operators_xor bitwise_and
             {
                 LOG_ASTNODE("t_operators_xor (for bitwise_xor)");
-                $$ = make_astnode(astnode_type::bitwise_xor);
+                $$ = make_astnode(astnode_type::bin_op_xor);
                 $$->eat($1);
                 $$->eat($3);
             }
@@ -838,7 +843,7 @@ bitwise_and:
         | bitwise_and t_operators_and shift_expr
             {
                 LOG_ASTNODE("t_operators_and (for bitwise_and)");
-                $$ = make_astnode(astnode_type::bitwise_and);
+                $$ = make_astnode(astnode_type::bin_op_and);
                 $$->eat($1);
                 $$->eat($3);
             }
@@ -848,14 +853,14 @@ shift_expr:
         | shift_expr t_operators_sleft sum
             {
                 LOG_ASTNODE("t_operators_sleft (for shift_expr)");
-                $$ = make_astnode(astnode_type::shift_left);
+                $$ = make_astnode(astnode_type::bin_op_sleft);
                 $$->eat($1);
                 $$->eat($3);
             }
         | shift_expr t_operators_sright sum
             {
                 LOG_ASTNODE("t_operators_sright (for shift_expr)");
-                $$ = make_astnode(astnode_type::shift_right);
+                $$ = make_astnode(astnode_type::bin_op_sright);
                 $$->eat($1);
                 $$->eat($3);
             }
@@ -865,14 +870,14 @@ sum:
         | sum t_operators_add term
             {
                 LOG_ASTNODE("t_operators_add (for sum)");
-                $$ = make_astnode(astnode_type::sum_add);
+                $$ = make_astnode(astnode_type::bin_op_add);
                 $$->eat($1);
                 $$->eat($3);
             }
         | sum t_operators_sub term
             {
                 LOG_ASTNODE("t_operators_sub (for sum)");
-                $$ = make_astnode(astnode_type::sum_sub);
+                $$ = make_astnode(astnode_type::bin_op_sub);
                 $$->eat($1);
                 $$->eat($3);
             }
@@ -882,35 +887,35 @@ term:
         | term t_operators_mul factor
             {
                 LOG_ASTNODE("t_operators_mul (for term)");
-                $$ = make_astnode(astnode_type::term_mul);
+                $$ = make_astnode(astnode_type::bin_op_mul);
                 $$->eat($1);
                 $$->eat($3);
             }
         | term t_operators_div factor
             {
                 LOG_ASTNODE("t_operators_div (for term)");
-                $$ = make_astnode(astnode_type::term_div);
+                $$ = make_astnode(astnode_type::bin_op_div);
                 $$->eat($1);
                 $$->eat($3);
             }
         | term t_operators_ediv factor
             {
                 LOG_ASTNODE("t_operators_ediv (for term)");
-                $$ = make_astnode(astnode_type::term_ediv);
+                $$ = make_astnode(astnode_type::bin_op_ediv);
                 $$->eat($1);
                 $$->eat($3);
             }
         | term t_operators_mod factor
             {
                 LOG_ASTNODE("t_operators_mod (for term)");
-                $$ = make_astnode(astnode_type::term_mod);
+                $$ = make_astnode(astnode_type::bin_op_mod);
                 $$->eat($1);
                 $$->eat($3);
             }
         | term t_operators_at factor
             {
                 LOG_ASTNODE("t_operators_at (for term)");
-                $$ = make_astnode(astnode_type::term_at);
+                $$ = make_astnode(astnode_type::bin_op_at);
                 $$->eat($1);
                 $$->eat($3);
             }
@@ -920,19 +925,19 @@ factor:
         | t_operators_add factor
             {
                 LOG_ASTNODE("t_operators_add (for factor)");
-                $$ = make_astnode(astnode_type::factor_positive);
+                $$ = make_astnode(astnode_type::sin_op_positive);
                 $$->eat($2);
             }
         | t_operators_sub factor
             {
                 LOG_ASTNODE("t_operators_sub (for factor)");
-                $$ = make_astnode(astnode_type::factor_negative);
+                $$ = make_astnode(astnode_type::sin_op_negative);
                 $$->eat($2);
             }
         | t_operators_not factor
             {
                 LOG_ASTNODE("t_operators_not (for factor)");
-                $$ = make_astnode(astnode_type::factor_not);
+                $$ = make_astnode(astnode_type::sin_op_wavenot);
                 $$->eat($2);
             }
 
@@ -941,7 +946,7 @@ power:
         | await_primary t_operators_pow factor
             {
                 LOG_ASTNODE("t_operators_pow (for power)");
-                $$ = make_astnode(astnode_type::power);
+                $$ = make_astnode(astnode_type::bin_op_power);
                 $$->eat($1);
                 $$->eat($3);
             }
@@ -951,7 +956,7 @@ await_primary:
         | t_keyword_await primary
             {
                 LOG_ASTNODE("t_keyword_await (for await_primary)");
-                $$ = make_astnode(astnode_type::await_primary);
+                $$ = make_astnode(astnode_type::sin_op_await);
                 $$->eat($2);
             }
 
@@ -961,7 +966,7 @@ primary:
             {
                 LOG_ASTNODE("t_delimiter_dot (for primary)");
                 LOG_ASTNODE("t_identifier (for primary)");
-                $$ = make_astnode(astnode_type::primary_dot);
+                $$ = make_astnode(astnode_type::bin_op_dot);
                 $$->eat($1);
                 $$->eat(make_astnode_from_token($3, astnode_type::atom));
             }
@@ -969,7 +974,7 @@ primary:
             {
                 LOG_ASTNODE("t_bracket_parentheses_l (for primary)");
                 LOG_ASTNODE("t_bracket_parentheses_r (for primary)");
-                $$ = make_astnode(astnode_type::primary_func);
+                $$ = make_astnode(astnode_type::bin_op_fcall);
                 $$->eat($1);
                 $$->eat(make_empty_astnode());
             }
@@ -977,7 +982,7 @@ primary:
             {
                 LOG_ASTNODE("t_bracket_parentheses_l (for primary)");
                 LOG_ASTNODE("t_bracket_parentheses_r (for primary)");
-                $$ = make_astnode(astnode_type::primary_func);
+                $$ = make_astnode(astnode_type::bin_op_fcall);
                 $$->eat($1);
                 $$->eat($3);
             }
@@ -1035,7 +1040,7 @@ atom:
 strings:
           string_text
             {
-                $$ = make_astnode(astnode_type::strings);
+                $$ = make_astnode(astnode_type::list_op_strings);
                 $$->eat($1);
             }
         | strings string_text
@@ -1049,14 +1054,14 @@ string_text:
                 LOG_ASTNODE("t_bracket_dquotes (for string_text)");
                 LOG_ASTNODE("t_strtext (for string_text)");
                 LOG_ASTNODE("t_bracket_dquotes (for string_text)");
-                $$ = make_astnode_from_token($2, astnode_type::string_text);
+                $$ = make_astnode_from_token($2, astnode_type::atom);
             }
         | t_bracket_squotes t_strtext t_bracket_squotes
             {
                 LOG_ASTNODE("t_bracket_squotes (for string_text)");
                 LOG_ASTNODE("t_strtext (for string_text)");
                 LOG_ASTNODE("t_bracket_squotes (for string_text)");
-                $$ = make_astnode_from_token($2, astnode_type::string_text);
+                $$ = make_astnode_from_token($2, astnode_type::atom);
             }
 
 parameters:
@@ -1070,7 +1075,7 @@ parameters:
 params:
           param
             {
-                $$ = make_astnode(astnode_type::arg_or_pram);
+                $$ = make_astnode(astnode_type::list_op_args_or_prams);
                 $$->eat($1);
             }
         | params t_delimiter_comma param
@@ -1083,27 +1088,23 @@ param:
           t_operators_mul primary
             {
                 LOG_ASTNODE("t_operators_mul (for param)");
-                $$ = make_astnode(astnode_type::kwarg_star);
+                $$ = make_astnode(astnode_type::sin_op_kwstar);
                 $$->eat($2);
             }
         | t_operators_pow primary
             {
                 LOG_ASTNODE("t_operators_pow (for param)");
-                $$ = make_astnode(astnode_type::kwarg_dstar);
+                $$ = make_astnode(astnode_type::sin_op_kwdstar);
                 $$->eat($2);
             }
         | primary t_operators_assign _expression_if_else
             {
                 LOG_ASTNODE("t_operators_assign (for param)");
-                $$ = make_astnode(astnode_type::kwarg_equ);
+                $$ = make_astnode(astnode_type::bin_op_kwequ);
                 $$->eat($1);
                 $$->eat($3);
             }
         | primary
-            {
-                $$ = make_astnode(astnode_type::kwarg);
-                $$->eat($1);
-            }
 
 arguments:
           kwargs
@@ -1116,7 +1117,7 @@ arguments:
 kwargs:
           kwarg
             {
-                $$ = make_astnode(astnode_type::arg_or_pram);
+                $$ = make_astnode(astnode_type::list_op_args_or_prams);
                 $$->eat($1);
             }
         | kwargs t_delimiter_comma kwarg
@@ -1129,27 +1130,23 @@ kwarg:
           t_operators_mul _expression_if_else
             {
                 LOG_ASTNODE("t_operators_mul (for kwarg)");
-                $$ = make_astnode(astnode_type::kwarg_star);
+                $$ = make_astnode(astnode_type::sin_op_kwstar);
                 $$->eat($2);
             }
         | t_operators_pow _expression_if_else
             {
                 LOG_ASTNODE("t_operators_pow (for kwarg)");
-                $$ = make_astnode(astnode_type::kwarg_dstar);
+                $$ = make_astnode(astnode_type::sin_op_kwdstar);
                 $$->eat($2);
             }
         | primary t_operators_assign _expression_if_else
             {
                 LOG_ASTNODE("t_operators_assign (for kwarg)");
-                $$ = make_astnode(astnode_type::kwarg_equ);
+                $$ = make_astnode(astnode_type::bin_op_kwequ);
                 $$->eat($1);
                 $$->eat($3);
             }
         | _expression_if_else
-            {
-                $$ = make_astnode(astnode_type::kwarg);
-                $$->eat($1);
-            }
 
 
 // [6] errors
@@ -1198,20 +1195,20 @@ ast_error :
         // | t_operators_lt { OPERATORS($$, $1); }
         // | t_operators_gt { OPERATORS($$, $1); }
         // | t_operators_assign { OPERATORS($$, $1); }
-        | t_operators_add_assign { OPERATORS($$, $1); }
-        | t_operators_sub_assign { OPERATORS($$, $1); }
-        | t_operators_mul_assign { OPERATORS($$, $1); }
-        | t_operators_div_assign { OPERATORS($$, $1); }
-        | t_operators_ediv_assign { OPERATORS($$, $1); }
-        | t_operators_mod_assign { OPERATORS($$, $1); }
-        | t_operators_pow_assign { OPERATORS($$, $1); }
-        | t_operators_at_assign { OPERATORS($$, $1); }
-        | t_operators_and_assign { OPERATORS($$, $1); }
-        | t_operators_or_assign { OPERATORS($$, $1); }
-        | t_operators_xor_assign { OPERATORS($$, $1); }
-        | t_operators_not_assign { OPERATORS($$, $1); }
-        | t_operators_sleft_assign { OPERATORS($$, $1); }
-        | t_operators_sright_assign { OPERATORS($$, $1); }
+        // | t_operators_add_assign { OPERATORS($$, $1); }
+        // | t_operators_sub_assign { OPERATORS($$, $1); }
+        // | t_operators_mul_assign { OPERATORS($$, $1); }
+        // | t_operators_div_assign { OPERATORS($$, $1); }
+        // | t_operators_ediv_assign { OPERATORS($$, $1); }
+        // | t_operators_mod_assign { OPERATORS($$, $1); }
+        // | t_operators_pow_assign { OPERATORS($$, $1); }
+        // | t_operators_at_assign { OPERATORS($$, $1); }
+        // | t_operators_and_assign { OPERATORS($$, $1); }
+        // | t_operators_or_assign { OPERATORS($$, $1); }
+        // | t_operators_xor_assign { OPERATORS($$, $1); }
+        // | t_operators_not_assign { OPERATORS($$, $1); }
+        // | t_operators_sleft_assign { OPERATORS($$, $1); }
+        // | t_operators_sright_assign { OPERATORS($$, $1); }
         | t_keyword_underline { KEYWORD($$, $1); }
         // | t_keyword_None { KEYWORD($$, $1); }
         // | t_keyword_True { KEYWORD($$, $1); }

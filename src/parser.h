@@ -15,62 +15,73 @@ extern FILE* yyin;
 // --- 2 ---
 // type to_string
 
+// Types can only be:
+//   [1] operator types:
+//     zero_op_...
+//     sin_op_... (including: comp_op_...)
+//     bin_op_...
+//     tri_op_...
+//     list_op_... (including: files, expressions)
+//  [2] substance types:
+//     error (with token leaf)
+//     atom (with token leaf)
+//     placeholder (no token leaf)
 enum class astnode_type {
-    error,          // error, no son (token_leaf)
-    temp,           // may use in the generation of ast, but will change or delete at last
-    placeholder,    // empty, no son (if had, must be error)
-    
-    statements,     // sons: (ast_error | assignment | xxx_stmt | ...) * n
 
-    assignment,     // sons: lhs, type, rhs
-    pass_stmt,      // no son (token_leaf)
-    break_stmt,     // no son (token_leaf)
-    continue_stmt,  // no son (token_leaf)
+// substance types
 
-    expressions_type,   // same as primary_lhs
-    expressions_lhs,    // sons: (expression_lhs) * n
-    expressions_rhs,
+    error,  // with token_leaf
+    atom,  // with token_leaf
+    placeholder,  // empty
 
-    // star_named_expressions,
-    // star_named_expression,
-    // assignment_expression,
-    // named_expression,
+// temp
 
-    yield_expr,         // 1 son
-    yield_from_expr,    // 1 son
-    expressions,        // sons: (expression) * n
-    star_expressions,   // >= 1 son
-    star_expression,    // 1 son
-    expression_if_else, // 3 sons
-    disjunction,    // >= 2 sons
-    conjunction,    // >= 2 sons
-    inversion,      // 1 son
-    comparison,     // sons: bitwise_or, (compare_op_bitwise_or_pair) * n
-    eq_bitwise_or, neq_bitwise_or, leq_bitwise_or, lt_bitwise_or, geq_bitwise_or,       // 1 son
-    gt_bitwise_or, notin_bitwise_or, in_bitwise_or, isnot_bitwise_or, is_bitwise_or,    // 1 son
-    bitwise_or,     // 2 sons
-    bitwise_xor,    // 2 sons
-    bitwise_and,    // 2 sons
-    shift_left, shift_right,    // 2 sons
-    sum_add, sum_sub,           // 2 sons
-    term_mul, term_div, term_ediv, term_mod, term_at,   // 2 sons
-    factor_positive, factor_negative, factor_not,       // 1 son
-    power,          // 2 sons
-    await_primary,  // 1 son
-    primary_dot,    // 2 sons
-    primary_func,   // 2 sons
-    atom,           // no son (token_leaf)
+    temp,  // may use in the generation of ast, but must be changed or deleted at last
 
-    slices,
-    slice,
-    strings,    // sons: (string_text) * n
-    string_text,    // no son (token_leaf)
+// operator types
 
-    arg_or_pram,
-    kwarg_star,
-    kwarg_dstar, 
-    kwarg_equ, 
-    kwarg,
+    files,  // list_op_files
+
+    tri_op_assign,  // type, lhs, rhs
+    tri_op_augassign,  // operator, lhs, rhs
+
+    zero_op_pass,
+    zero_op_break,
+    zero_op_continue,
+
+    sin_op_yield,
+    sin_op_yield_from,
+
+    expressions,  // list_op_expressions
+
+    sin_op_star,
+    tri_op_if_else_expr,  // if, data1, data2
+
+    list_op_or,
+    list_op_and,
+    sin_op_not,
+
+    list_op_comparison,  // normal, comp_op_... * n
+    comp_op_eq, comp_op_neq, comp_op_leq, comp_op_lt, comp_op_geq,
+    comp_op_gt, comp_op_notin, comp_op_in, comp_op_isnot, comp_op_is,
+
+    bin_op_or, bin_op_xor, bin_op_and, bin_op_sleft, bin_op_sright,
+    bin_op_add, bin_op_sub,
+    bin_op_mul, bin_op_div, bin_op_ediv, bin_op_mod, bin_op_at,
+    sin_op_positive, sin_op_negative, sin_op_wavenot,
+    bin_op_power,
+
+    sin_op_await,
+    bin_op_dot,
+    bin_op_fcall,
+
+    list_op_slices,
+    list_op_strings,
+    list_op_args_or_prams,
+
+    sin_op_kwstar,
+    sin_op_kwdstar, 
+    bin_op_kwequ, 
 };
 
 namespace std {
