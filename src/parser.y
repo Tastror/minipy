@@ -248,18 +248,6 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> expressions_lhs
 %type <astnode_ptr> expressions_rhs
 
-// %type <astnode_ptr> _stars_lhs_or_single_lhs
-// %type <astnode_ptr> stars_lhs
-// %type <astnode_ptr> _no_endcomma_star_lhs
-// %type <astnode_ptr> star_lhs
-// %type <astnode_ptr> single_lhs
-// %type <astnode_ptr> primary_lhs
-
-// %type <astnode_ptr> star_named_expressions
-// %type <astnode_ptr> star_named_expression
-// %type <astnode_ptr> assignment_expression
-// %type <astnode_ptr> named_expression
-
 %type <astnode_ptr> yield_expr
 %type <astnode_ptr> _normal_expression
 %type <astnode_ptr> star_expressions
