@@ -21,7 +21,7 @@ extern FILE* yyin;
 //     sin_op_... (including: comp_op_...)
 //     bin_op_...
 //     tri_op_...
-//     list_op_... (including: files, expressions)
+//     list_op_... (including: statements, expressions)
 //  [2] substance types:
 //     error (with token leaf)
 //     atom (with token leaf)
@@ -40,7 +40,7 @@ enum class astnode_type {
 
 // operator types
 
-    files,  // list_op_files
+    statements,  // list_op_statements
 
     tri_op_assign,  // type, lhs, rhs
     tri_op_augassign,  // operator, lhs, rhs
@@ -49,6 +49,8 @@ enum class astnode_type {
     zero_op_break,
     zero_op_continue,
     sin_op_return,
+
+    tri_op_if_else_block, // condition, if, else (else can also be if_else_block, which means elif)
 
     sin_op_yield,
     sin_op_yield_from,

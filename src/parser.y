@@ -155,17 +155,17 @@ void yyerror(AstNode*& ast_head, char* msg);
 
 
 
+// [1] file, statements
+
 %start file
-
-%type <astnode_ptr> ast_error
-
 %type <astnode_ptr> statements
-%type <astnode_ptr> statement
+
+
+// [2] simple statements
 
 %type <astnode_ptr> simple_stmts
 %type <astnode_ptr> _no_newline_simple_stmt
 %type <astnode_ptr> simple_stmt
-%type <astnode_ptr> compound_stmt
 
 %type <astnode_ptr> assignment
 %type <astnode_ptr> _no_type_assign
@@ -185,8 +185,10 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> dotted_as_name
 %type <astnode_ptr> dotted_name
 
-%type <astnode_ptr> block
-%type <astnode_ptr> decorators
+
+// [3] compound (block) statements
+
+%type <astnode_ptr> compound_stmt
 
 %type <astnode_ptr> class_def
 %type <astnode_ptr> class_def_raw
@@ -207,42 +209,51 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> except_star_block
 %type <astnode_ptr> finally_block
 
-%type <astnode_ptr> match_stmt
-%type <astnode_ptr> subject_expr
-%type <astnode_ptr> case_block
-%type <astnode_ptr> guard
-%type <astnode_ptr> patterns
-%type <astnode_ptr> pattern
-%type <astnode_ptr> as_pattern
-%type <astnode_ptr> or_pattern
-%type <astnode_ptr> closed_pattern
-%type <astnode_ptr> literal_pattern
-%type <astnode_ptr> literal_expr
-%type <astnode_ptr> complex_number
-%type <astnode_ptr> signed_number
-%type <astnode_ptr> signed_real_number
-%type <astnode_ptr> real_number
-%type <astnode_ptr> imaginary_number
-%type <astnode_ptr> capture_pattern
-%type <astnode_ptr> pattern_capture_target
-%type <astnode_ptr> wildcard_pattern
-%type <astnode_ptr> value_pattern
-%type <astnode_ptr> attr
-%type <astnode_ptr> name_or_attr
-%type <astnode_ptr> group_pattern
-%type <astnode_ptr> sequence_pattern
-%type <astnode_ptr> open_sequence_pattern
-%type <astnode_ptr> maybe_sequence_pattern
-%type <astnode_ptr> maybe_star_pattern
-%type <astnode_ptr> star_pattern
-%type <astnode_ptr> mapping_pattern
-%type <astnode_ptr> items_pattern
-%type <astnode_ptr> key_value_pattern
-%type <astnode_ptr> double_star_pattern
-%type <astnode_ptr> class_pattern
-%type <astnode_ptr> positional_patterns
-%type <astnode_ptr> keyword_patterns
-%type <astnode_ptr> keyword_pattern
+%type <astnode_ptr> block
+%type <astnode_ptr> decorators
+
+
+// [4] (not implement yet) match pattern
+
+// %type <astnode_ptr> match_stmt
+// %type <astnode_ptr> subject_expr
+// %type <astnode_ptr> case_block
+// %type <astnode_ptr> guard
+// %type <astnode_ptr> patterns
+// %type <astnode_ptr> pattern
+// %type <astnode_ptr> as_pattern
+// %type <astnode_ptr> or_pattern
+// %type <astnode_ptr> closed_pattern
+// %type <astnode_ptr> literal_pattern
+// %type <astnode_ptr> literal_expr
+// %type <astnode_ptr> complex_number
+// %type <astnode_ptr> signed_number
+// %type <astnode_ptr> signed_real_number
+// %type <astnode_ptr> real_number
+// %type <astnode_ptr> imaginary_number
+// %type <astnode_ptr> capture_pattern
+// %type <astnode_ptr> pattern_capture_target
+// %type <astnode_ptr> wildcard_pattern
+// %type <astnode_ptr> value_pattern
+// %type <astnode_ptr> attr
+// %type <astnode_ptr> name_or_attr
+// %type <astnode_ptr> group_pattern
+// %type <astnode_ptr> sequence_pattern
+// %type <astnode_ptr> open_sequence_pattern
+// %type <astnode_ptr> maybe_sequence_pattern
+// %type <astnode_ptr> maybe_star_pattern
+// %type <astnode_ptr> star_pattern
+// %type <astnode_ptr> mapping_pattern
+// %type <astnode_ptr> items_pattern
+// %type <astnode_ptr> key_value_pattern
+// %type <astnode_ptr> double_star_pattern
+// %type <astnode_ptr> class_pattern
+// %type <astnode_ptr> positional_patterns
+// %type <astnode_ptr> keyword_patterns
+// %type <astnode_ptr> keyword_pattern
+
+
+// [5] expressions
 
 %type <astnode_ptr> expressions_type
 %type <astnode_ptr> expressions_lhs
@@ -286,6 +297,9 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> lambda_param_maybe_default
 %type <astnode_ptr> lambda_param
 
+
+// [6] basic defines
+
 %type <astnode_ptr> slices
 %type <astnode_ptr> slice
 %type <astnode_ptr> _part_fo_slice
@@ -310,6 +324,11 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> kwargs
 %type <astnode_ptr> kwarg
 
+
+// [7] errors
+
+%type <astnode_ptr> ast_error
+
 %%
 
 
@@ -321,20 +340,26 @@ file: statements
             }
 
 statements:
-          statement
+          simple_stmts
             {
-                $$ = make_astnode(astnode_type::files);
+                $$ = make_astnode(astnode_type::statements);
                 $$->eat_sons($1);
                 remove_from_astnode_buff($1);
             }
-        | statements statement
+        | compound_stmt
+            {
+                $$ = make_astnode(astnode_type::statements);
+                $$->eat($1);
+            }
+        | statements simple_stmts
             {
                 $$ = $1->eat_sons($2);
                 remove_from_astnode_buff($2);
             }
-
-statement:
-          simple_stmts
+        | statements compound_stmt
+            {
+                $$ = $1->eat($2);
+            }
 
 
 
@@ -473,23 +498,91 @@ augassign:
         | t_operators_sleft_assign  { LOG_ASTNODE("t_operators_sleft_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
         | t_operators_sright_assign { LOG_ASTNODE("t_operators_sright_assign (for augassign)"); $$ = make_astnode_from_token($1, astnode_type::atom); }
 
+
+
 // [3] compound (block) statements
 
-// TODO
+compound_stmt:
+          if_stmt
+
+if_stmt:
+          t_keyword_if _normal_expression t_delimiter_colon block elif_stmt
+            {
+                LOG_ASTNODE("t_keyword_if (for if_stmt)");
+                LOG_ASTNODE("t_delimiter_colon (for if_stmt)");
+                $$ = make_astnode(astnode_type::tri_op_if_else_block);
+                $$->eat($2);
+                $$->eat($4);
+                $$->eat($5);
+            }
+        | t_keyword_if _normal_expression t_delimiter_colon block
+            {
+                LOG_ASTNODE("t_keyword_if (for if_stmt)");
+                LOG_ASTNODE("t_delimiter_colon (for if_stmt)");
+                $$ = make_astnode(astnode_type::tri_op_if_else_block);
+                $$->eat($2);
+                $$->eat($4);
+                $$->eat(make_empty_astnode());
+            }
+        | t_keyword_if _normal_expression t_delimiter_colon block else_block
+            {
+                LOG_ASTNODE("t_keyword_if (for if_stmt)");
+                LOG_ASTNODE("t_delimiter_colon (for if_stmt)");
+                $$ = make_astnode(astnode_type::tri_op_if_else_block);
+                $$->eat($2);
+                $$->eat($4);
+                $$->eat($5);
+            }
+
+elif_stmt:
+          t_keyword_elif _normal_expression t_delimiter_colon block elif_stmt
+            {
+                LOG_ASTNODE("t_keyword_elif (for elif_stmt)");
+                LOG_ASTNODE("t_delimiter_colon (for elif_stmt)");
+                $$ = make_astnode(astnode_type::tri_op_if_else_block);
+                $$->eat($2);
+                $$->eat($4);
+                $$->eat($5);
+            }
+        | t_keyword_elif _normal_expression t_delimiter_colon block
+            {
+                LOG_ASTNODE("t_keyword_elif (for elif_stmt)");
+                LOG_ASTNODE("t_delimiter_colon (for elif_stmt)");
+                $$ = make_astnode(astnode_type::tri_op_if_else_block);
+                $$->eat($2);
+                $$->eat($4);
+                $$->eat(make_empty_astnode());
+            }
+        | t_keyword_elif _normal_expression t_delimiter_colon block else_block
+            {
+                LOG_ASTNODE("t_keyword_elif (for elif_stmt)");
+                LOG_ASTNODE("t_delimiter_colon (for elif_stmt)");
+                $$ = make_astnode(astnode_type::tri_op_if_else_block);
+                $$->eat($2);
+                $$->eat($4);
+                $$->eat($5);
+            }
+
+else_block:
+          t_keyword_else t_delimiter_colon block
+            {
+                LOG_ASTNODE("t_keyword_else (for else_block)");
+                LOG_ASTNODE("t_delimiter_colon (for else_block)");
+                $$ = $3;
+            }
+
+block:
+          t_newline t_indent statements t_dedent
+            {
+                LOG_ASTNODE("t_newline (for block)");
+                LOG_ASTNODE("t_indent (for block)");
+                LOG_ASTNODE("t_dedent (for block)");
+                $$ = $3;
+            }
+        | simple_stmts
 
 
-
-// [4] expressions
-
-expressions_type:
-          _normal_expression
-
-expressions_lhs:
-          _normal_expression
-
-expressions_rhs:
-          _normal_expression
-        | yield_expr
+// [5] expressions
 
 // expression order
 // (no genexp yet)
@@ -515,6 +608,16 @@ expressions_rhs:
 // await xx
 // p.i p(g) p() p[s]
 // p = a
+
+expressions_type:
+          _normal_expression
+
+expressions_lhs:
+          _normal_expression
+
+expressions_rhs:
+          _normal_expression
+        | yield_expr
 
 // below are not normal
 
@@ -943,7 +1046,7 @@ atom:
 
 
 
-// [5] basic defines
+// [6] basic defines
 
 strings:
           string_text
@@ -1015,13 +1118,13 @@ kwarg:
         | _expression_if_else
 
 
-// [6] errors
+// [7] errors
 
 ast_error :
           t_error { GEN_ERROR_NODE("t_error (for ast_error)", $$, $1); }
         // | t_newline { GEN_ERROR_NODE("t_newline (for ast_error)", $$, $1); }
-        | t_indent { GEN_ERROR_NODE("t_indent (for ast_error)", $$, $1); }
-        | t_dedent { GEN_ERROR_NODE("t_dedent (for ast_error)", $$, $1); }
+        // | t_indent { GEN_ERROR_NODE("t_indent (for ast_error)", $$, $1); }
+        // | t_dedent { GEN_ERROR_NODE("t_dedent (for ast_error)", $$, $1); }
         // | t_identifier { GEN_ERROR_NODE("t_identifier (for ast_error)", $$, $1); }
         // | t_number { GEN_ERROR_NODE("t_number (for ast_error)", $$, $1); }
         // | t_strtext { GEN_ERROR_NODE("t_strtext (for ast_error)", $$, $1); }
@@ -1090,9 +1193,9 @@ ast_error :
         | t_keyword_class { KEYWORD($$, $1); }
         | t_keyword_lambda { KEYWORD($$, $1); }
         // | t_keyword_await { KEYWORD($$, $1); }
-        | t_keyword_if { KEYWORD($$, $1); }
-        | t_keyword_else { KEYWORD($$, $1); }
-        | t_keyword_elif { KEYWORD($$, $1); }
+        // | t_keyword_if { KEYWORD($$, $1); }
+        // | t_keyword_else { KEYWORD($$, $1); }
+        // | t_keyword_elif { KEYWORD($$, $1); }
         | t_keyword_for { KEYWORD($$, $1); }
         // | t_keyword_break { KEYWORD($$, $1); }
         // | t_keyword_continue { KEYWORD($$, $1); }

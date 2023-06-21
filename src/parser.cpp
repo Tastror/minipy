@@ -76,7 +76,7 @@ std::string std::to_string(astnode_type tt) {
 
         case astnode_type::temp: return "temp";
         
-        case astnode_type::files: return "files";
+        case astnode_type::statements: return "statements";
 
         case astnode_type::tri_op_assign: return "tri_op_assign";
         case astnode_type::tri_op_augassign: return "tri_op_augassign";
@@ -84,6 +84,8 @@ std::string std::to_string(astnode_type tt) {
         case astnode_type::zero_op_break: return "zero_op_break";
         case astnode_type::zero_op_continue: return "zero_op_continue";
         case astnode_type::sin_op_return: return "sin_op_return";
+
+        case astnode_type::tri_op_if_else_block: return "tri_op_if_else_block";
 
         case astnode_type::sin_op_yield: return "sin_op_yield"; 
         case astnode_type::sin_op_yield_from: return "sin_op_yield_from"; 
