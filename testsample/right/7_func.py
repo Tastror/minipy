@@ -1,3 +1,4 @@
+# test usual func
 def a():
     return
 
@@ -26,3 +27,8 @@ def y():
     yield a
     return a
     return
+
+def z():
+    return
+    yield
+    yield from y()
