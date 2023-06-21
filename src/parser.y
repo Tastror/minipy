@@ -321,8 +321,8 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> dictcomp
 
 %type <astnode_ptr> arguments_or_parameters
-%type <astnode_ptr> kwargs
-%type <astnode_ptr> kwarg
+%type <astnode_ptr> argparas
+%type <astnode_ptr> argpara
 
 
 // [7] errors
@@ -503,7 +503,71 @@ augassign:
 // [3] compound (block) statements
 
 compound_stmt:
-          if_stmt
+          function_def
+        | if_stmt
+
+function_def:
+          function_def_raw
+            {
+                $$ = $1->eat(make_empty_astnode());
+            }
+        // | decorators function_def_raw
+
+function_def_raw:
+          t_keyword_def t_identifier t_bracket_parentheses_l t_bracket_parentheses_r t_delimiter_colon block
+            {
+                LOG_ASTNODE("t_keyword_def (for function_def_raw)");
+                LOG_ASTNODE("t_identifier (for function_def_raw)");
+                LOG_ASTNODE("t_bracket_parentheses_l (for function_def_raw)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for function_def_raw)");
+                LOG_ASTNODE("t_delimiter_colon (for function_def_raw)");
+                $$ = make_astnode(astnode_type::pen_op_function_block);
+                $$->eat(make_astnode_from_token($2, astnode_type::atom));
+                $$->eat(make_empty_astnode());
+                $$->eat(make_empty_astnode());
+                $$->eat($6);
+            }
+        | t_keyword_def t_identifier t_bracket_parentheses_l arguments_or_parameters t_bracket_parentheses_r t_delimiter_colon block
+            {
+                LOG_ASTNODE("t_keyword_def (for function_def_raw)");
+                LOG_ASTNODE("t_identifier (for function_def_raw)");
+                LOG_ASTNODE("t_bracket_parentheses_l (for function_def_raw)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for function_def_raw)");
+                LOG_ASTNODE("t_delimiter_colon (for function_def_raw)");
+                $$ = make_astnode(astnode_type::pen_op_function_block);
+                $$->eat(make_astnode_from_token($2, astnode_type::atom));
+                $$->eat($4);
+                $$->eat(make_empty_astnode());
+                $$->eat($7);
+            }
+        | t_keyword_def t_identifier t_bracket_parentheses_l t_bracket_parentheses_r t_delimiter_arrow _normal_expression t_delimiter_colon block
+            {
+                LOG_ASTNODE("t_keyword_def (for function_def_raw)");
+                LOG_ASTNODE("t_identifier (for function_def_raw)");
+                LOG_ASTNODE("t_bracket_parentheses_l (for function_def_raw)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for function_def_raw)");
+                LOG_ASTNODE("t_delimiter_arrow (for function_def_raw)");
+                LOG_ASTNODE("t_delimiter_colon (for function_def_raw)");
+                $$ = make_astnode(astnode_type::pen_op_function_block);
+                $$->eat(make_astnode_from_token($2, astnode_type::atom));
+                $$->eat(make_empty_astnode());
+                $$->eat($6);
+                $$->eat($8);
+            }
+        | t_keyword_def t_identifier t_bracket_parentheses_l arguments_or_parameters t_bracket_parentheses_r t_delimiter_arrow _normal_expression  t_delimiter_colon block
+            {
+                LOG_ASTNODE("t_keyword_def (for function_def_raw)");
+                LOG_ASTNODE("t_identifier (for function_def_raw)");
+                LOG_ASTNODE("t_bracket_parentheses_l (for function_def_raw)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for function_def_raw)");
+                LOG_ASTNODE("t_delimiter_arrow (for function_def_raw)");
+                LOG_ASTNODE("t_delimiter_colon (for function_def_raw)");
+                $$ = make_astnode(astnode_type::pen_op_function_block);
+                $$->eat(make_astnode_from_token($2, astnode_type::atom));
+                $$->eat($4);
+                $$->eat($7);
+                $$->eat($9);
+            }
 
 if_stmt:
           t_keyword_if _normal_expression t_delimiter_colon block elif_stmt
@@ -586,7 +650,7 @@ block:
 
 // expression order
 // (no genexp yet)
-// i means identifier, p means primary, g means arguments_or_parameters, s means slices, a means atom
+// i means identifier, p means primary, g means arguments, s means slices, a means atom
 
 // xx if xx else xx
 // yield xx, yield from xx
@@ -610,7 +674,7 @@ block:
 // p = a
 
 expressions_type:
-          _normal_expression
+          primary
 
 expressions_lhs:
           _normal_expression
@@ -1020,6 +1084,11 @@ atom:
                 LOG_ASTNODE("t_keyword_None (for atom)");
                 $$ = make_astnode_from_token($1, astnode_type::atom);
             }
+        | t_keyword_underline
+            {
+                LOG_ASTNODE("t_keyword_underline (for atom)");
+                $$ = make_astnode_from_token($1, astnode_type::atom);
+            }
         | t_number
             {
                 LOG_ASTNODE("t_number (for atom)");
@@ -1076,46 +1145,65 @@ string_text:
             }
 
 arguments_or_parameters:
-          kwargs
-        | kwargs t_delimiter_comma
+          argparas
+        | argparas t_delimiter_comma
             {
-                LOG_ASTNODE("t_delimiter_comma (for arguments)");
+                LOG_ASTNODE("t_delimiter_comma (for arguments_or_parameters)");
                 $$ = $1;
             }
 
-kwargs:
-          kwarg
+argparas:
+          argpara
             {
                 $$ = make_astnode(astnode_type::list_op_args_or_prams);
                 $$->eat($1);
             }
-        | kwargs t_delimiter_comma kwarg
+        | argparas t_delimiter_comma argpara
             {
-                LOG_ASTNODE("t_delimiter_comma (for kwargs)");
+                LOG_ASTNODE("t_delimiter_comma (for argparas)");
                 $$ = $1->eat($3);
             }
 
-kwarg:
-          t_operators_mul _expression_if_else
+argpara:
+          _expression_if_else
+        | primary t_delimiter_colon primary
             {
-                LOG_ASTNODE("t_operators_mul (for kwarg)");
-                $$ = make_astnode(astnode_type::sin_op_kwstar);
+                LOG_ASTNODE("t_delimiter_colon (for argpara)");
+                $$ = make_astnode(astnode_type::bin_op_aptype);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        | t_operators_mul _expression_if_else
+            {
+                LOG_ASTNODE("t_operators_mul (for argpara)");
+                $$ = make_astnode(astnode_type::sin_op_apstar);
                 $$->eat($2);
             }
         | t_operators_pow _expression_if_else
             {
-                LOG_ASTNODE("t_operators_pow (for kwarg)");
-                $$ = make_astnode(astnode_type::sin_op_kwdstar);
+                LOG_ASTNODE("t_operators_pow (for argpara)");
+                $$ = make_astnode(astnode_type::sin_op_apdstar);
                 $$->eat($2);
             }
         | primary t_operators_assign _expression_if_else
             {
-                LOG_ASTNODE("t_operators_assign (for kwarg)");
-                $$ = make_astnode(astnode_type::bin_op_kwequ);
+                LOG_ASTNODE("t_operators_assign (for argpara)");
+                $$ = make_astnode(astnode_type::bin_op_apequ);
                 $$->eat($1);
                 $$->eat($3);
             }
-        | _expression_if_else
+        | primary t_delimiter_colon primary t_operators_assign _expression_if_else
+            {
+                LOG_ASTNODE("t_delimiter_colon (for argpara)");
+                LOG_ASTNODE("t_operators_assign (for argpara)");
+                auto r = make_astnode(astnode_type::bin_op_aptype);
+                r->eat($1);
+                r->eat($3);
+                $$ = make_astnode(astnode_type::bin_op_apequ);
+                $$->eat(r);
+                $$->eat($5);
+            }
+
 
 
 // [7] errors
@@ -1130,7 +1218,7 @@ ast_error :
         // | t_strtext { GEN_ERROR_NODE("t_strtext (for ast_error)", $$, $1); }
         // | t_delimiter_comma { DELIMITER($$, $1); }
         // | t_delimiter_colon { DELIMITER($$, $1); }
-        | t_delimiter_arrow { DELIMITER($$, $1); }
+        // | t_delimiter_arrow { DELIMITER($$, $1); }
         // | t_delimiter_semicolon { DELIMITER($$, $1); }
         // | t_delimiter_dot { DELIMITER($$, $1); }
         // | t_delimiter_3dot { DELIMITER($$, $1); }
@@ -1177,7 +1265,7 @@ ast_error :
         // | t_operators_not_assign { OPERATORS($$, $1); }
         // | t_operators_sleft_assign { OPERATORS($$, $1); }
         // | t_operators_sright_assign { OPERATORS($$, $1); }
-        | t_keyword_underline { KEYWORD($$, $1); }
+        // | t_keyword_underline { KEYWORD($$, $1); }
         // | t_keyword_None { KEYWORD($$, $1); }
         // | t_keyword_True { KEYWORD($$, $1); }
         // | t_keyword_False { KEYWORD($$, $1); }
@@ -1187,7 +1275,7 @@ ast_error :
         // | t_keyword_is { KEYWORD($$, $1); }
         // | t_keyword_in { KEYWORD($$, $1); }
         // | t_keyword_pass { KEYWORD($$, $1); }
-        | t_keyword_def { KEYWORD($$, $1); }
+        // | t_keyword_def { KEYWORD($$, $1); }
         // | t_keyword_return { KEYWORD($$, $1); }
         // | t_keyword_yield { KEYWORD($$, $1); }
         | t_keyword_class { KEYWORD($$, $1); }

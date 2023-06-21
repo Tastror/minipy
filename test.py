@@ -1,14 +1,14 @@
-x = 2
-y = None
+def a():
+    return
 
-if x > 3:
-    y = 1
-elif x > 2:
-    y = True
-else:
-    y = False
+def b() -> int:
+    return 1
 
-if y is None:
-    pass
-elif x < 0:
-    pass
+def c(a, b):
+    return a + b
+
+def d(a: int, b = 0):
+    return a - b
+
+def e(a, b: int = 2) -> int:
+    return a * b

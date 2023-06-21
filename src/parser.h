@@ -20,7 +20,7 @@ extern FILE* yyin;
 //     zero_op_...
 //     sin_op_... (including: comp_op_...)
 //     bin_op_...
-//     tri_op_...
+//     tri_op_..., qua_op_..., ...
 //     list_op_... (including: statements, expressions)
 //  [2] substance types:
 //     error (with token leaf)
@@ -50,6 +50,7 @@ enum class astnode_type {
     zero_op_continue,
     sin_op_return,
 
+    pen_op_function_block, // name, params, return type, block, decorators
     tri_op_if_else_block, // condition, if, else (else can also be if_else_block, which means elif)
 
     sin_op_yield,
@@ -82,9 +83,10 @@ enum class astnode_type {
     list_op_strings,
     list_op_args_or_prams,
 
-    sin_op_kwstar,
-    sin_op_kwdstar, 
-    bin_op_kwequ, 
+    bin_op_aptype,
+    sin_op_apstar,
+    sin_op_apdstar, 
+    bin_op_apequ, 
 };
 
 namespace std {
