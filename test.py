@@ -1,14 +1,27 @@
-def a():
-    return
+if 2 > 3:
+    pass
+    if 4 > 5:
+        pass
 
-def b() -> int:
-    return 1
+    def x():
+        return 1
+   
+def y():
+    return 2
+ # 1
+if 2 > 3:
+  pass
+  if 4 > 5:
+       pass
 
-def c(a, b):
-    return a + b
+  def x():
+   return 1
 
-def d(a: int, b = 0):
-    return a - b
+def y():
+  return 2
 
-def e(a, b: int = 2) -> int:
-    return a * b
+def y():
+      if 2 == 2:
+        x = 1
+        x = 2
+        return 2
