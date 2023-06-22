@@ -56,7 +56,7 @@ struct BlockCell {
         int res = 0;
         for (unsigned long long i = 0; i < depth_vector.size(); ++i) {
             res += depth_vector[i];
-            if (res == num) return i;
+            if (res == num) return i + 1;
         }
         return -1;
     }

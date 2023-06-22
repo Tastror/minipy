@@ -50,8 +50,9 @@ enum class astnode_type {
     zero_op_continue,
     sin_op_return,
 
-    pen_op_function_block, // name, params, return type, block, decorators
-    tri_op_if_else_block, // condition, if, else (else can also be if_else_block, which means elif)
+    qua_op_class_block,  // name, base classes, block, decorators
+    pen_op_function_block,  // name, params, return type, block, decorators
+    tri_op_if_else_block,  // condition, if, else (else can also be if_else_block, which means elif)
 
     sin_op_yield,
     sin_op_yield_from,

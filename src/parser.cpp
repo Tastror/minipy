@@ -85,6 +85,7 @@ std::string std::to_string(astnode_type tt) {
         case astnode_type::zero_op_continue: return "zero_op_continue";
         case astnode_type::sin_op_return: return "sin_op_return";
 
+        case astnode_type::qua_op_class_block: return "qua_op_class_block";
         case astnode_type::pen_op_function_block: return "pen_op_function_block";
         case astnode_type::tri_op_if_else_block: return "tri_op_if_else_block";
 

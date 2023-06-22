@@ -504,6 +504,7 @@ augassign:
 
 compound_stmt:
           function_def
+        | class_def
         | if_stmt
 
 function_def:
@@ -554,7 +555,7 @@ function_def_raw:
                 $$->eat($6);
                 $$->eat($8);
             }
-        | t_keyword_def t_identifier t_bracket_parentheses_l arguments_or_parameters t_bracket_parentheses_r t_delimiter_arrow _normal_expression  t_delimiter_colon block
+        | t_keyword_def t_identifier t_bracket_parentheses_l arguments_or_parameters t_bracket_parentheses_r t_delimiter_arrow _normal_expression t_delimiter_colon block
             {
                 LOG_ASTNODE("t_keyword_def (for function_def_raw)");
                 LOG_ASTNODE("t_identifier (for function_def_raw)");
@@ -567,6 +568,49 @@ function_def_raw:
                 $$->eat($4);
                 $$->eat($7);
                 $$->eat($9);
+            }
+
+class_def:
+          class_def_raw
+            {
+                $$ = $1->eat(make_empty_astnode());
+            }
+        // | decorators class_def_raw
+
+class_def_raw:
+          t_keyword_class t_identifier t_delimiter_colon block
+            {
+                LOG_ASTNODE("t_keyword_class (for class_def_raw)");
+                LOG_ASTNODE("t_identifier (for class_def_raw)");
+                LOG_ASTNODE("t_delimiter_colon (for class_def_raw)");
+                $$ = make_astnode(astnode_type::qua_op_class_block);
+                $$->eat(make_astnode_from_token($2, astnode_type::atom));
+                $$->eat(make_empty_astnode());
+                $$->eat($4);
+            }
+        | t_keyword_class t_identifier t_bracket_parentheses_l t_bracket_parentheses_r t_delimiter_colon block
+            {
+                LOG_ASTNODE("t_keyword_class (for class_def_raw)");
+                LOG_ASTNODE("t_identifier (for class_def_raw)");
+                LOG_ASTNODE("t_bracket_parentheses_l (for class_def_raw)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for class_def_raw)");
+                LOG_ASTNODE("t_delimiter_colon (for class_def_raw)");
+                $$ = make_astnode(astnode_type::qua_op_class_block);
+                $$->eat(make_astnode_from_token($2, astnode_type::atom));
+                $$->eat(make_empty_astnode());
+                $$->eat($6);
+            }
+        | t_keyword_class t_identifier t_bracket_parentheses_l arguments_or_parameters t_bracket_parentheses_r t_delimiter_colon block
+            {
+                LOG_ASTNODE("t_keyword_class (for class_def_raw)");
+                LOG_ASTNODE("t_identifier (for class_def_raw)");
+                LOG_ASTNODE("t_bracket_parentheses_l (for class_def_raw)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for class_def_raw)");
+                LOG_ASTNODE("t_delimiter_colon (for class_def_raw)");
+                $$ = make_astnode(astnode_type::qua_op_class_block);
+                $$->eat(make_astnode_from_token($2, astnode_type::atom));
+                $$->eat($4);
+                $$->eat($7);
             }
 
 if_stmt:
@@ -1278,7 +1322,7 @@ ast_error :
         // | t_keyword_def { KEYWORD($$, $1); }
         // | t_keyword_return { KEYWORD($$, $1); }
         // | t_keyword_yield { KEYWORD($$, $1); }
-        | t_keyword_class { KEYWORD($$, $1); }
+        // | t_keyword_class { KEYWORD($$, $1); }
         | t_keyword_lambda { KEYWORD($$, $1); }
         // | t_keyword_await { KEYWORD($$, $1); }
         // | t_keyword_if { KEYWORD($$, $1); }
