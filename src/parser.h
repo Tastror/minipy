@@ -137,7 +137,7 @@ int yyparse(AstNode*& ast_head);
 extern std::vector<std::unique_ptr<AstNode>> astnode_buff;
 AstNode* make_astnode(astnode_type type = astnode_type::error);
 AstNode* make_empty_astnode();
-AstNode* make_astnode_from_token(Token token, astnode_type type = astnode_type::error);
+AstNode* make_astnode_from_token(const Token& token, astnode_type type = astnode_type::error);
 AstNode* make_astnode_from_token(Token* token, astnode_type type = astnode_type::error);
 void remove_from_astnode_buff(AstNode*& del);
 

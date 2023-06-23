@@ -33,7 +33,7 @@ AstNode* make_empty_astnode() {
     return res;
 }
 
-AstNode* make_astnode_from_token(Token token, astnode_type type) {
+AstNode* make_astnode_from_token(const Token& token, astnode_type type) {
     astnode_buff.push_back(std::make_unique<AstNode>());
     auto res = astnode_buff.back().get();
     res->type = type;
