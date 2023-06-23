@@ -6,6 +6,9 @@ TBD
 
 ## environment
 
+Windows
+> Should work on linux too, but few things need to be altered
+
 - flex ~= 2.6.4
 - bison ~= 3.8.2
 - make ~= 4.4.1
@@ -15,7 +18,7 @@ TBD
 
 ```shell
 make clean
-make  # or `make building`, since `build` is a dir name here
+make  # or `make building`
 ```
 
 ## run
@@ -25,13 +28,14 @@ use demo `test.py`, see res in `log.txt`
 ```shell
 make help  # --help of this compiler
 make test  # or `make show` if you want to print to terminal colorfully, :)
+make sample  # compile all testsamples in testsample/right to debug/
 ```
 
 or use what you like
 
 ```shell
-build/compiler.exe -h
-build/compiler.exe test.py -S -o out.asm --time
+build\compiler.exe -h
+build\compiler.exe test.py -S -o out.asm --debug ast ast.txt --time --show
 ...
 ```
 
