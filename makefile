@@ -6,15 +6,12 @@ FLEX_BISON_CFLAGS = $(CFLAGS) -Wno-unused-function -Wno-write-strings -Wno-class
 
 SOURCE_DIR = src
 BUILD_DIR = build
-DEBUG_DIR = debug
-
 TARGET_FILE = compiler.exe
-SRC_FILES = compiler.cpp common.cpp log.cpp shell.cpp lexer.cpp parser.cpp symbol.cpp
 
-TARGET = $(BUILD_DIR)/$(TARGET_FILE)
-SRCS = $(addprefix $(SOURCE_DIR)/, $(SRC_FILES))
+SRCS = $(wildcard $(addprefix $(SOURCE_DIR)/, *.cpp))
+SRC_FILES = $(notdir $(SRCS))
 OBJS = $(addprefix $(BUILD_DIR)/, $(SRC_FILES:.cpp=.o))
-
+TARGET = $(BUILD_DIR)/$(TARGET_FILE)
 
 FLEX_FILE_NAME = lexer.l
 BISON_FILE_NAME = parser.y
@@ -31,9 +28,13 @@ FLEX_BISON_REQUIRES = $(FLEX_GEN_HEAD) $(FLEX_GEN_CPP) $(BISON_GEN_HEAD) $(BISON
 FLEX_BISON_OBJS = $(BUILD_DIR)/$(FLEX_GEN_NAME).o $(BUILD_DIR)/$(BISON_GEN_NAME).o
 
 
+
 .PHONY: building help test show clean sample clean-sample
 
 building: $(BUILD_DIR) $(FLEX_BISON_REQUIRES) $(TARGET)
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
 $(FLEX_GEN_HEAD): $(FLEX_GEN_CPP)
 $(FLEX_GEN_CPP): $(FLEX_FILE)
@@ -42,12 +43,6 @@ $(FLEX_GEN_CPP): $(FLEX_FILE)
 $(BISON_GEN_HEAD): $(BISON_GEN_CPP)
 $(BISON_GEN_CPP): $(BISON_FILE)
 	$(BISON) -d -o $(BISON_GEN_CPP) --defines=$(BISON_GEN_HEAD) $(BISON_FILE) -v
-
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
-
-$(DEBUG_DIR):
-	mkdir -p $(DEBUG_DIR)
 
 $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(SOURCE_DIR)/%.h
 	$(CC) -c $< -o $@ $(CFLAGS)
@@ -70,8 +65,14 @@ show:
 clean:
 	rm -rf $(BUILD_DIR)
 
+
+
+DEBUG_DIR = debug
 SAMPLE_DIR = testsample/right
 SAMPLE_FILES = $(notdir $(wildcard $(addprefix $(SAMPLE_DIR)/, *.py)))
+
+$(DEBUG_DIR):
+	mkdir -p $(DEBUG_DIR)
 
 sample: $(DEBUG_DIR)
 	@for f in $(SAMPLE_FILES); do \
