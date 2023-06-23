@@ -53,3 +53,5 @@ public:
     bool is_in(const std::string& name);
     SymAttr get(const std::string& name);
 };
+
+void search_and_update_symboltable(SymbolTable& sym_table, AstNode*& ast_root);

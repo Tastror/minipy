@@ -47,3 +47,36 @@ std::string SymbolType::to_string() {
         return res;
     }
 }
+
+void SymbolTable::add_son_goto_son() {
+
+}
+
+void SymbolTable::del_son_goto_parent() {
+
+}
+
+void SymbolTable::insert(const std::string& name, SymAttr attr) {
+
+}
+
+void SymbolTable::update(const std::string& name, SymAttr attr) {
+
+}
+
+bool SymbolTable::del(const std::string& name) {
+    return false;
+}
+
+bool SymbolTable::is_in(const std::string& name) {
+    return false;
+}
+
+SymAttr SymbolTable::get(const std::string& name) {
+    return SymAttr();
+}
+
+
+void search_and_update_symboltable(SymbolTable& sym_table, AstNode*& ast_root) {
+
+}

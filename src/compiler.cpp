@@ -100,6 +100,8 @@ int main(int argc, char** argv) {
             << " debug information will output to " << debug_filename << stdlog::endl;
     }
 
+
+
     // begin debug print
     if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_off;
     if (shell_config.debug_type() == debug::shell) {
@@ -178,9 +180,28 @@ int main(int argc, char** argv) {
 
     // <<< 4 & 5 >>>
 
-    // semantic & optimize
+    // semantic & ir
 
-    ast_head = nullptr;
+    stdlog::log << stdlog::std << "|begin| -> symbol table & ir" << stdlog::endl;
+
+    // begin debug print
+    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_off;
+    if (shell_config.debug_type() == debug::symbol) {
+        stdlog::log.add_temp_output_file(debug_file);
+        stdlog::log << stdlog::temp_files_on;
+    }
+
+    SymbolTable symbol_table;
+    search_and_update_symboltable(symbol_table, ast_head);
+
+    // end debug print
+    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_on;
+    if (shell_config.debug_type() == debug::symbol) {
+        stdlog::log.del_all_temp_output_file();
+        stdlog::log << stdlog::temp_files_off;
+    }
+
+    stdlog::log << stdlog::std << "           symbol table & ir -> |end|" << stdlog::endl;
 
 
 
