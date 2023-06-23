@@ -16,7 +16,7 @@ namespace stdlog {
 
     LogType::LogType() {
         use_file = false;
-        use_stdin = true;
+        use_stdout = true;
         log_func = std::bind(&LogType::debug, this, std::placeholders::_1);
     }
 
@@ -40,7 +40,7 @@ namespace stdlog {
             log_func(ss.str());
             ss.str(std::string());
             // error will always output on stdin !!!
-            if (use_stdin || last_stage == stdlog::error)
+            if (use_stdout || last_stage == stdlog::error)
                 std::cout << std::endl;
             if (use_file) {
                 *of << std::endl;
@@ -52,7 +52,7 @@ namespace stdlog {
             log_func(ss.str());
             ss.str(std::string());
             // error will always output on stdin !!!
-            if (use_stdin || last_stage == stdlog::error)
+            if (use_stdout || last_stage == stdlog::error)
                 std::cout << std::flush;
             if (use_file) {
                 *of << std::flush;
@@ -61,15 +61,15 @@ namespace stdlog {
             }
             break;
         case stdlog::to_stdout:
-            use_stdin = true;
+            use_stdout = true;
             use_file = false;
             break;
         case stdlog::to_file:
-            use_stdin = false;
+            use_stdout = false;
             use_file = true;
             break;
         case stdlog::to_stdout_and_file:
-            use_stdin = use_file = true;
+            use_stdout = use_file = true;
             break;
         default:
             break;
@@ -105,7 +105,7 @@ namespace stdlog {
         last_stage = stdlog::debug;
         if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::debug)) {
             std::string time_str = stdlog::add_time ? "[" + timing::local_time() + "] " : "";
-            if (use_stdin)
+            if (use_stdout)
                 std::cout << GREEN << time_str << PURPLE << "debug: " + str << RESET;
             if (use_file) {
                 *of << time_str + "debug: " + str;
@@ -119,7 +119,7 @@ namespace stdlog {
         last_stage = stdlog::info;
         if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::info)) {
             std::string time_str = stdlog::add_time ? "[" + timing::local_time() + "] " : "";
-            if (use_stdin)
+            if (use_stdout)
                 std::cout << GREEN << time_str << CYAN << "info: " + str << RESET;
             if (use_file) {
                 *of << time_str + "info: " + str;
@@ -133,7 +133,7 @@ namespace stdlog {
         last_stage = stdlog::std;
         if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::std)) {
             std::string time_str = stdlog::add_time ? "[" + timing::local_time() + "] " : "";
-            if (use_stdin)
+            if (use_stdout)
                 std::cout << GREEN << time_str << RESET << str << RESET;
             if (use_file) {
                 *of << time_str + str;
@@ -147,7 +147,7 @@ namespace stdlog {
         last_stage = stdlog::warning;
         if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::warning)) {
             std::string time_str = stdlog::add_time ? "[" + timing::local_time() + "] " : "";
-            if (use_stdin)
+            if (use_stdout)
                 std::cout << GREEN << time_str << YELLOW << "warning: " + str << RESET;
             if (use_file) {
                 *of << time_str + "warning: " + str;

@@ -25,7 +25,7 @@ namespace stdlog {
         std::ofstream* of;
         std::set<std::ofstream*> tmp;
         bool use_file;
-        bool use_stdin;
+        bool use_stdout;
         stdlog::stage last_stage;
 
         void std(const std::string& str);
