@@ -12,6 +12,8 @@
 #include "ir.h"
 #include "compiler.h"
 
+
+
 #define BEGIN_DEBUG_PRINT_FILE(condition) \
     do { \
         if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_off; \
@@ -31,36 +33,51 @@
     } while (0)
 
 
+
 int main(int argc, char** argv) {
 
     // <<< 0 >>>
 
-    // log and Logfile
-    // untargeted output will be dumped in log.txt
+    // default values
 
-    std::ofstream log_file;
-    log_file.open("log.txt");
-    stdlog::log << stdlog::stdout_on;
-    if (!log_file.is_open()) {
-        stdlog::log << stdlog::error << "log file 'log.txt' cannot open" << stdlog::endl;
-        return 0;
-    }
-    stdlog::log.change_output_file(log_file);
-    stdlog::log << stdlog::stdout_on << stdlog::file_on;
-
-
+    std::string default_log_file_path = "log.txt";
+    std::string default_output_file_path = "out.s";
+    std::string default_debug_file_dir = "debug/";
+    std::string default_debug_file_suffix = ".txt";
 
 
 
     // <<< 1 >>>
 
-    // shell
-    // parse the shell args to the program
+    // init log
 
+    // all outputs will be dumped to "default_log_file_path"
+
+    // open the log file
+    std::ofstream log_file;
+    log_file.open(default_log_file_path);
+    if (!log_file.is_open()) {
+        stdlog::log << stdlog::stdout_on << stdlog::error
+            << "log file '" << default_log_file_path << "' cannot open"
+            << stdlog::endl;
+        return 0;
+    }
+
+    // initialize the stdlog::log (logstream)
+    stdlog::log.change_output_file(log_file);
+    stdlog::log << stdlog::stdout_on << stdlog::file_on;
+
+
+
+    // <<< 2 >>>
+
+    // shell
+
+    // parse cmd input
     ShellConfig shell_config;
     shell_config.arg_parse(argc, argv);
 
-    // error, help, time, show
+    // deal "error, help, time" first
     if (shell_config.is_error()) {
         stdlog::log << stdlog::error << shell_config.error_message() << stdlog::endl;
         return 0;
@@ -74,49 +91,57 @@ int main(int argc, char** argv) {
         stdlog::log << stdlog::no_time;
     }
 
-    // this two should output after <flags::time>
-    stdlog::log << stdlog::info << "other information will output to log.txt" << stdlog::endl;
+    // why put it here? 'cause these should be printed after <flags::time> is determined
+    stdlog::log << stdlog::info << "other information will output to " << default_log_file_path << stdlog::endl;
     stdlog::log << stdlog::std << "|begin| -> shell parsing begin" << stdlog::endl;
 
-    // input (.py), output (.s) and debug file (.txt)
-    FILE* input_file_ptr;
+    // 3 files. input, output and debug files
+    FILE* input_file_ptr;  // since yyin use FILE*
     std::ofstream output_file;
     std::ofstream debug_file;
 
-    std::string input_filename = shell_config.get_normal_input(0);
-    if (input_filename == "") {
+    // open the input file
+    std::string input_file_path = shell_config.get_normal_input(0);
+    if (input_file_path == "") {
         stdlog::log << stdlog::warning << "no file specified" << stdlog::endl;
         return 0;
     }
-    if ((input_file_ptr = fopen(input_filename.c_str(), "r")) == nullptr) {
-        stdlog::log << stdlog::error << "input file '" << input_filename << "' cannot open" << stdlog::endl;
+    if ((input_file_ptr = fopen(input_file_path.c_str(), "r")) == nullptr) {
+        stdlog::log << stdlog::error << "input file '" << input_file_path << "' cannot open" << stdlog::endl;
         return 0;
     }
 
+    // open the output file
     if (shell_config.is_flag_occured(flags::assembly)) {
-        std::string output_filename = shell_config.get_flag_arg(flags::out);
-        if (output_filename == "") output_filename = "out.s";
-        output_file.open(output_filename);
+        std::string output_file_path = shell_config.get_flag_arg(flags::out);
+        if (output_file_path == "") output_file_path = default_output_file_path;
+        output_file.open(output_file_path);
         if (!output_file.is_open()) {
-            stdlog::log << stdlog::error << "output file '" << output_filename << "' cannot open" << stdlog::endl;
+            stdlog::log << stdlog::error << "output file '" << output_file_path << "' cannot open" << stdlog::endl;
             return 0;
         }
-        stdlog::log << stdlog::info << "assembly will output to " << output_filename << stdlog::endl;
+        stdlog::log << stdlog::info << "assembly will output to " << output_file_path << stdlog::endl;
     }
 
+    // open the debug file
     if (shell_config.is_flag_occured(flags::debug) && shell_config.debug_type() != debug::none) {
-        std::string debug_filename = shell_config.get_normal_input(1);
-        if (debug_filename == "") {
-            debug_filename = "debug/" + shell_config.get_flag_arg(flags::debug) + ".txt";
+        std::string debug_file_path = shell_config.get_normal_input(1);
+        if (debug_file_path == "") {
+            debug_file_path =
+                default_debug_file_dir +
+                shell_config.get_flag_arg(flags::debug) +
+                default_debug_file_suffix;
         }
-        debug_file.open(debug_filename);
+        debug_file.open(debug_file_path);
         if (!debug_file.is_open()) {
-            stdlog::log << stdlog::error << "output file '" << debug_filename << "' cannot open" << stdlog::endl;
+            stdlog::log << stdlog::error << "output file '" << debug_file_path << "' cannot open" << stdlog::endl;
             return 0;
         }
         stdlog::log << stdlog::info << shell_config.get_flag_arg(flags::debug)
-            << " debug information will output to " << debug_filename << stdlog::endl;
+            << " debug information will output to " << debug_file_path << stdlog::endl;
     }
+
+    // print detail message of shell
 
     BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::shell);
     
@@ -129,12 +154,12 @@ int main(int argc, char** argv) {
 
 
 
-
-
-    // <<< 2 & 3 >>>
+    // <<< 3 & 4 >>>
 
     // lexer & parser
-    // lexer and parser, use yyparse to do two thing together
+
+    // use yyparse() to do lex (by flex) and parse (by bison)
+    // result is the root of AST node, save in ast_head
 
     stdlog::log << stdlog::std << "|begin| -> lexing & parsing begin" << stdlog::endl;
 
@@ -148,6 +173,8 @@ int main(int argc, char** argv) {
     END_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::lex);
 
     stdlog::log << stdlog::std << "           lexing & parsing done -> |end|" << stdlog::endl;
+
+    // print the AST tree for visualization
 
     BEGIN_DEBUG_PRINT_FILE(
         shell_config.debug_type() == debug::parse ||
@@ -164,11 +191,12 @@ int main(int argc, char** argv) {
 
 
 
-
-
-    // <<< 4 & 5 >>>
+    // <<< 5 & 6 >>>
 
     // semantic & ir
+
+    // search the AST tree to generate IR
+    // result is vector of IR, save in ir_result
 
     stdlog::log << stdlog::std << "|begin| -> symbol table & ir" << stdlog::endl;
 
@@ -181,10 +209,14 @@ int main(int argc, char** argv) {
 
     stdlog::log << stdlog::std << "           symbol table & ir -> |end|" << stdlog::endl;
 
+    // print the IR vector for visualization
+    // and save it to output file
+
     BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::ir);
 
     for (const auto& i : ir_result) {
         stdlog::log << stdlog::info << i.to_string() << stdlog::endl;
+        output_file << i.to_string() << std::endl;
     }
 
     END_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::ir);
