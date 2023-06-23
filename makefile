@@ -8,8 +8,8 @@ FLEX_BISON_CFLAGS = $(CFLAGS) -Wno-unused-function -Wno-write-strings
 
 # xxx/  abc_DIR     xxx/ xxx/  abc_DIRS
 # xxx.c  abc_FILE   xxx.c xxx.c  abc_FILES
-# xxx  abc_NAME     xxx xxx _NAMES
-# xxx/xxx.c  abc    xxx/xxx.c xxx/xxx.c  abcS   (file var without _DIR / _FILE / _NAME is always a path)
+# xxx  abc_NAME     xxx xxx abc_NAMES
+# xxx/xxx.c  abc    xxx/xxx.c xxx/xxx.c  abcS   (file var without _DIR(S) / _FILE(S) / _NAME(S) is always a path)
 
 SOURCE_DIR = src
 BUILD_DIR = build
