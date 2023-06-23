@@ -5,13 +5,15 @@
 #include <vector>
 #include <memory>
 
-#include "common.h"
+#include "timing.h"
 #include "log.h"
 
 extern int yycolumnno;
 extern int yylineno;
 extern size_t last_string_length;
 extern std::string last_string;
+
+enum class none {};
 
 
 

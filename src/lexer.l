@@ -8,7 +8,7 @@
 #include <cassert>
 
 #include "compiler_bison.h"
-#include "../src/common.h"
+#include "../src/timing.h"
 #include "../src/log.h"
 #include "../src/lexer.h"
 

@@ -42,3 +42,21 @@ build\compiler.exe test.py -S -o out.asm --debug ast ast.txt --time --show
 ## notes
 
 由于 bison 的 lookahead 的限制，很多语法并不能直接交给 bison 处理。所以 parser.y 中的语法其实上是 python 的超集，需要后续符号表扫描时提供更多的检查。
+
+文件的依赖关系是严格的：
+
+```plaintext
+color   timing
+ │       ╽
+ ╰────━ log ─────╮
+         ╽       ╽
+        lexer   shell
+         ╽
+        parser
+         ╽
+        symbol
+         ╽
+        ir
+         ╽
+        compiler
+```

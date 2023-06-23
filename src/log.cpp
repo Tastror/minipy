@@ -6,7 +6,7 @@
 #include <memory>
 #include <functional>
 
-#include "common.h"
+#include "timing.h"
 #include "color.h"
 #include "log.h"
 

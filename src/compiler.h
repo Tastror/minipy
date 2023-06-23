@@ -5,7 +5,7 @@
 #include <fstream>
 #include <cstdio>
 
-#include "common.h"
+#include "timing.h"
 #include "log.h"
 #include "shell.h"
 #include "lexer.h"

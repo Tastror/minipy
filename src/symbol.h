@@ -5,7 +5,7 @@
 #include <string>
 #include <memory>
 
-#include "common.h"
+#include "timing.h"
 #include "log.h"
 #include "lexer.h"
 #include "parser.h"

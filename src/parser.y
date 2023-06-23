@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "compiler_flex.h"
-#include "../src/common.h"
+#include "../src/timing.h"
 #include "../src/log.h"
 #include "../src/lexer.h"
 #include "../src/parser.h"
@@ -15,7 +15,7 @@ void yyerror(AstNode*& ast_head, char* msg);
 
 #include <memory>
 #include "../src/log.h"
-#include "../src/common.h"
+#include "../src/timing.h"
 #include "../src/lexer.h"
 #include "../src/parser.h"
 

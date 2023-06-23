@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-#include "common.h"
+#include "timing.h"
 #include "log.h"
 #include "lexer.h"
 

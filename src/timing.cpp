@@ -3,7 +3,7 @@
 #include <string>
 #include <iomanip>
 
-#include "common.h"
+#include "timing.h"
 
 namespace timing {
 
