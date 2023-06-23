@@ -20,7 +20,7 @@ void yyerror(AstNode*& ast_head, char* msg);
 #include "../src/parser.h"
 
 #define LOG_ASTNODE(log_info_string) \
-    do { Logger << Log::info << "astnode: " << log_info_string << Log::endl; } while(0)
+    do { stdlog::log << stdlog::info << "astnode: " << log_info_string << stdlog::endl; } while(0)
 
 // below only for ast_error
 #define GEN_ERROR_NODE(log_info_string, new_astnode_ptr, token_ptr) do { \
@@ -1350,8 +1350,8 @@ ast_error :
 
 void yyerror(AstNode*& ast_head, char* msg)
 {
-    Logger << Log::error
+    stdlog::log << stdlog::error
         << "line " << yylineno << ", column " << yycolumnno - last_string_length
         << ": '" << last_string << "' " << msg
-        << Log::endl;
+        << stdlog::endl;
 }

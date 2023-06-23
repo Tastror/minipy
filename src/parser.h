@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "common.h"
+#include "log.h"
 #include "lexer.h"
 
 extern FILE* yyin;
@@ -90,9 +91,7 @@ enum class astnode_type {
     bin_op_apequ, 
 };
 
-namespace std {
-    std::string to_string(astnode_type tt);
-}
+std::string to_string(astnode_type a);
 
 
 

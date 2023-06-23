@@ -4,9 +4,9 @@
 #include <vector>
 
 #include "common.h"
+#include "log.h"
 #include "lexer.h"
 #include "parser.h"
-#include "log.h"
 
 
 
@@ -68,8 +68,8 @@ void remove_from_astnode_buff(AstNode*& del) {
 // --- 2 ---
 // type to_string
 
-std::string std::to_string(astnode_type tt) {
-    switch (tt) {
+std::string to_string(astnode_type a) {
+    switch (a) {
         case astnode_type::error: return "error";
         case astnode_type::atom: return "atom";
         case astnode_type::placeholder: return "placeholder";
@@ -137,7 +137,7 @@ std::string std::to_string(astnode_type tt) {
         case astnode_type::sin_op_apdstar: return "sin_op_apdstar"; 
         case astnode_type::bin_op_apequ: return "bin_op_apequ";
     }
-    return "";
+    return "<to_string error>";
 }
 
 
@@ -169,11 +169,11 @@ AstNode* AstNode::eat_sons(AstNode* old_mother) {
 
 std::string AstNode::to_string() {
     if (this->is_empty)
-        return std::to_string(this->type) + ", empty";
+        return ::to_string(this->type) + ", empty";
     else if (this->is_token_leaf)
-        return std::to_string(this->type) + " >> " + this->token_leaf.to_string();
+        return ::to_string(this->type) + " >> " + this->token_leaf.to_string();
     else
-        return std::to_string(this->type) + " | OT";
+        return ::to_string(this->type) + " | OT";
 }
 
 
@@ -182,12 +182,12 @@ std::string AstNode::to_string() {
 // head log show
 
 void log_ast_data(AstNode* astnode, int depth) {
-    Logger << Log::info;
+    stdlog::log << stdlog::info;
     for (int i = 0; i < depth; ++i) {
-        Logger << "  ";
+        stdlog::log << "  ";
     }
-    Logger << "(" << std::to_string(depth) << ") ";
-    Logger << astnode->to_string() << Log::endl;
+    stdlog::log << "(" << std::to_string(depth) << ") ";
+    stdlog::log << astnode->to_string() << stdlog::endl;
 }
 
 void log_ast_inside(AstNode* parent, int depth) {

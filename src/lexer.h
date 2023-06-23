@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "common.h"
+#include "log.h"
 
 extern int yycolumnno;
 extern int yylineno;
@@ -29,9 +30,7 @@ enum class token_type {
     error, newline, indent, identifier, integer, floats, strtext, delimiter, bracket, operators, keyword,
 };
 
-namespace std {
-    std::string to_string(token_type tt);
-}
+std::string to_string(token_type a);
 
 uint64_t translate_python_int(const std::string& str);
 

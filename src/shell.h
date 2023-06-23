@@ -6,6 +6,8 @@
 #include <set>
 #include <unordered_map>
 
+#include "common.h"
+#include "log.h"
 
 // you only need to change:
 //     enum class flags

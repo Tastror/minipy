@@ -8,6 +8,7 @@
 #include <cassert>
 
 #include "compiler_bison.h"
+#include "../src/common.h"
 #include "../src/log.h"
 #include "../src/lexer.h"
 
@@ -84,54 +85,54 @@ Token* last_ptr = nullptr;
 
 
 #define LOG_TOKEN(type_string) do { \
-    Logger << Log::info \
+    stdlog::log << stdlog::info \
         << "line " << yylineno << ", column " << yycolumnno \
-        << ": " << type_string << ": " << yytext << Log::endl; \
+        << ": " << type_string << ": " << yytext << stdlog::endl; \
 } while(0)
 
 #define LOG_TOKEN_WITH_VALUE(type_string, data) do { \
-    Logger << Log::info \
+    stdlog::log << stdlog::info \
         << "line " << yylineno << ", column " << yycolumnno \
         << ": " << type_string << ": " << yytext \
-        << ", value = " << data << Log::endl; \
+        << ", value = " << data << stdlog::endl; \
 } while(0)
 
 #define LOG_TOKEN_NEWLINE() do { \
-    Logger << Log::info \
+    stdlog::log << stdlog::info \
         << "line " << yylineno << ", column " << yycolumnno \
-        << ": newline" << Log::endl; \
+        << ": newline" << stdlog::endl; \
 } while(0)
 
 #define LOG_TOKEN_DENT() do { \
-    Logger << Log::info \
+    stdlog::log << stdlog::info \
         << "line " << yylineno << ", column " << yycolumnno \
         << ": tab/space after a new line: " \
         << IDN.space_num << " space(s) and " \
         << IDN.tab_num << " tab(s), absolute = " \
         << IDN.absolute_depth << ", relative = " \
         << IDN.relative_depth \
-        << Log::endl; \
+        << stdlog::endl; \
 } while(0)
 
 #define LOG_TOKEN_INDENT() do { \
-    Logger << Log::info << "line " << yylineno << ": indent" << Log::endl; \
+    stdlog::log << stdlog::info << "line " << yylineno << ": indent" << stdlog::endl; \
 } while(0)
 
 #define LOG_TOKEN_DEDENT() do { \
-    Logger << Log::info << "line " << yylineno << ": dedent" << Log::endl; \
+    stdlog::log << stdlog::info << "line " << yylineno << ": dedent" << stdlog::endl; \
 } while(0)
 
 #define LOG_TOKEN_ERROR(type_string) do { \
-    Logger << Log::error \
+    stdlog::log << stdlog::error \
         << "line " << yylineno << ", column " << yycolumnno \
-        << ": " << type_string << ": " << yytext << Log::endl; \
+        << ": " << type_string << ": " << yytext << stdlog::endl; \
 } while(0)
 
 #define LOG_TOKEN_DENT_ERROR(type_string, space_num, tab_num) do { \
-    Logger << Log::error \
+    stdlog::log << stdlog::error \
         << "line " << yylineno << ", column " << yycolumnno \
         << ": " << space_num << " space(s) and " << tab_num << " tab(s), " \
-        << type_string << Log::endl; \
+        << type_string << stdlog::endl; \
 } while(0)
 
 

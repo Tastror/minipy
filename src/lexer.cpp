@@ -1,7 +1,10 @@
 #include <cstdint>
 #include <string>
+#include <vector>
+#include <memory>
 
 #include "common.h"
+#include "log.h"
 #include "lexer.h"
 
 
@@ -21,8 +24,8 @@ Token* make_token() {
 // --- 2 ---
 // type to_string and to_num
 
-std::string std::to_string(token_type tt) {
-    switch (tt) {
+std::string to_string(token_type a) {
+    switch (a) {
         case token_type::error: return "error";
         case token_type::newline: return "newline";
         case token_type::indent: return "indent";
@@ -35,7 +38,7 @@ std::string std::to_string(token_type tt) {
         case token_type::operators: return "operators";
         case token_type::keyword: return "keyword"; 
     }
-    return "";
+    return "<to_string error>";
 }
 
 uint64_t translate_python_int(const std::string& str) {
@@ -134,7 +137,7 @@ Token& Token::operator=(const Token& other) {
 
 std::string Token::to_string() {
     std::string res;
-    res += std::to_string(this->type) + ", ";
+    res += ::to_string(this->type) + ", ";
     res += std::to_string(this->lineno) + "-";
     res += std::to_string(this->columnno);
     switch (this->type) {
