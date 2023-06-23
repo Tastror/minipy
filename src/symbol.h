@@ -48,16 +48,13 @@ struct SymbolTableNode {
 
 class SymbolTable {
 private:
+    SymbolTableNode* now;
     std::vector<std::unique_ptr<SymbolTableNode>> node_buff;
 public:
-    SymbolTableNode* now;
+    SymbolTable();
     void add_son_goto_son();
     void del_son_goto_parent();
-    void insert(const std::string& name, SymbolType attr);
-    void update(const std::string& name, SymbolType attr);
+    void update(const std::string& name, const SymbolType& type);
     bool del(const std::string& name);
-    bool is_in(const std::string& name);
-    SymbolType get(const std::string& name);
+    bool is_in_and_get(const std::string& name, SymbolType& result);
 };
-
-void search_and_update_symboltable(SymbolTable& sym_table, AstNode*& ast_root);

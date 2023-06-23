@@ -111,6 +111,12 @@ SymbolType make_class(const std::string& class_name, const SymbolType& base_clas
     return res;
 }
 
+SymbolTable::SymbolTable() {
+    node_buff.push_back(std::make_unique<SymbolTableNode>());
+    now = node_buff.back().get();
+    now->parent = nullptr;
+    now->son = nullptr;
+}
 
 void SymbolTable::add_son_goto_son() {
     node_buff.push_back(std::make_unique<SymbolTableNode>());
@@ -120,30 +126,40 @@ void SymbolTable::add_son_goto_son() {
 }
 
 void SymbolTable::del_son_goto_parent() {
-
+    auto del = now;
+    now = now->parent;
+    for (auto i = node_buff.begin(); i != node_buff.end(); ++i) {
+        if (i->get() == del) {
+            node_buff.erase(i);
+            break;
+        }
+    }
 }
 
-void SymbolTable::insert(const std::string& name, SymbolType attr) {
-
-}
-
-void SymbolTable::update(const std::string& name, SymbolType attr) {
-
+void SymbolTable::update(const std::string& name, const SymbolType& type) {
+    now->map[name] = type;
 }
 
 bool SymbolTable::del(const std::string& name) {
+    auto i = now->map.find(name);
+    if (i == now->map.end()) {
+        now->map.erase(i);
+        return true;
+    }
     return false;
 }
 
-bool SymbolTable::is_in(const std::string& name) {
-    return false;
-}
-
-SymbolType SymbolTable::get(const std::string& name) {
-    return SymbolType();
-}
-
-
-void search_and_update_symboltable(SymbolTable& sym_table, AstNode*& ast_root) {
-
+bool SymbolTable::is_in_and_get(const std::string& name, SymbolType& result) {
+    auto mama = now;
+    auto i = mama->map.find(name);
+    while (i == mama->map.end()) {
+        if (mama->parent == nullptr) {
+            return false;
+        } else {
+            mama = mama->parent;
+            i = mama->map.find(name);
+        }
+    }
+    result = i->second;
+    return true;
 }

@@ -11,5 +11,6 @@
 #include "lexer.h"
 #include "parser.h"
 #include "symbol.h"
+#include "ir.h"
 
 int main(int argc, char** argv);

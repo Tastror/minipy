@@ -9,8 +9,26 @@
 #include "lexer.h"
 #include "parser.h"
 #include "symbol.h"
+#include "ir.h"
 #include "compiler.h"
 
+#define BEGIN_DEBUG_PRINT_FILE(condition) \
+    do { \
+        if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_off; \
+        if (condition) { \
+            stdlog::log.add_temp_output_file(debug_file); \
+            stdlog::log << stdlog::temp_files_on; \
+        } \
+    } while (0)
+
+#define END_DEBUG_PRINT_FILE(condition) \
+    do { \
+        if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_on; \
+        if (condition) { \
+            stdlog::log.del_all_temp_output_file(); \
+            stdlog::log << stdlog::temp_files_off; \
+        } \
+    } while (0)
 
 
 int main(int argc, char** argv) {
@@ -100,25 +118,12 @@ int main(int argc, char** argv) {
             << " debug information will output to " << debug_filename << stdlog::endl;
     }
 
-
-
-    // begin debug print
-    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_off;
-    if (shell_config.debug_type() == debug::shell) {
-        stdlog::log.add_temp_output_file(debug_file);
-        stdlog::log << stdlog::temp_files_on;
-    }
+    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::shell);
     
-    // debug print
     stdlog::log << stdlog::debug << "shell_config.detail_message() begin" << stdlog::endl;
     stdlog::log << stdlog::std << shell_config.detail_message() << stdlog::endl;
 
-    // end debug print
-    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_on;
-    if (shell_config.debug_type() == debug::shell) {
-        stdlog::log.del_all_temp_output_file();
-        stdlog::log << stdlog::temp_files_off;
-    }
+    END_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::shell);
 
     stdlog::log << stdlog::std << "           shell parsing done -> |end|" << stdlog::endl;
 
@@ -133,46 +138,29 @@ int main(int argc, char** argv) {
 
     stdlog::log << stdlog::std << "|begin| -> lexing & parsing begin" << stdlog::endl;
 
-    // begin debug print
-    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_off;
-    if (shell_config.debug_type() == debug::lex) {
-        stdlog::log.add_temp_output_file(debug_file);
-        stdlog::log << stdlog::temp_files_on;
-    }
+    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::lex);
 
-    // run & debug print
     AstNode* ast_head = nullptr;
     yyin = input_file_ptr;
     stdlog::log << stdlog::debug << "yyparse begin" << stdlog::endl;
     yyparse(ast_head);
 
-    // end debug print
-    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_on;
-    if (shell_config.debug_type() == debug::lex) {
-        stdlog::log.del_all_temp_output_file();
-        stdlog::log << stdlog::temp_files_off;
-    }
+    END_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::lex);
 
     stdlog::log << stdlog::std << "           lexing & parsing done -> |end|" << stdlog::endl;
 
-
-
-    // begin debug print
-    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_off;
-    if (shell_config.debug_type() == debug::parse || shell_config.debug_type() == debug::ast) {
-        stdlog::log.add_temp_output_file(debug_file);
-        stdlog::log << stdlog::temp_files_on;
-    }
+    BEGIN_DEBUG_PRINT_FILE(
+        shell_config.debug_type() == debug::parse ||
+        shell_config.debug_type() == debug::ast
+    );
 
     stdlog::log << stdlog::debug << "log_ast begin" << stdlog::endl;
     log_ast(ast_head);
 
-    // end debug print
-    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_on;
-    if (shell_config.debug_type() == debug::parse || shell_config.debug_type() == debug::ast) {
-        stdlog::log.del_all_temp_output_file();
-        stdlog::log << stdlog::temp_files_off;
-    }
+    END_DEBUG_PRINT_FILE(
+        shell_config.debug_type() == debug::parse ||
+        shell_config.debug_type() == debug::ast
+    );
 
 
 
@@ -184,26 +172,22 @@ int main(int argc, char** argv) {
 
     stdlog::log << stdlog::std << "|begin| -> symbol table & ir" << stdlog::endl;
 
-    // begin debug print
-    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_off;
-    if (shell_config.debug_type() == debug::symbol) {
-        stdlog::log.add_temp_output_file(debug_file);
-        stdlog::log << stdlog::temp_files_on;
-    }
+    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::symbol);
 
     SymbolTable symbol_table;
-    search_and_update_symboltable(symbol_table, ast_head);
+    auto ir_result = search_astnode_update_symboltable_generate_ir(ast_head, symbol_table);
 
-    // end debug print
-    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_on;
-    if (shell_config.debug_type() == debug::symbol) {
-        stdlog::log.del_all_temp_output_file();
-        stdlog::log << stdlog::temp_files_off;
-    }
+    END_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::symbol);
 
     stdlog::log << stdlog::std << "           symbol table & ir -> |end|" << stdlog::endl;
 
+    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::ir);
 
+    for (const auto& i : ir_result) {
+        stdlog::log << stdlog::info << i.to_string() << stdlog::endl;
+    }
+
+    END_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::ir);
 
     return 0;
 }
