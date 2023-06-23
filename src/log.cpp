@@ -12,7 +12,76 @@
 
 namespace stdlog {
     stage log_stage = stage::debug;
-    bool add_time = false;
+
+    void LogType::error(const std::string& str) {
+        last_stage = stdlog::error;
+        if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::error)) {
+            std::string time_str = add_time ? "[" + timing::local_time() + "] " : "";
+            // error will always output on stdout !!!
+            std::cout << GREEN << time_str << RED << "error: " + str << RESET;
+            if (use_file) {
+                *of << time_str + "error: " + str;
+                for (auto& i : tmp)
+                    *i << time_str + "error: " + str;
+            }
+        }
+    }
+
+    void LogType::warning(const std::string& str) {
+        last_stage = stdlog::warning;
+        if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::warning)) {
+            std::string time_str = add_time ? "[" + timing::local_time() + "] " : "";
+            if (use_stdout)
+                std::cout << GREEN << time_str << YELLOW << "warning: " + str << RESET;
+            if (use_file) {
+                *of << time_str + "warning: " + str;
+                for (auto& i : tmp)
+                    *i << time_str + "warning: " + str;
+            }
+        }
+    }
+    
+    void LogType::std(const std::string& str) {
+        last_stage = stdlog::std;
+        if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::std)) {
+            std::string time_str = add_time ? "[" + timing::local_time() + "] " : "";
+            if (use_stdout)
+                std::cout << GREEN << time_str << RESET << str << RESET;
+            if (use_file) {
+                *of << time_str + str;
+                for (auto& i : tmp)
+                    *i << time_str + str;
+            }
+        }
+    }
+
+    void LogType::info(const std::string& str) {
+        last_stage = stdlog::info;
+        if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::info)) {
+            std::string time_str = add_time ? "[" + timing::local_time() + "] " : "";
+            if (use_stdout)
+                std::cout << GREEN << time_str << CYAN << "info: " + str << RESET;
+            if (use_file) {
+                *of << time_str + "info: " + str;
+                for (auto& i : tmp)
+                    *i << time_str + "info: " + str;
+            }
+        }
+    }
+
+    void LogType::debug(const std::string& str) {
+        last_stage = stdlog::debug;
+        if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::debug)) {
+            std::string time_str = add_time ? "[" + timing::local_time() + "] " : "";
+            if (use_stdout)
+                std::cout << GREEN << time_str << PURPLE << "debug: " + str << RESET;
+            if (use_file) {
+                *of << time_str + "debug: " + str;
+                for (auto& i : tmp)
+                    *i << time_str + "debug: " + str;
+            }
+        }
+    }
 
     LogType::LogType() {
         use_file = false;
@@ -39,7 +108,7 @@ namespace stdlog {
         case stdlog::endl:
             log_func(ss.str());
             ss.str(std::string());
-            // error will always output on stdin !!!
+            // error will always output on stdout !!!
             if (use_stdout || last_stage == stdlog::error)
                 std::cout << std::endl;
             if (use_file) {
@@ -51,7 +120,7 @@ namespace stdlog {
         case stdlog::flush:
             log_func(ss.str());
             ss.str(std::string());
-            // error will always output on stdin !!!
+            // error will always output on stdout !!!
             if (use_stdout || last_stage == stdlog::error)
                 std::cout << std::flush;
             if (use_file) {
@@ -70,8 +139,6 @@ namespace stdlog {
             break;
         case stdlog::to_stdout_and_file:
             use_stdout = use_file = true;
-            break;
-        default:
             break;
         }
         return *this;
@@ -101,74 +168,12 @@ namespace stdlog {
         return *this;
     }
 
-    void LogType::debug(const std::string& str) {
-        last_stage = stdlog::debug;
-        if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::debug)) {
-            std::string time_str = stdlog::add_time ? "[" + timing::local_time() + "] " : "";
-            if (use_stdout)
-                std::cout << GREEN << time_str << PURPLE << "debug: " + str << RESET;
-            if (use_file) {
-                *of << time_str + "debug: " + str;
-                for (auto& i : tmp)
-                    *i << time_str + "debug: " + str;
-            }
+    LogType& LogType::operator<<(stdlog::timeadd ta) {
+        switch (ta) {
+        case stdlog::add_time: add_time = true; break;
+        case stdlog::no_time: add_time = false; break;
         }
-    }
-
-    void LogType::info(const std::string& str) {
-        last_stage = stdlog::info;
-        if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::info)) {
-            std::string time_str = stdlog::add_time ? "[" + timing::local_time() + "] " : "";
-            if (use_stdout)
-                std::cout << GREEN << time_str << CYAN << "info: " + str << RESET;
-            if (use_file) {
-                *of << time_str + "info: " + str;
-                for (auto& i : tmp)
-                    *i << time_str + "info: " + str;
-            }
-        }
-    }
-
-    void LogType::std(const std::string& str) {
-        last_stage = stdlog::std;
-        if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::std)) {
-            std::string time_str = stdlog::add_time ? "[" + timing::local_time() + "] " : "";
-            if (use_stdout)
-                std::cout << GREEN << time_str << RESET << str << RESET;
-            if (use_file) {
-                *of << time_str + str;
-                for (auto& i : tmp)
-                    *i << time_str + str;
-            }
-        }
-    }
-
-    void LogType::warning(const std::string& str) {
-        last_stage = stdlog::warning;
-        if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::warning)) {
-            std::string time_str = stdlog::add_time ? "[" + timing::local_time() + "] " : "";
-            if (use_stdout)
-                std::cout << GREEN << time_str << YELLOW << "warning: " + str << RESET;
-            if (use_file) {
-                *of << time_str + "warning: " + str;
-                for (auto& i : tmp)
-                    *i << time_str + "warning: " + str;
-            }
-        }
-    }
-
-    void LogType::error(const std::string& str) {
-        last_stage = stdlog::error;
-        if (unsigned(stdlog::log_stage) >= unsigned(stdlog::stage::error)) {
-            std::string time_str = stdlog::add_time ? "[" + timing::local_time() + "] " : "";
-            // error will always output on stdin !!!
-            std::cout << GREEN << time_str << RED << "error: " + str << RESET;
-            if (use_file) {
-                *of << time_str + "error: " + str;
-                for (auto& i : tmp)
-                    *i << time_str + "error: " + str;
-            }
-        }
+        return *this;
     }
 
     LogType log;

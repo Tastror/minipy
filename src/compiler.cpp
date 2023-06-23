@@ -53,7 +53,9 @@ int main(int argc, char** argv) {
         return 0;
     }
     if (shell_config.is_flag_occured(flags::time)) {
-        stdlog::add_time = true;
+        stdlog::log << stdlog::add_time;
+    } else {
+        stdlog::log << stdlog::no_time;
     }
     if (shell_config.is_flag_occured(flags::show)) {
         cmd_print = stdlog::to_stdout_and_file;

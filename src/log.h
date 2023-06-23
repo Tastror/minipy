@@ -15,24 +15,28 @@ namespace stdlog {
     
     enum stage {error, warning, std, info, debug};
     enum operat {endl, flush, to_stdout, to_file, to_stdout_and_file};
+    enum timeadd {add_time, no_time};
     extern stage log_stage;
-    extern bool add_time;
 
     class LogType {
     private:
-        std::function<void(const std::string&)> log_func;
-        std::stringstream ss;
-        std::ofstream* of;
-        std::set<std::ofstream*> tmp;
         bool use_file;
         bool use_stdout;
+        bool add_time;
+
+        std::ostream* output_console;
+        std::ofstream* of;
+        std::set<std::ofstream*> tmp;
+        std::function<void(const std::string&)> log_func;
+
+        std::stringstream ss;
         stdlog::stage last_stage;
 
-        void std(const std::string& str);
-        void debug(const std::string& str);
-        void info(const std::string& str);
-        void warning(const std::string& str);
         void error(const std::string& str);
+        void warning(const std::string& str);
+        void std(const std::string& str);
+        void info(const std::string& str);
+        void debug(const std::string& str);
         
     public:
 
@@ -51,6 +55,7 @@ namespace stdlog {
 
         LogType& operator<<(stdlog::operat);
         LogType& operator<<(stdlog::stage);
+        LogType& operator<<(stdlog::timeadd);
     };
 
     extern LogType log;
