@@ -3,3 +3,5 @@
 build/
 debug/
 log.txt
+
+compiler_bison.output

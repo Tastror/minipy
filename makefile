@@ -12,6 +12,7 @@ FLEX_BISON_CFLAGS = $(CFLAGS) -Wno-unused-function -Wno-write-strings
 # xxx/xxx.c  abc    xxx/xxx.c xxx/xxx.c  abcS   (file var without _DIR(S) / _FILE(S) / _NAME(S) is always a path)
 
 SOURCE_DIR = src
+FLEX_BISON_SRC_DIR = src-gen
 BUILD_DIR = build
 DEBUG_DIR = debug
 TARGET_FILE = compiler.exe
@@ -30,10 +31,12 @@ TARGET = $(BUILD_DIR)/$(TARGET_FILE)
 FLEX_SRC = $(SOURCE_DIR)/$(FLEX_FILE)
 BISON_SRC = $(SOURCE_DIR)/$(BISON_FILE)
 
-FLEX_GEN_CPP = $(BUILD_DIR)/$(FLEX_GEN_NAME).cpp
-BISON_GEN_CPP =  $(BUILD_DIR)/$(BISON_GEN_NAME).cpp
+FLEX_GEN_CPP = $(FLEX_BISON_SRC_DIR)/$(FLEX_GEN_NAME).cpp
+BISON_GEN_CPP =  $(FLEX_BISON_SRC_DIR)/$(BISON_GEN_NAME).cpp
+FLEX_OBJ =  $(BUILD_DIR)/$(FLEX_GEN_NAME).o
+BISON_OBJ =  $(BUILD_DIR)/$(BISON_GEN_NAME).o
 FLEX_BISON_REQUIRES = $(FLEX_GEN_CPP) $(BISON_GEN_CPP)
-FLEX_BISON_OBJS = $(FLEX_GEN_CPP:.cpp=.o) $(BISON_GEN_CPP:.cpp=.o)
+FLEX_BISON_OBJS = $(FLEX_OBJ) $(BISON_OBJ)
 
 
 
@@ -53,10 +56,10 @@ $(FLEX_GEN_CPP): $(FLEX_SRC)
 $(BISON_GEN_CPP): $(BISON_SRC)
 	$(BISON) -o $(BISON_GEN_CPP) --defines=$(BISON_GEN_CPP:.cpp=.h) $(BISON_SRC) $(BISON_FLAGS)
 
-$(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp $(SOURCE_DIR)/%.h
+$(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/%.o: $(BUILD_DIR)/%.cpp
+$(BUILD_DIR)/%.o: $(FLEX_BISON_SRC_DIR)/%.cpp
 	$(CC) -c $< -o $@ $(FLEX_BISON_CFLAGS)
 
 $(TARGET): $(OBJS) $(FLEX_BISON_OBJS)
