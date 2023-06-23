@@ -22,13 +22,13 @@ int main(int argc, char** argv) {
 
     std::ofstream log_file;
     log_file.open("log.txt");
-    stdlog::log << stdlog::to_stdout;
+    stdlog::log << stdlog::stdout_on;
     if (!log_file.is_open()) {
         stdlog::log << stdlog::error << "log file 'log.txt' cannot open" << stdlog::endl;
         return 0;
     }
     stdlog::log.change_output_file(log_file);
-    stdlog::log << stdlog::to_stdout_and_file;
+    stdlog::log << stdlog::stdout_on << stdlog::file_on;
 
 
 
@@ -42,8 +42,6 @@ int main(int argc, char** argv) {
     ShellConfig shell_config;
     shell_config.arg_parse(argc, argv);
 
-    auto cmd_print = stdlog::to_file;
-
     // error, help, time, show
     if (shell_config.is_error()) {
         stdlog::log << stdlog::error << shell_config.error_message() << stdlog::endl;
@@ -56,9 +54,6 @@ int main(int argc, char** argv) {
         stdlog::log << stdlog::add_time;
     } else {
         stdlog::log << stdlog::no_time;
-    }
-    if (shell_config.is_flag_occured(flags::show)) {
-        cmd_print = stdlog::to_stdout_and_file;
     }
 
     // this two should output after <flags::time>
@@ -106,17 +101,22 @@ int main(int argc, char** argv) {
     }
 
     // begin debug print
-    if (shell_config.debug_type() == debug::shell)
+    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_off;
+    if (shell_config.debug_type() == debug::shell) {
         stdlog::log.add_temp_output_file(debug_file);
-    stdlog::log << cmd_print;
+        stdlog::log << stdlog::temp_files_on;
+    }
     
     // debug print
     stdlog::log << stdlog::debug << "shell_config.detail_message() begin" << stdlog::endl;
     stdlog::log << stdlog::std << shell_config.detail_message() << stdlog::endl;
 
     // end debug print
-    stdlog::log.del_all_temp_output_file();
-    stdlog::log << stdlog::to_stdout_and_file;
+    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_on;
+    if (shell_config.debug_type() == debug::shell) {
+        stdlog::log.del_all_temp_output_file();
+        stdlog::log << stdlog::temp_files_off;
+    }
 
     stdlog::log << stdlog::std << "           shell parsing done -> |end|" << stdlog::endl;
 
@@ -132,9 +132,11 @@ int main(int argc, char** argv) {
     stdlog::log << stdlog::std << "|begin| -> lexing & parsing begin" << stdlog::endl;
 
     // begin debug print
-    if (shell_config.debug_type() == debug::lex) 
+    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_off;
+    if (shell_config.debug_type() == debug::lex) {
         stdlog::log.add_temp_output_file(debug_file);
-    stdlog::log << cmd_print;
+        stdlog::log << stdlog::temp_files_on;
+    }
 
     // run & debug print
     AstNode* ast_head = nullptr;
@@ -143,24 +145,32 @@ int main(int argc, char** argv) {
     yyparse(ast_head);
 
     // end debug print
-    stdlog::log.del_all_temp_output_file();
-    stdlog::log << stdlog::to_stdout_and_file;
+    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_on;
+    if (shell_config.debug_type() == debug::lex) {
+        stdlog::log.del_all_temp_output_file();
+        stdlog::log << stdlog::temp_files_off;
+    }
 
     stdlog::log << stdlog::std << "           lexing & parsing done -> |end|" << stdlog::endl;
 
 
 
     // begin debug print
-    if (shell_config.debug_type() == debug::parse || shell_config.debug_type() == debug::ast) 
+    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_off;
+    if (shell_config.debug_type() == debug::parse || shell_config.debug_type() == debug::ast) {
         stdlog::log.add_temp_output_file(debug_file);
-    stdlog::log << cmd_print;
+        stdlog::log << stdlog::temp_files_on;
+    }
 
     stdlog::log << stdlog::debug << "log_ast begin" << stdlog::endl;
     log_ast(ast_head);
 
     // end debug print
-    stdlog::log.del_all_temp_output_file();
-    stdlog::log << stdlog::to_stdout_and_file;
+    if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_on;
+    if (shell_config.debug_type() == debug::parse || shell_config.debug_type() == debug::ast) {
+        stdlog::log.del_all_temp_output_file();
+        stdlog::log << stdlog::temp_files_off;
+    }
 
 
 

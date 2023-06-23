@@ -31,7 +31,7 @@ FLEX_BISON_REQUIRES = $(FLEX_GEN_HEAD) $(FLEX_GEN_CPP) $(BISON_GEN_HEAD) $(BISON
 FLEX_BISON_OBJS = $(BUILD_DIR)/$(FLEX_GEN_NAME).o $(BUILD_DIR)/$(BISON_GEN_NAME).o
 
 
-.PHONY: building help test show alltest clean clean-debug
+.PHONY: building help test show clean sample clean-sample
 
 building: $(BUILD_DIR) $(FLEX_BISON_REQUIRES) $(TARGET)
 
@@ -67,19 +67,18 @@ test:
 show:
 	$(TARGET) test.py --time --show
 
-alltest: $(DEBUG_DIR)
-	$(TARGET) test.py --time -dshell $(DEBUG_DIR)/1_shell.txt
-	$(TARGET) test.py --time -dlex $(DEBUG_DIR)/2_lex.txt
-	$(TARGET) test.py --time -dparse $(DEBUG_DIR)/3_parse.txt
-	$(TARGET) test.py --time -dast $(DEBUG_DIR)/4_ast.txt
-	$(TARGET) test.py --time -dsym $(DEBUG_DIR)/5_sym.txt
-	$(TARGET) test.py --time -dir $(DEBUG_DIR)/6_ir.txt
-	$(TARGET) test.py --time -dcfg $(DEBUG_DIR)/7_cfg.txt
-	$(TARGET) test.py --time -dasm $(DEBUG_DIR)/8_asm.txt
-	$(TARGET) test.py --time -S
-
 clean:
 	rm -rf $(BUILD_DIR)
 
-clean-debug:
+SAMPLE_DIR = testsample/right
+SAMPLE_FILES = $(notdir $(wildcard $(addprefix $(SAMPLE_DIR)/, *.py)))
+
+sample: $(DEBUG_DIR)
+	@for f in $(SAMPLE_FILES); do \
+	# echo $(TARGET) $(SAMPLE_DIR)/$$f -t -dast $(DEBUG_DIR)/$$f.txt -S --out $(DEBUG_DIR)/$$f.s; \
+	$(TARGET) $(SAMPLE_DIR)/$$f -t -dast $(DEBUG_DIR)/$$f.txt -S --out $(DEBUG_DIR)/$$f.s; \
+	echo; \
+	done
+
+clean-sample:
 	rm -rf $(DEBUG_DIR)

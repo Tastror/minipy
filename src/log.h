@@ -14,49 +14,52 @@
 namespace stdlog {
     
     enum stage {error, warning, std, info, debug};
-    enum operat {endl, flush, to_stdout, to_file, to_stdout_and_file};
+    enum operat {endl, flush};
+    enum target {stdout_on, stdout_off, file_on, file_off, temp_files_on, temp_files_off};
     enum timeadd {add_time, no_time};
     extern stage log_stage;
 
-    class LogType {
+    class logstream {
     private:
-        bool use_file;
         bool use_stdout;
-        bool add_time;
+        bool use_file;
+        bool use_temp_files;
+        bool use_add_time;
 
         std::ostream* output_console;
-        std::ofstream* of;
-        std::set<std::ofstream*> tmp;
+        std::ofstream* output_file;
+        std::set<std::ofstream*> temp_output_files_set;
         std::function<void(const std::string&)> log_func;
 
         std::stringstream ss;
         stdlog::stage last_stage;
 
-        void error(const std::string& str);
-        void warning(const std::string& str);
-        void std(const std::string& str);
-        void info(const std::string& str);
-        void debug(const std::string& str);
+        void log_error(const std::string& str);
+        void log_warning(const std::string& str);
+        void log_std(const std::string& str);
+        void log_info(const std::string& str);
+        void log_debug(const std::string& str);
         
     public:
 
-        LogType();
+        logstream();
 
+        void change_output_console(std::ostream&);
         void change_output_file(std::ofstream&);
-
         void add_temp_output_file(std::ofstream&);
         void del_all_temp_output_file();
 
         // template implement should be set in the .h file
-        template<class T> LogType& operator<<(const T& data) {
+        template<class T> logstream& operator<<(const T& data) {
             ss << data;
             return *this;
         }
 
-        LogType& operator<<(stdlog::operat);
-        LogType& operator<<(stdlog::stage);
-        LogType& operator<<(stdlog::timeadd);
+        logstream& operator<<(stdlog::stage);
+        logstream& operator<<(stdlog::operat);
+        logstream& operator<<(stdlog::target);
+        logstream& operator<<(stdlog::timeadd);
     };
 
-    extern LogType log;
+    extern logstream log;
 }
