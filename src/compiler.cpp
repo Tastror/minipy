@@ -14,11 +14,11 @@
 
 
 
-#define BEGIN_DEBUG_PRINT_FILE(condition) \
+#define BEGIN_DEBUG_PRINT_FILE(condition, filename) \
     do { \
         if (!shell_config.is_flag_occured(flags::show)) stdlog::log << stdlog::stdout_off; \
         if (condition) { \
-            stdlog::log.add_temp_output_file(debug_file); \
+            stdlog::log.add_temp_output_file(filename); \
             stdlog::log << stdlog::temp_files_on; \
         } \
     } while (0)
@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
 
     // print detail message of shell
 
-    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::shell);
+    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::shell, debug_file);
     
     stdlog::log << stdlog::debug << "shell_config.detail_message() begin" << stdlog::endl;
     stdlog::log << stdlog::std << shell_config.detail_message() << stdlog::endl;
@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
 
     stdlog::log << stdlog::std << "|begin| -> lexing & parsing begin" << stdlog::endl;
 
-    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::lex);
+    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::lex, debug_file);
 
     AstNode* ast_head = nullptr;
     yyin = input_file_ptr;
@@ -177,8 +177,8 @@ int main(int argc, char** argv) {
     // print the AST tree for visualization
 
     BEGIN_DEBUG_PRINT_FILE(
-        shell_config.debug_type() == debug::parse ||
-        shell_config.debug_type() == debug::ast
+        shell_config.debug_type() == debug::parse || shell_config.debug_type() == debug::ast,
+        debug_file
     );
 
     stdlog::log << stdlog::debug << "log_ast begin" << stdlog::endl;
@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
 
     stdlog::log << stdlog::std << "|begin| -> symbol table & ir" << stdlog::endl;
 
-    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::symbol);
+    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::symbol, debug_file);
 
     SymbolTable symbol_table;
     auto ir_result = search_astnode_update_symboltable_generate_ir(ast_head, symbol_table);
@@ -212,7 +212,7 @@ int main(int argc, char** argv) {
     // print the IR vector for visualization
     // and save it to output file
 
-    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::ir);
+    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::ir, debug_file);
 
     for (const auto& i : ir_result) {
         stdlog::log << stdlog::info << i.to_string() << stdlog::endl;
