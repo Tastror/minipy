@@ -30,7 +30,7 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<ir_senten
     switch (astnode_now->type) {
     case astnode_type::statements:
         for (auto i : astnode_now->sons) {
-            sausgi(astnode_now, sym_table, ir_vec);
+            sausgi(i, sym_table, ir_vec);
         }
         break;
     case astnode_type::bin_op_add:
