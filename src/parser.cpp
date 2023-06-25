@@ -178,7 +178,7 @@ Token* AstNode::first_token() {
     return sons[0]->first_token();
 }
 
-std::string AstNode::to_string() {
+std::string AstNode::to_string() const {
     if (this->is_empty)
         return ::to_string(this->type) + ", empty";
     else if (this->is_token_leaf)

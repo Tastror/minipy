@@ -52,10 +52,12 @@ std::string to_string(ir_data_type a) {
     case ir_data_type::instant: return "instant";
     case ir_data_type::label: return "label";
     case ir_data_type::voids: return "void";
+    case ir_data_type::i1: return "i1";
     case ir_data_type::i32: return "i32";
     case ir_data_type::i64: return "i64";
     case ir_data_type::floats: return "float";
     case ir_data_type::doubles: return "double";
+    case ir_data_type::i1_p: return "i1*";
     case ir_data_type::i32_p: return "i32*";
     case ir_data_type::i64_p: return "i64*";
     case ir_data_type::float_p: return "float*";

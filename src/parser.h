@@ -128,7 +128,7 @@ struct AstNode {
     AstNode* eat_sons(AstNode* old_mother);
 
     Token* first_token();
-    std::string to_string();
+    std::string to_string() const;
 };
 
 int yyparse(AstNode*& ast_head);

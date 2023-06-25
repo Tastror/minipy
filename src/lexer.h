@@ -82,7 +82,7 @@ struct Token {
     Token& operator=(Token&& other);
     Token& operator=(const Token& other);
 
-    std::string to_string();
+    std::string to_string() const;
 };
 
 

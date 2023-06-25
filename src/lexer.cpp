@@ -135,7 +135,7 @@ Token& Token::operator=(const Token& other) {
     return *this;
 };
 
-std::string Token::to_string() {
+std::string Token::to_string() const {
     std::string res;
     res += ::to_string(this->type) + ", ";
     res += std::to_string(this->lineno) + "-";
