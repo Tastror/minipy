@@ -10,10 +10,7 @@
 #include "symbol.h"
 #include "ir.h"
 
-RegisterManager::RegisterManager() {
-    id = 0;
-    is_global = false;
-}
+RegisterManager::RegisterManager() : RegisterManager(false) {}
 
 RegisterManager::RegisterManager(bool is_global): is_global(is_global) {
     id = 0;
@@ -88,7 +85,7 @@ std::string IRSentence::to_string() const {
     case ir_op_type::alloca:
         return four_spaces + names[0] + " = alloca " + ::to_string(types[0]);
     case ir_op_type::func_begin: do {
-        std::string res = "define " + ::to_string(types[0]) + " @" + names[0] + "(";
+        std::string res = "define " + ::to_string(types[0]) + " " + names[0] + "(";
         auto i = names.begin() + 1;
         auto j = types.begin() + 1;
         if (i != names.end()) {
@@ -136,8 +133,11 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
         break;
     case astnode_type::pen_op_function_block: do {
 
-        // sym and ir update simultaneously
         std::string name = astnode_now->sons[0]->token_leaf.content.name;
+        if (global_reg.is_global) name = "@" + name;
+        else name = "%" + name;
+
+        // sym and ir update simultaneously
         auto function_sym_type = make_sym_function(basic_type::none);
         IRSentence define_func_ir(ir_op_type::func_begin);
         define_func_ir.names.push_back(name);
@@ -179,7 +179,7 @@ std::vector<IRSentence> search_astnode_update_symboltable_generate_ir(
     AstNode*& ast_root, SymbolTable& sym_table
 ) {
     std::vector<IRSentence> res;
-    RegisterManager global_reg;
+    RegisterManager global_reg(true);
     sausgi(ast_root, sym_table, res, global_reg);
     return res;
 }

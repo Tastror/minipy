@@ -14,8 +14,8 @@
 class RegisterManager {
 private:
     int id;
-    bool is_global;
 public:
+    bool is_global;
     RegisterManager();
     RegisterManager(bool is_global);
     void next();
