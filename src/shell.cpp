@@ -63,51 +63,60 @@ bool ShellConfig::is_arg_flag(const std::string& argv) {
 
 ShellConfig::ShellConfig() {
     flag_short_no_arg["h"] = flags::help;
-    flag_short_with_arg["d"] = flags::debug;
-    flag_short_with_arg["o"] = flags::out;
-    flag_short_with_arg["O"] = flags::optimize;
     flag_short_no_arg["i"] = flags::ir;
+    flag_short_with_arg["o"] = flags::out;
+    flag_short_with_arg["d"] = flags::debug;
+    flag_short_with_arg["e"] = flags::debug_out;
+    flag_short_with_arg["O"] = flags::optimize;
     flag_short_no_arg["t"] = flags::time;
     flag_short_no_arg["s"] = flags::show;
 
     flag_long_no_arg["help"] = flags::help;
-    flag_long_with_arg["debug"] = flags::debug;
-    flag_long_with_arg["out"] = flags::out;
-    flag_long_with_arg["optimize"] = flags::optimize;
     flag_long_no_arg["ir"] = flags::ir;
+    flag_long_with_arg["out"] = flags::out;
+    flag_long_with_arg["debug"] = flags::debug;
+    flag_long_with_arg["debug_out"] = flags::debug_out;
+    flag_long_with_arg["optimize"] = flags::optimize;
     flag_long_no_arg["time"] = flags::time;
     flag_long_no_arg["show"] = flags::show;
 
-    help = welcome =
+    help = welcome = std::string() +
 R"(
 Welcome to use Tastror's Compiler!
 
 use
-    compiler -h
-    compiler <input_file> [-i] [-o <output_file>] [-d <debug_mode>] [<debug_file>] [-On (-O1, -O2)] [-t] [-s]
+    )" + YELLOW + R"(compiler -h)" + RESET + R"(
+to see help, or
+    )" + YELLOW + R"(compiler \
+        <input_file> \
+        [-i [-o <output_file>]] \
+        [-d <debug_mode> [-e <debug_output_file>]] \
+        [-O <num>] [-t] [-s])" + RESET + R"(
 to run,
 
 such as
-    compiler test.py -i -o ir.ll -d ast debug/ast.txt -O2 --time --show
+    )" + GREEN + R"(compiler   test.py   -i -o ir.ll   -d ast -e debug/ast.txt   -O2   --time   --show)" + RESET + R"(
 
 specifically,
-    '<input_file>':                         input filename
-    '-h' can be replaced by '--help':       show help menu
-    '-d' can be replaced by '--debug':      choose a debug mode
-        '<debug_mode>' can be:              shell, lex, parse, ast, sym (parse == ast)
-        '<debug_file>':                     debug output filename, default is "debug/<debug_mode>.txt"
-    '-i' can be replaced by '--ir':         whether to output ir
-        '-o' can be replaced by '--out':    next add ir output filename
-        '<output_file>':                    ir output filename, default is "result_ir.ll"
-    '-O' can be replaced by '--optimize':   optimize option (-O1, -O 1, --optimize 1)
-    '-t' can be replaced by '--time':       log time or not
-    '-s' can be replaced by '--show':       log on std & file or just file
+    )" + YELLOW + R"('<input_file>')" + RESET + R"(:                         input filename
+    )" + YELLOW + R"('-h')" + RESET + R"( can be replaced by )" + BLUE + R"('--help')" + RESET + R"(:       show help menu
+    )" + YELLOW + R"('-d')" + RESET + R"( can be replaced by )" + BLUE + R"('--debug')" + RESET + R"(:      choose a debug mode
+        )" + YELLOW + R"('<debug_mode>')" + RESET + R"( can be:              shell, lex, parse, ast, sym (parse == ast)
+        )" + YELLOW + R"('-e')" + RESET + R"( can by )" + BLUE + R"('--debug_out')" + RESET + R"(:          next add debug output filename
+        )" + YELLOW + R"('<debug_output_file>')" + RESET + R"(:              debug output filename, default is "debug/<debug_mode>.txt"
+    )" + YELLOW + R"('-i')" + RESET + R"( can be replaced by )" + BLUE + R"('--ir')" + RESET + R"(:         whether to output ir
+        )" + YELLOW + R"('-o')" + RESET + R"( can be replaced by )" + BLUE + R"('--out')" + RESET + R"(:    next add ir output filename
+        )" + YELLOW + R"('<output_file>')" + RESET + R"(:                    ir output filename, default is "result_ir.ll"
+    )" + YELLOW + R"('-O')" + RESET + R"( can be replaced by )" + BLUE + R"('--optimize')" + RESET + R"(:   optimize option (-O1, -O 1, --optimize 1)
+    )" + YELLOW + R"('-t')" + RESET + R"( can be replaced by )" + BLUE + R"('--time')" + RESET + R"(:       log time or not
+    )" + YELLOW + R"('-s')" + RESET + R"( can be replaced by )" + BLUE + R"('--show')" + RESET + R"(:       log on std & file or just file
 
 additionally,
-    '<debug_file>' only works when you specify '<debug_mode>'
     '-o <output_file>' only works when you specify '-i'
+    '-e <debug_output_file>' only works when you specify '-d <debug_mode>'
 
-flags' order does not matter, you can choose any order you like
+flags' order does not matter, you can choose any order you like, such as
+    )" + GREEN + R"(compiler -t -o ir.ll -d ast -O2 test.py -e debug/ast.txt -s -i)" + RESET + R"(
 )";
     };
 

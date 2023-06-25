@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
 
     // open the debug file
     if (shell_config.is_flag_occured(flags::debug) && shell_config.debug_type() != debug::none) {
-        std::string debug_file_path = shell_config.get_normal_input(1);
+        std::string debug_file_path = shell_config.get_flag_arg(flags::debug_out);
         if (debug_file_path == "") {
             debug_file_path =
                 default_debug_file_dir +

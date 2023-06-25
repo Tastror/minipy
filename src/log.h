@@ -7,6 +7,7 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include <regex>
 
 #include "timing.h"
 #include "color.h"

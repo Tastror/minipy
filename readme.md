@@ -34,8 +34,8 @@ make sample  # compile all testsamples in testsample/right to sample-output/
 or use what you like
 
 ```shell
-build\compiler.exe -h
-build\compiler.exe test.py -i -o out.ll --debug ast ast.txt --time --show
+build\compiler.exe --help
+build\compiler.exe test.py -i -o out.ll --debug ast -e ast.txt --time --show
 ...
 ```
 

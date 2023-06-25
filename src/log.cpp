@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include <regex>
 
 #include "timing.h"
 #include "color.h"
@@ -14,72 +15,77 @@ namespace stdlog {
     stage log_stage = debug;
 
     void logstream::log_error(const std::string& str) {
+        std::string str_with_no_033m = std::regex_replace(str, std::regex("\033\\[.*?m"), "");
         last_stage = error;
         if (unsigned(log_stage) >= unsigned(error)) {
             std::string time_str = use_add_time ? "[" + timing::local_time() + "] " : "";
             if (true)  // error will always output to stdout
                 *output_console << GREEN << time_str << RED << "error: " + str << RESET;
             if (use_file)
-                *output_file << time_str + "error: " + str;
+                *output_file << time_str + "error: " + str_with_no_033m;
             if (use_temp_files)
                 for (auto& i : temp_output_files_set)
-                    *i << time_str + "error: " + str;
+                    *i << time_str + "error: " + str_with_no_033m;
         }
     }
 
     void logstream::log_warning(const std::string& str) {
+        std::string str_with_no_033m = std::regex_replace(str, std::regex("\033\\[.*?m"), "");
         last_stage = warning;
         if (unsigned(log_stage) >= unsigned(warning)) {
             std::string time_str = use_add_time ? "[" + timing::local_time() + "] " : "";
             if (use_stdout)
                 *output_console << GREEN << time_str << YELLOW << "warning: " + str << RESET;
             if (use_file)
-                *output_file << time_str + "warning: " + str;
+                *output_file << time_str + "warning: " + str_with_no_033m;
             if (use_temp_files)
                 for (auto& i : temp_output_files_set)
-                    *i << time_str + "warning: " + str;
+                    *i << time_str + "warning: " + str_with_no_033m;
         }
     }
     
     void logstream::log_std(const std::string& str) {
+        std::string str_with_no_033m = std::regex_replace(str, std::regex("\033\\[.*?m"), "");
         last_stage = std;
         if (unsigned(log_stage) >= unsigned(std)) {
             std::string time_str = use_add_time ? "[" + timing::local_time() + "] " : "";
             if (use_stdout)
                 *output_console << GREEN << time_str << RESET << str << RESET;
             if (use_file)
-                *output_file << time_str + str;
+                *output_file << time_str + str_with_no_033m;
             if (use_temp_files)
                 for (auto& i : temp_output_files_set)
-                    *i << time_str + str;
+                    *i << time_str + str_with_no_033m;
         }
     }
 
     void logstream::log_info(const std::string& str) {
+        std::string str_with_no_033m = std::regex_replace(str, std::regex("\033\\[.*?m"), "");
         last_stage = info;
         if (unsigned(log_stage) >= unsigned(info)) {
             std::string time_str = use_add_time ? "[" + timing::local_time() + "] " : "";
             if (use_stdout)
                 *output_console << GREEN << time_str << CYAN << "info: " + str << RESET;
             if (use_file)
-                *output_file << time_str + "info: " + str;
+                *output_file << time_str + "info: " + str_with_no_033m;
             if (use_temp_files)
                 for (auto& i : temp_output_files_set)
-                    *i << time_str + "info: " + str;
+                    *i << time_str + "info: " + str_with_no_033m;
         }
     }
 
     void logstream::log_debug(const std::string& str) {
+        std::string str_with_no_033m = std::regex_replace(str, std::regex("\033\\[.*?m"), "");
         last_stage = debug;
         if (unsigned(log_stage) >= unsigned(debug)) {
             std::string time_str = use_add_time ? "[" + timing::local_time() + "] " : "";
             if (use_stdout)
                 *output_console << GREEN << time_str << PURPLE << "debug: " + str << RESET;
             if (use_file)
-                *output_file << time_str + "debug: " + str;
+                *output_file << time_str + "debug: " + str_with_no_033m;
             if (use_temp_files)
                 for (auto& i : temp_output_files_set)
-                    *i << time_str + "debug: " + str;
+                    *i << time_str + "debug: " + str_with_no_033m;
         }
     }
 

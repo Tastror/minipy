@@ -85,8 +85,8 @@ $(SAMPLE_OUTPUT_DIR):
 
 sample: building $(SAMPLE_OUTPUT_DIR)
 	@for f in $(SAMPLE_FILES); do \
-	echo $(TARGET) $(SAMPLE_DIR)/$$f -t -dast $(SAMPLE_OUTPUT_DIR)/$$f.txt -i -o $(SAMPLE_OUTPUT_DIR)/$$f.ll; \
-	$(TARGET) $(SAMPLE_DIR)/$$f -t -dast $(SAMPLE_OUTPUT_DIR)/$$f.txt -i -o $(SAMPLE_OUTPUT_DIR)/$$f.ll; \
+	echo $(TARGET) $(SAMPLE_DIR)/$$f -t -dast -e$(SAMPLE_OUTPUT_DIR)/$$f.txt -i -o$(SAMPLE_OUTPUT_DIR)/$$f.ll; \
+	$(TARGET) $(SAMPLE_DIR)/$$f -t -dast -e$(SAMPLE_OUTPUT_DIR)/$$f.txt -i -o$(SAMPLE_OUTPUT_DIR)/$$f.ll; \
 	echo; \
 	done
 
