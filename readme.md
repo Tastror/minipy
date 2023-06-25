@@ -86,3 +86,22 @@ color   timing
          ╽
         compiler
 ```
+
+## Todo list
+
+- [x] 配置 makefile
+- [x] 完成 lex 架构
+- [x] 完成 lex indent dedent 相关
+- [x] 完成 lex indent dedent 接触 EOF 时的特殊操作
+- [x] 完成 ast 架构
+- [x] 完成 ast 架构
+- [x] 完成 ast 基础 expresstion
+- [x] 完成 ast simple statements
+- [x] 完成 ast block statements
+- [x] 完善 tuple, str
+- [ ] 完善 list, dict
+- [x] 完成 symbol 架构
+- [ ] 完善 symbol 中 class 的继承内容
+- [x] 完成 ir 架构
+- [ ] 完善 ir
+- [ ] 添加 Graphviz 好看的显示
