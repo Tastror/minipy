@@ -56,7 +56,9 @@ SymbolType::SymbolType(basic_type type, SymbolType::data_t data) {
 }
 
 std::string SymbolType::to_string() const {
-    if (high_level_type == high_type::use_basic) {
+    if (is_assigned) {
+        return "assigned to " + assign_origin;
+    } else if (high_level_type == high_type::use_basic) {
         return ::to_string(base_type);
     } else {
         std::string res = "";
