@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <cassert>
 
 #include "timing.h"
 #include "log.h"
@@ -47,6 +48,7 @@ std::string RegisterManager::get_str_and_next() {
 std::string to_string(ir_data_type a) {
     switch (a) {
     case ir_data_type::error: return "error";
+    case ir_data_type::any: return "any";
     case ir_data_type::instant: return "instant";
     case ir_data_type::label: return "label";
     case ir_data_type::voids: return "void";
@@ -104,6 +106,22 @@ std::string IRSentence::to_string() const {
     return four_spaces + "ir sentence error";
 }
 
+Token* get_token_of_parameter(AstNode* parameter_node) {
+    if (parameter_node->is_token_leaf) {
+        return &parameter_node->token_leaf;
+    } else {
+        switch (parameter_node->type) {
+        case astnode_type::bin_op_apequ:
+        case astnode_type::bin_op_aptype:
+            return parameter_node->first_token();
+        default:
+            stdlog::log << stdlog::error << "cannot use such expression in parameters: " << parameter_node->to_string() << stdlog::endl;
+            assert((false && "cannot use such expression in parameters"));
+            return nullptr;
+        }
+    }
+}
+
 void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec, RegisterManager global_reg) {
     if (astnode_now == nullptr) return;
     switch (astnode_now->type) {
@@ -115,20 +133,37 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
         }
         break;
     case astnode_type::pen_op_function_block: do {
-        sym_table.update(
-            astnode_now->sons[0]->token_leaf.content.name,
-            make_sym_function(
-                make_sym_basic(basic_type::none)
-                // TODO: add params
-            )
-        );
+
+        // sym and ir update simultaneously
+        std::string name = astnode_now->sons[0]->token_leaf.content.name;
+        auto function_sym_type = make_sym_function(basic_type::none);
         IRSentence define_func_ir(ir_op_type::func_begin);
-        define_func_ir.names.push_back(astnode_now->sons[0]->token_leaf.content.name);
+        define_func_ir.names.push_back(name);
         define_func_ir.types.push_back(ir_data_type::voids);
-        // TODO: add params
+
+        // add params (depend on calls) <-- use <any> first, and implement one if a new call comes.
+        auto params = astnode_now->sons[1];
+        if (params->type != astnode_type::placeholder)
+            for (auto i : params->sons) {
+                auto tp = get_token_of_parameter(i);
+                switch (tp->type) {
+                case token_type::identifier:
+                    function_sym_type.son_types.emplace_back(basic_type::any);
+                    define_func_ir.names.push_back(tp->content.name);
+                    define_func_ir.types.push_back(ir_data_type::any);
+                    break;
+                default:
+                    stdlog::log << stdlog::error << "cannot use such expression in parameters: " << tp->to_string() << stdlog::endl;
+                    assert((false && "cannot use such expression in parameters"));
+                }
+            }
+
         ir_vec.push_back(define_func_ir);
+        sym_table.update(name, function_sym_type);
         sym_table.add_son_goto_son();
-        // TODO: inner
+
+        // TODO: func params to inner symble table + inner search
+
         ir_vec.emplace_back(ir_op_type::func_end);
         sym_table.del_son_goto_parent();
     } while (0); break;

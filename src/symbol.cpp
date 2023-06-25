@@ -18,6 +18,7 @@ std::string to_string(basic_type a) {
     case basic_type::ints: return "int";
     case basic_type::floats: return "float";
     case basic_type::str: return "str";
+    case basic_type::any: return "any";
     }
     return "<enum to_string error>";
 }

@@ -11,7 +11,7 @@
 #include "parser.h"
 
 enum class basic_type {
-    none, bools, ints, floats, str,
+    none, bools, ints, floats, str, any,
 };
 
 std::string to_string(basic_type a);

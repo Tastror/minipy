@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <cassert>
 
 #include "timing.h"
 #include "log.h"
@@ -43,7 +44,7 @@ enum class astnode_type {
 
     statements,  // list_op_statements
 
-    tri_op_assign,  // type, lhs, rhs
+    tri_op_assign,  // type (may be empty), lhs, rhs
     tri_op_augassign,  // operator, lhs, rhs
 
     zero_op_pass,
@@ -51,8 +52,8 @@ enum class astnode_type {
     zero_op_continue,
     sin_op_return,
 
-    qua_op_class_block,  // name, base classes, block, decorators
-    pen_op_function_block,  // name, params, return type, block, decorators
+    qua_op_class_block,  // name, base classes (may be empty), block, decorators
+    pen_op_function_block,  // name, params (may be empty), return type (may be empty), block, decorators (may be empty)
     tri_op_if_else_block,  // condition, if, else (else can also be if_else_block, which means elif)
 
     sin_op_yield,
@@ -68,8 +69,10 @@ enum class astnode_type {
     sin_op_not,
 
     list_op_comparison,  // normal, comp_op_... * n
-    comp_op_eq, comp_op_neq, comp_op_leq, comp_op_lt, comp_op_geq,
-    comp_op_gt, comp_op_notin, comp_op_in, comp_op_isnot, comp_op_is,
+    // just name. such as [a < b] equals to [a, comp_op_lt(b)]
+    comp_op_eq, comp_op_neq, comp_op_leq, comp_op_lt, comp_op_geq, comp_op_gt,
+    // just name. such as [a is not b] equals to [a, comp_op_isnot(b)]
+    comp_op_notin, comp_op_in, comp_op_isnot, comp_op_is,
 
     bin_op_or, bin_op_xor, bin_op_and, bin_op_sleft, bin_op_sright,
     bin_op_add, bin_op_sub,
@@ -78,17 +81,17 @@ enum class astnode_type {
     bin_op_power,
 
     sin_op_await,
-    bin_op_dot,
-    bin_op_fcall,
+    bin_op_dot,  // name, dot_expr (may be recursive)
+    bin_op_fcall,  // name, args_list (may be empty)
 
     list_op_slices,
     list_op_strings,
     list_op_args_or_prams,
 
-    bin_op_aptype,
-    sin_op_apstar,
-    sin_op_apdstar, 
-    bin_op_apequ, 
+    bin_op_aptype,  // name, type
+    sin_op_apstar,  // name
+    sin_op_apdstar,  // name
+    bin_op_apequ,  // name, value
 };
 
 std::string to_string(astnode_type a);
@@ -124,6 +127,7 @@ struct AstNode {
     AstNode* eat(AstNode* son);
     AstNode* eat_sons(AstNode* old_mother);
 
+    Token* first_token();
     std::string to_string();
 };
 

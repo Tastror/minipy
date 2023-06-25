@@ -2,6 +2,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <cassert>
 
 #include "timing.h"
 #include "log.h"
@@ -165,6 +166,16 @@ AstNode* AstNode::eat_sons(AstNode* old_mother) {
     old_mother->sons.clear();
     old_mother->sons = decltype(old_mother->sons)();  // free the capacity
     return this;
+}
+
+// do not use it with/contains `placeholder` and `zero_op_...`
+Token* AstNode::first_token() {
+    if (is_token_leaf) return &token_leaf;
+    if (sons.empty()) {
+        assert((false && "use AstNode::first_token() with no token as the leaf! (maybe: placeholder, zero_op_... or just error)"));
+        return nullptr;
+    }
+    return sons[0]->first_token();
 }
 
 std::string AstNode::to_string() {

@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <cassert>
 
 #include "timing.h"
 #include "log.h"
@@ -50,10 +51,11 @@ enum class ir_op_type {
 
 enum class ir_data_type {
     error,
+    any,
     instant,  // instant number
     label, voids,
-    i32, i64, floats, doubles,
-    i32_p, i64_p, float_p, double_p,  // pointer
+    i1, i32, i64, floats, doubles,
+    i1_p, i32_p, i64_p, float_p, double_p,  // pointer
 };
 
 class IRSentence {
