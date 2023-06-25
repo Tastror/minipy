@@ -90,6 +90,7 @@ color   timing
 ## Todo list
 
 - [x] 配置 makefile
+- [x] 沿用以前写的 log, shell，微调
 - [x] 完成 lex 架构
 - [x] 完成 lex indent dedent 相关
 - [x] 完成 lex indent dedent 接触 EOF 时的特殊操作
