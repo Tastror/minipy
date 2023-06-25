@@ -121,7 +121,7 @@ Token* get_token_of_parameter(AstNode* parameter_node) {
     }
 }
 
-void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec, RegisterManager global_reg) {
+void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec, RegisterManager& global_reg) {
     if (astnode_now == nullptr) return;
     switch (astnode_now->type) {
     case astnode_type::error:
