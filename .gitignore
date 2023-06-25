@@ -1,7 +1,8 @@
+build/
+sample-output/
+log.txt
+result_ir.ll
+compiler_bison.output
+
 .vscode/
 .VSCodeCounter/
-build/
-debug/
-log.txt
-
-compiler_bison.output

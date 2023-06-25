@@ -1,3 +1,6 @@
+def init(r) -> None:
+    r.c = 4
+
 class TypeA:
     a: int = 1
     b: str = "test"

@@ -28,14 +28,14 @@ use demo `test.py`, see res in `log.txt`
 ```shell
 make help  # --help of this compiler
 make test  # or `make show` if you want to print to terminal colorfully, :)
-make sample  # compile all testsamples in testsample/right to debug/
+make sample  # compile all testsamples in testsample/right to sample-output/
 ```
 
 or use what you like
 
 ```shell
 build\compiler.exe -h
-build\compiler.exe test.py -S -o out.asm --debug ast ast.txt --time --show
+build\compiler.exe test.py -i -o out.ll --debug ast ast.txt --time --show
 ...
 ```
 

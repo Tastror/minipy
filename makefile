@@ -14,7 +14,6 @@ FLEX_BISON_CFLAGS = $(CFLAGS) -Wno-unused-function -Wno-write-strings
 SOURCE_DIR = src
 FLEX_BISON_SRC_DIR = src-gen
 BUILD_DIR = build
-DEBUG_DIR = debug
 TARGET_FILE = compiler.exe
 FLEX_FILE = lexer.l
 BISON_FILE = parser.y
@@ -47,9 +46,6 @@ building: $(BUILD_DIR) $(FLEX_BISON_REQUIRES) $(TARGET)
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(DEBUG_DIR):
-	mkdir -p $(DEBUG_DIR)
-
 $(FLEX_GEN_CPP): $(FLEX_SRC)
 	$(FLEX) -o $(FLEX_GEN_CPP) --header-file=$(FLEX_GEN_CPP:.cpp=.h) $(FLEX_SRC)
 
@@ -68,11 +64,11 @@ $(TARGET): $(OBJS) $(FLEX_BISON_OBJS)
 help: building
 	$(TARGET) --help
 
-test: building $(DEBUG_DIR)
-	$(TARGET) test.py --assembly --out $(DEBUG_DIR)/out.asm --time
+test: building
+	$(TARGET) test.py --ir --time
 
-show: building $(DEBUG_DIR)
-	$(TARGET) test.py --assembly --out $(DEBUG_DIR)/out.asm --time --show
+show: building
+	$(TARGET) test.py --ir --time --show
 
 clean:
 	rm -rf $(BUILD_DIR)
@@ -82,12 +78,17 @@ clean:
 SAMPLE_DIR = testsample/right
 SAMPLE_FILES = $(notdir $(wildcard $(addprefix $(SAMPLE_DIR)/, *.py)))
 
-sample: building $(DEBUG_DIR)
+SAMPLE_OUTPUT_DIR = sample-output
+
+$(SAMPLE_OUTPUT_DIR):
+	mkdir -p $(SAMPLE_OUTPUT_DIR)
+
+sample: building $(SAMPLE_OUTPUT_DIR)
 	@for f in $(SAMPLE_FILES); do \
-	echo $(TARGET) $(SAMPLE_DIR)/$$f -t -dast $(DEBUG_DIR)/$$f.txt -S -o $(DEBUG_DIR)/$$f.s; \
-	$(TARGET) $(SAMPLE_DIR)/$$f -t -dast $(DEBUG_DIR)/$$f.txt -S -o $(DEBUG_DIR)/$$f.s; \
+	echo $(TARGET) $(SAMPLE_DIR)/$$f -t -dast $(SAMPLE_OUTPUT_DIR)/$$f.txt -i -o $(SAMPLE_OUTPUT_DIR)/$$f.ll; \
+	$(TARGET) $(SAMPLE_DIR)/$$f -t -dast $(SAMPLE_OUTPUT_DIR)/$$f.txt -i -o $(SAMPLE_OUTPUT_DIR)/$$f.ll; \
 	echo; \
 	done
 
 clean-sample:
-	rm -rf $(DEBUG_DIR)
+	rm -rf $(SAMPLE_OUTPUT_DIR)

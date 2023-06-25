@@ -46,7 +46,7 @@ enum class ir_op_type {
 };
 
 enum class ir_data_type {
-    none,
+    error,
     instant,  // instant number
     label, voids,
     i32, i64, floats, doubles,
@@ -54,12 +54,10 @@ enum class ir_data_type {
 };
 
 class IRSentence {
-private:
+public:
     ir_op_type op_type;
     std::vector<std::string> names;
     std::vector<ir_data_type> types;
-
-public:
     IRSentence(ir_op_type operator_type);
     // names and types outside will be deleted!
     IRSentence(ir_op_type operator_type, std::vector<std::string>& names, std::vector<ir_data_type>& types);

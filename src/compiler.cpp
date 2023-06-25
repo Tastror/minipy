@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
     // default values
 
     std::string default_log_file_path = "log.txt";
-    std::string default_output_file_path = "out.s";
+    std::string default_output_file_path = "result_ir.ll";
     std::string default_debug_file_dir = "debug/";
     std::string default_debug_file_suffix = ".txt";
 
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
     }
 
     // open the output file
-    if (shell_config.is_flag_occured(flags::assembly)) {
+    if (shell_config.is_flag_occured(flags::ir)) {
         std::string output_file_path = shell_config.get_flag_arg(flags::out);
         if (output_file_path == "") output_file_path = default_output_file_path;
         output_file.open(output_file_path);
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
             stdlog::log << stdlog::error << "output file '" << output_file_path << "' cannot open" << stdlog::endl;
             return 0;
         }
-        stdlog::log << stdlog::info << "assembly will output to " << output_file_path << stdlog::endl;
+        stdlog::log << stdlog::info << "ir will output to " << output_file_path << stdlog::endl;
     }
 
     // open the debug file
@@ -209,17 +209,11 @@ int main(int argc, char** argv) {
 
     stdlog::log << stdlog::std << "           symbol table & ir -> |end|" << stdlog::endl;
 
-    // print the IR vector for visualization
-    // and save it to output file
+    // save IR to output file
 
-    BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::ir, debug_file);
-
-    for (const auto& i : ir_result) {
-        stdlog::log << stdlog::info << i.to_string() << stdlog::endl;
-        output_file << i.to_string() << std::endl;
-    }
-
-    END_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::ir);
+    if (shell_config.is_flag_occured(flags::ir))
+        for (const auto& i : ir_result)
+            output_file << i.to_string() << std::endl;
 
     return 0;
 }

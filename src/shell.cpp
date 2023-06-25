@@ -66,7 +66,7 @@ ShellConfig::ShellConfig() {
     flag_short_with_arg["d"] = flags::debug;
     flag_short_with_arg["o"] = flags::out;
     flag_short_with_arg["O"] = flags::optimize;
-    flag_short_no_arg["S"] = flags::assembly;
+    flag_short_no_arg["i"] = flags::ir;
     flag_short_no_arg["t"] = flags::time;
     flag_short_no_arg["s"] = flags::show;
 
@@ -74,7 +74,7 @@ ShellConfig::ShellConfig() {
     flag_long_with_arg["debug"] = flags::debug;
     flag_long_with_arg["out"] = flags::out;
     flag_long_with_arg["optimize"] = flags::optimize;
-    flag_long_no_arg["assembly"] = flags::assembly;
+    flag_long_no_arg["ir"] = flags::ir;
     flag_long_no_arg["time"] = flags::time;
     flag_long_no_arg["show"] = flags::show;
 
@@ -84,28 +84,28 @@ Welcome to use Tastror's Compiler!
 
 use
     compiler -h
-    compiler <input_file> [-d <debug_mode>] [<debug_file>] [-S] [-o <output_file>] [-On (-O1, -O2)] [-t] [-s]
+    compiler <input_file> [-i] [-o <output_file>] [-d <debug_mode>] [<debug_file>] [-On (-O1, -O2)] [-t] [-s]
 to run,
 
 such as
-    compiler test.py -d ast -S -o debug/result.s -O2 --time --show
+    compiler test.py -i -o ir.ll -d ast debug/ast.txt -O2 --time --show
 
 specifically,
     '<input_file>':                         input filename
     '-h' can be replaced by '--help':       show help menu
     '-d' can be replaced by '--debug':      choose a debug mode
-        '<debug_mode>' can be:              shell, lex, parse, ast, sym, ir, cfg, asm (parse == ast)
+        '<debug_mode>' can be:              shell, lex, parse, ast, sym (parse == ast)
         '<debug_file>':                     debug output filename, default is "debug/<debug_mode>.txt"
-    '-S' can be replaced by '--assembly':   whether to assembly
-        '-o' can be replaced by '--out':    next add assembly output filename
-        '<output_file>':                    assembly output filename, default is "out.s"
+    '-i' can be replaced by '--ir':         whether to output ir
+        '-o' can be replaced by '--out':    next add ir output filename
+        '<output_file>':                    ir output filename, default is "result_ir.ll"
     '-O' can be replaced by '--optimize':   optimize option (-O1, -O 1, --optimize 1)
     '-t' can be replaced by '--time':       log time or not
     '-s' can be replaced by '--show':       log on std & file or just file
 
 additionally,
     '<debug_file>' only works when you specify '<debug_mode>'
-    '-o <output_file>' only works when you specify '-S'
+    '-o <output_file>' only works when you specify '-i'
 
 flags' order does not matter, you can choose any order you like
 )";
@@ -123,12 +123,6 @@ debug ShellConfig::debug_type() {
         return debug::ast;
     } else if (type_str == "sym") {
         return debug::symbol;
-    } else if (type_str == "ir") {
-        return debug::ir;
-    } else if (type_str == "cfg") {
-        return debug::control_graph;
-    } else if (type_str == "asm") {
-        return debug::assembly;
     } else {
         return debug::none;
     }

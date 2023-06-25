@@ -19,8 +19,8 @@
 
 // warning: INCOMPATIBLE CODE BEGIN
 
-enum class flags {help, debug, assembly, out, optimize, time, show};
-enum class debug {none, shell, lex, parse, ast, symbol, ir, control_graph, assembly};
+enum class flags {help, debug, ir, out, optimize, time, show};
+enum class debug {none, shell, lex, parse, ast, symbol};
 
 // warning: INCOMPATIBLE CODE END
 

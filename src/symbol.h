@@ -32,13 +32,13 @@ struct SymbolType {
     std::string to_string() const;
 };
 
-SymbolType make_basic(basic_type type);
-SymbolType make_tuple(const std::vector<SymbolType>& types);
-SymbolType make_same_set(const SymbolType& contain_type);
-SymbolType make_same_list(const SymbolType& contain_type);
-SymbolType make_same_dict(const SymbolType& contain_key, const SymbolType& contain_value);
-SymbolType make_function(const SymbolType& return_value, const std::vector<SymbolType>& args);
-SymbolType make_class(const std::string& class_name, const SymbolType& base_class = make_basic(basic_type::none));
+SymbolType make_sym_basic(basic_type type);
+SymbolType make_sym_tuple(const std::vector<SymbolType>& types);
+SymbolType make_sym_same_set(const SymbolType& contain_type);
+SymbolType make_sym_same_list(const SymbolType& contain_type);
+SymbolType make_sym_same_dict(const SymbolType& contain_key, const SymbolType& contain_value);
+SymbolType make_sym_function(const SymbolType& return_value, const std::vector<SymbolType>& args);
+SymbolType make_sym_class(const std::string& class_name, const SymbolType& base_class = make_sym_basic(basic_type::none));
 
 struct SymbolTableNode {
     std::unordered_map<std::string, SymbolType> map;

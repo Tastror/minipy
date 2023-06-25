@@ -57,14 +57,14 @@ std::string SymbolType::to_string() const {
     }
 }
 
-SymbolType make_basic(basic_type type) {
+SymbolType make_sym_basic(basic_type type) {
     SymbolType res;
     res.high_level_type = high_type::use_basic;
     res.base_type = type;
     return res;
 }
 
-SymbolType make_tuple(const std::vector<SymbolType>& types) {
+SymbolType make_sym_tuple(const std::vector<SymbolType>& types) {
     SymbolType res;
     res.high_level_type = high_type::tuple;
     for (const auto& i : types)
@@ -72,21 +72,21 @@ SymbolType make_tuple(const std::vector<SymbolType>& types) {
     return res;
 }
 
-SymbolType make_same_set(const SymbolType& contain_type) {
+SymbolType make_sym_same_set(const SymbolType& contain_type) {
     SymbolType res;
     res.high_level_type = high_type::set;
     res.son_types.push_back(contain_type);
     return res;
 }
 
-SymbolType make_same_list(const SymbolType& contain_type) {
+SymbolType make_sym_same_list(const SymbolType& contain_type) {
     SymbolType res;
     res.high_level_type = high_type::list;
     res.son_types.push_back(contain_type);
     return res;
 }
 
-SymbolType make_same_dict(const SymbolType& contain_key, const SymbolType& contain_value) {
+SymbolType make_sym_same_dict(const SymbolType& contain_key, const SymbolType& contain_value) {
     SymbolType res;
     res.high_level_type = high_type::dict;
     res.son_types.push_back(contain_key);
@@ -94,7 +94,7 @@ SymbolType make_same_dict(const SymbolType& contain_key, const SymbolType& conta
     return res;
 }
 
-SymbolType make_function(const SymbolType& return_value, const std::vector<SymbolType>& args) {
+SymbolType make_sym_function(const SymbolType& return_value, const std::vector<SymbolType>& args) {
     SymbolType res;
     res.high_level_type = high_type::function;
     res.son_types.push_back(return_value);
@@ -103,7 +103,7 @@ SymbolType make_function(const SymbolType& return_value, const std::vector<Symbo
     return res;
 }
 
-SymbolType make_class(const std::string& class_name, const SymbolType& base_class) {
+SymbolType make_sym_class(const std::string& class_name, const SymbolType& base_class) {
     SymbolType res;
     res.high_level_type = high_type::classes;
     res.class_name = class_name;
