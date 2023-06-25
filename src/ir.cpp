@@ -160,6 +160,7 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
 
         ir_vec.push_back(define_func_ir);
         sym_table.update(name, function_sym_type);
+        stdlog::log << stdlog::info << name << ": " << function_sym_type.to_string() << stdlog::endl;
         sym_table.add_son_goto_son();
 
         // TODO: func params to inner symble table + inner search

@@ -36,9 +36,7 @@ std::string to_string(high_type a) {
     return "<enum to_string error>";
 }
 
-SymbolType::SymbolType() {
-    SymbolType(basic_type::none);
-}
+SymbolType::SymbolType() : SymbolType(basic_type::none) {}
 
 SymbolType::SymbolType(basic_type type) {
     base_type = type;
