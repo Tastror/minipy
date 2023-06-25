@@ -55,13 +55,13 @@ extern int yydebug;
 #include "../src/parser.h"
 
 #define LOG_ASTNODE(log_info_string) \
-    do { stdlog::log << stdlog::info << "astnode: " << log_info_string << stdlog::endl; } while(0)
+    do { stdlog::log << stdlog::info << "astnode: " << log_info_string << stdlog::endl; } while (0)
 
 // below only for ast_error
 #define GEN_ERROR_NODE(log_info_string, new_astnode_ptr, token_ptr) do { \
     LOG_ASTNODE(log_info_string); \
     new_astnode_ptr = make_astnode_from_token(token_ptr); \
-} while(0)
+} while (0)
 #define EMPTY(node, leaf) GEN_ERROR_NODE("... (for ast_error)", node, leaf)
 #define DELIMITER(node, leaf) GEN_ERROR_NODE("t_delimiter_... (for ast_error)", node, leaf)
 #define BRACKET(node, leaf) GEN_ERROR_NODE("t_bracket_... (for ast_error)", node, leaf)

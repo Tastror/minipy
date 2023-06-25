@@ -19,7 +19,7 @@ std::string to_string(basic_type a) {
     case basic_type::floats: return "float";
     case basic_type::str: return "str";
     }
-    return "<to_string error>";
+    return "<enum to_string error>";
 }
 
 std::string to_string(high_type a) {
@@ -32,7 +32,7 @@ std::string to_string(high_type a) {
     case high_type::function: return "function";
     case high_type::classes: return "class";
     }
-    return "<to_string error>";
+    return "<enum to_string error>";
 }
 
 std::string SymbolType::to_string() const {

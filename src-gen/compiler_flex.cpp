@@ -893,7 +893,7 @@ Token* last_ptr = nullptr;
 #define SET_TOKEN_LINE_COLUMN do { \
     yylval.token_ptr->lineno = yylineno; \
     yylval.token_ptr->columnno = yycolumnno; \
-} while(0)
+} while (0)
 
 
 
@@ -901,20 +901,20 @@ Token* last_ptr = nullptr;
     stdlog::log << stdlog::info \
         << "line " << yylineno << ", column " << yycolumnno \
         << ": " << type_string << ": " << yytext << stdlog::endl; \
-} while(0)
+} while (0)
 
 #define LOG_TOKEN_WITH_VALUE(type_string, data) do { \
     stdlog::log << stdlog::info \
         << "line " << yylineno << ", column " << yycolumnno \
         << ": " << type_string << ": " << yytext \
         << ", value = " << data << stdlog::endl; \
-} while(0)
+} while (0)
 
 #define LOG_TOKEN_NEWLINE() do { \
     stdlog::log << stdlog::info \
         << "line " << yylineno << ", column " << yycolumnno \
         << ": newline" << stdlog::endl; \
-} while(0)
+} while (0)
 
 #define LOG_TOKEN_DENT() do { \
     stdlog::log << stdlog::info \
@@ -925,39 +925,39 @@ Token* last_ptr = nullptr;
         << IDN.absolute_depth << ", relative = " \
         << IDN.relative_depth \
         << stdlog::endl; \
-} while(0)
+} while (0)
 
 #define LOG_TOKEN_INDENT() do { \
     stdlog::log << stdlog::info << "line " << yylineno << ": indent" << stdlog::endl; \
-} while(0)
+} while (0)
 
 #define LOG_TOKEN_DEDENT() do { \
     stdlog::log << stdlog::info << "line " << yylineno << ": dedent" << stdlog::endl; \
-} while(0)
+} while (0)
 
 #define LOG_TOKEN_ERROR(type_string) do { \
     stdlog::log << stdlog::error \
         << "line " << yylineno << ", column " << yycolumnno \
         << ": " << type_string << ": " << yytext << stdlog::endl; \
-} while(0)
+} while (0)
 
 #define LOG_TOKEN_DENT_ERROR(type_string, space_num, tab_num) do { \
     stdlog::log << stdlog::error \
         << "line " << yylineno << ", column " << yycolumnno \
         << ": " << space_num << " space(s) and " << tab_num << " tab(s), " \
         << type_string << stdlog::endl; \
-} while(0)
+} while (0)
 
 
 
 #define SAME_LINE_COLUMN_UPDATE \
-    do { last_string = std::string(yytext); last_string_length = last_string.size(); yycolumnno += last_string.size(); } while(0)
+    do { last_string = std::string(yytext); last_string_length = last_string.size(); yycolumnno += last_string.size(); } while (0)
 
 #define NEW_LINE_COLUMN_UPDATE \
-    do { last_string = std::string("\n"); last_string_length = 1; yycolumnno = 1; } while(0)
+    do { last_string = std::string("\n"); last_string_length = 1; yycolumnno = 1; } while (0)
 
 #define EOF_COLUMN_UPDATE \
-    do { last_string = std::string(); last_string_length = 0; } while(0)
+    do { last_string = std::string(); last_string_length = 0; } while (0)
 
 
 
@@ -968,7 +968,7 @@ Token* last_ptr = nullptr;
     SET_TOKEN_LINE_COLUMN; \
     LOG_TOKEN(b); \
     SAME_LINE_COLUMN_UPDATE; \
-} while(0)
+} while (0)
 
 // this is because flex change the yylineno once I read \n, however I don't want it update this fast.
 #define NEWLINE_TOKEN_GEN do { \
@@ -978,7 +978,7 @@ Token* last_ptr = nullptr;
     yylval.token_ptr->lineno--; \
     LOG_TOKEN_NEWLINE(); \
     NEW_LINE_COLUMN_UPDATE; \
-} while(0)
+} while (0)
 
 #define STRTEXT_TOKEN_GEN do { \
     yylval.token_ptr = make_token(); \
@@ -987,7 +987,7 @@ Token* last_ptr = nullptr;
     SET_TOKEN_LINE_COLUMN; \
     LOG_TOKEN("strtext"); \
     SAME_LINE_COLUMN_UPDATE; \
-} while(0)
+} while (0)
 
 #define DELIMITER_TOKEN_GEN \
     GENERAL_TOKEN_GEN(token_type::delimiter, "delimiter")

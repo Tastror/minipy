@@ -59,7 +59,7 @@ std::string to_string(ir_data_type a) {
     case ir_data_type::float_p: return "float*";
     case ir_data_type::double_p: return "double*";
     }
-    return "<to_string error>";
+    return "<enum to_string error>";
 }
 
 IRSentence::IRSentence(ir_op_type operator_type) {
@@ -74,7 +74,6 @@ IRSentence::IRSentence(ir_op_type operator_type, std::vector<std::string>& names
 
 std::string IRSentence::to_string() const {
     const auto four_spaces = std::string("    ");
-    std::string res;
     switch (op_type) {
     case ir_op_type::error:
         return four_spaces + "ir sentence error";
@@ -84,28 +83,32 @@ std::string IRSentence::to_string() const {
         return four_spaces + "declare " + ::to_string(types[0]) + " " + names[0];
     case ir_op_type::alloca:
         return four_spaces + names[0] + " = alloca " + ::to_string(types[0]);
-    case ir_op_type::func_begin:
-        res = "define " + ::to_string(types[1]) + " @" + names[1] + "(";
-        auto i = names.begin() + 1;
-        auto j = types.begin() + 1;
-        if (i != names.end()) {
-            res += ::to_string(*j) + " " + *i;
-            ++i; ++j;
-            while (i != names.end()) {
-                res += ", " + ::to_string(*j) + " " + *i;
+    case ir_op_type::func_begin: do {
+            std::string res = "define " + ::to_string(types[1]) + " @" + names[1] + "(";
+            auto i = names.begin() + 1;
+            auto j = types.begin() + 1;
+            if (i != names.end()) {
+                res += ::to_string(*j) + " " + *i;
                 ++i; ++j;
+                while (i != names.end()) {
+                    res += ", " + ::to_string(*j) + " " + *i;
+                    ++i; ++j;
+                }
             }
-        }
-        res += ") #0 {";
-        return res;
+            res += ") #0 {";
+            return res;
+        } while (0);
     case ir_op_type::func_end:
         return "}";
     }
+    return four_spaces + "ir sentence error";
 }
 
 void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec, RegisterManager global_reg) {
     if (astnode_now == nullptr) return;
     switch (astnode_now->type) {
+    case astnode_type::error:
+        break;
     case astnode_type::statements:
         for (auto i : astnode_now->sons) {
             sausgi(i, sym_table, ir_vec, global_reg);

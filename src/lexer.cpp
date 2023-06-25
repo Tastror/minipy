@@ -38,7 +38,7 @@ std::string to_string(token_type a) {
         case token_type::operators: return "operators";
         case token_type::keyword: return "keyword"; 
     }
-    return "<to_string error>";
+    return "<enum to_string error>";
 }
 
 uint64_t translate_python_int(const std::string& str) {

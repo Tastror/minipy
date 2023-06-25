@@ -137,7 +137,7 @@ std::string to_string(astnode_type a) {
         case astnode_type::sin_op_apdstar: return "sin_op_apdstar"; 
         case astnode_type::bin_op_apequ: return "bin_op_apequ";
     }
-    return "<to_string error>";
+    return "<enum to_string error>";
 }
 
 
