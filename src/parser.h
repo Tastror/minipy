@@ -50,7 +50,7 @@ enum class astnode_type {
     zero_op_pass,
     zero_op_break,
     zero_op_continue,
-    sin_op_return,
+    sin_op_return,  // expr (may be empty)
 
     qua_op_class_block,  // name, base classes (may be empty), block, decorators
     pen_op_function_block,  // name, params (may be empty), return type (may be empty), block, decorators (may be empty)
@@ -74,10 +74,12 @@ enum class astnode_type {
     // just name. such as [a is not b] equals to [a, comp_op_isnot(b)]
     comp_op_notin, comp_op_in, comp_op_isnot, comp_op_is,
 
+    // expr, expr
     bin_op_or, bin_op_xor, bin_op_and, bin_op_sleft, bin_op_sright,
-    bin_op_add, bin_op_sub,
-    bin_op_mul, bin_op_div, bin_op_ediv, bin_op_mod, bin_op_at,
+    // expr, expr
+    bin_op_add, bin_op_sub, bin_op_mul, bin_op_div, bin_op_ediv, bin_op_mod, bin_op_at,
     sin_op_positive, sin_op_negative, sin_op_wavenot,
+    // expr, expr
     bin_op_power,
 
     sin_op_await,
