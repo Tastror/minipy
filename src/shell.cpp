@@ -100,13 +100,13 @@ such as
 specifically,
     )" + YELLOW + R"('<input_file>')" + RESET + R"(:                         input filename
     )" + YELLOW + R"('-h')" + RESET + R"( can be replaced by )" + BLUE + R"('--help')" + RESET + R"(:       show help menu
+    )" + YELLOW + R"('-i')" + RESET + R"( can be replaced by )" + BLUE + R"('--ir')" + RESET + R"(:         whether to output ir
+        )" + YELLOW + R"('-o')" + RESET + R"( can be replaced by )" + BLUE + R"('--out')" + RESET + R"(:    next add ir output filename
+        )" + YELLOW + R"('<output_file>')" + RESET + R"(:                    ir output filename, default is "result_ir.ll"
     )" + YELLOW + R"('-d')" + RESET + R"( can be replaced by )" + BLUE + R"('--debug')" + RESET + R"(:      choose a debug mode
         )" + YELLOW + R"('<debug_mode>')" + RESET + R"( can be:              shell, lex, parse, ast, sym (parse == ast)
         )" + YELLOW + R"('-e')" + RESET + R"( can by )" + BLUE + R"('--debug_out')" + RESET + R"(:          next add debug output filename
         )" + YELLOW + R"('<debug_output_file>')" + RESET + R"(:              debug output filename, default is "debug/<debug_mode>.txt"
-    )" + YELLOW + R"('-i')" + RESET + R"( can be replaced by )" + BLUE + R"('--ir')" + RESET + R"(:         whether to output ir
-        )" + YELLOW + R"('-o')" + RESET + R"( can be replaced by )" + BLUE + R"('--out')" + RESET + R"(:    next add ir output filename
-        )" + YELLOW + R"('<output_file>')" + RESET + R"(:                    ir output filename, default is "result_ir.ll"
     )" + YELLOW + R"('-O')" + RESET + R"( can be replaced by )" + BLUE + R"('--optimize')" + RESET + R"(:   optimize option (-O1, -O 1, --optimize 1)
     )" + YELLOW + R"('-t')" + RESET + R"( can be replaced by )" + BLUE + R"('--time')" + RESET + R"(:       log time or not
     )" + YELLOW + R"('-s')" + RESET + R"( can be replaced by )" + BLUE + R"('--show')" + RESET + R"(:       log on std & file or just file

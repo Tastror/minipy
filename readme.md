@@ -31,7 +31,33 @@ make test  # or `make show` if you want to print to terminal colorfully, :)
 make sample  # compile all testsamples in testsample/right to sample-output/
 ```
 
-or use what you like
+refer to help, you'll see
+
+```shell
+# help
+compiler -h
+
+# run
+compiler \
+    <input_file> \
+    [-i [-o <output_file>]] \
+    [-d <debug_mode> [-e <debug_output_file>]] \
+    [-O <num>] [-t] [-s]
+```
+
+```plaintext
+-h == --help
+-i == --ir:
+-o == --out:
+-d == --debug:
+<debug_mode> can be shell, lex, parse, ast, sym
+-e == --debug_out:
+-O == --optimize:
+-t == --time:
+-s == --show 
+```
+
+do what you like
 
 ```shell
 build\compiler.exe --help
