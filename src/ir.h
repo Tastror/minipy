@@ -10,18 +10,24 @@
 #include "parser.h"
 #include "symbol.h"
 
-class Reg {
+class RegisterManager {
 private:
     int id;
+    bool is_global;
 public:
-    Reg();
+    RegisterManager();
+    RegisterManager(bool is_global);
+    void next();
     int get_int();
+    int get_int_and_next();
     std::string get_str();
+    std::string get_str_and_next();
 };
 
 enum class ir_op_type {
     error,
     label_hint,  // label_name1:  # type1 == label, but not show here; number should be <label>:num:
+    declare,  // declare type1 name1
     alloca,  // name1 = alloca type1
     load,  // name1 = load type1, ptr_type2 name2
     store,  // store type1 name1, ptr_type2 name2
@@ -47,13 +53,19 @@ enum class ir_data_type {
     i32_p, i64_p, float_p, double_p,  // pointer
 };
 
-struct ir_sentence {
+class IRSentence {
+private:
     ir_op_type op_type;
     std::vector<std::string> names;
     std::vector<ir_data_type> types;
+
+public:
+    IRSentence(ir_op_type operator_type);
+    // names and types outside will be deleted!
+    IRSentence(ir_op_type operator_type, std::vector<std::string>& names, std::vector<ir_data_type>& types);
     std::string to_string() const;
 };
 
-std::vector<ir_sentence> search_astnode_update_symboltable_generate_ir(
+std::vector<IRSentence> search_astnode_update_symboltable_generate_ir(
     AstNode*& ast_root, SymbolTable& sym_table
 );
