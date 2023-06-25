@@ -118,8 +118,8 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
         sym_table.update(
             astnode_now->sons[0]->token_leaf.content.name,
             make_sym_function(
-                make_sym_basic(basic_type::none),
-                std::vector<SymbolType>()  // TODO: add params
+                make_sym_basic(basic_type::none)
+                // TODO: add params
             )
         );
         IRSentence define_func_ir(ir_op_type::func_begin);

@@ -35,22 +35,48 @@ std::string to_string(high_type a) {
     return "<enum to_string error>";
 }
 
+SymbolType::SymbolType() {
+    SymbolType(basic_type::none);
+}
+
+SymbolType::SymbolType(basic_type type) {
+    base_type = type;
+    is_valued = false;
+    data.i = 0;
+    high_level_type = high_type::use_basic;
+    is_assigned = false;
+}
+
+SymbolType::SymbolType(basic_type type, SymbolType::data_t data) {
+    base_type = type;
+    is_valued = true;
+    data = data;
+    high_level_type = high_type::use_basic;
+    is_assigned = false;
+}
+
 std::string SymbolType::to_string() const {
     if (high_level_type == high_type::use_basic) {
         return ::to_string(base_type);
     } else {
         std::string res = "";
+        res += ::to_string(high_level_type);
         if (high_level_type == high_type::classes) {
-            res += "<class>" + class_name;
+            res += ": extend (";
+            for (auto i = son_classes.begin(); i < son_classes.end(); ++i) {
+                if (i == son_classes.begin())
+                    res += *i;
+                else
+                    res += ", " + *i;
+            }
         } else {
-            res += ::to_string(high_level_type);
-        }
-        res += ": (";
-        for (auto i = son_types.begin(); i < son_types.end(); ++i) {
-            if (i == son_types.begin())
-                res += i->to_string();
-            else
-                res += ", " + i->to_string();
+            res += ": (";
+            for (auto i = son_types.begin(); i < son_types.end(); ++i) {
+                if (i == son_types.begin())
+                    res += i->to_string();
+                else
+                    res += ", " + i->to_string();
+            }
         }
         res += ")";
         return res;
@@ -58,17 +84,17 @@ std::string SymbolType::to_string() const {
 }
 
 SymbolType make_sym_basic(basic_type type) {
-    SymbolType res;
-    res.high_level_type = high_type::use_basic;
-    res.base_type = type;
-    return res;
+    return SymbolType(type);
 }
 
-SymbolType make_sym_tuple(const std::vector<SymbolType>& types) {
+SymbolType make_sym_basic_valued(basic_type type, SymbolType::data_t data) {
+    return SymbolType(type, data);
+}
+
+SymbolType make_sym_tuple(std::vector<SymbolType>&& types) {
     SymbolType res;
     res.high_level_type = high_type::tuple;
-    for (const auto& i : types)
-        res.son_types.push_back(i);
+    res.son_types = std::move(types);
     return res;
 }
 
@@ -94,20 +120,23 @@ SymbolType make_sym_same_dict(const SymbolType& contain_key, const SymbolType& c
     return res;
 }
 
-SymbolType make_sym_function(const SymbolType& return_value, const std::vector<SymbolType>& args) {
+SymbolType make_sym_function(const SymbolType& return_value, std::vector<SymbolType>&& args) {
     SymbolType res;
     res.high_level_type = high_type::function;
     res.son_types.push_back(return_value);
-    for (const auto& i : args)
-        res.son_types.push_back(i);
+    res.son_types.insert(
+        res.son_types.end(),
+        std::make_move_iterator(args.begin()), 
+        std::make_move_iterator(args.end())
+    );
+    args.erase(args.begin(), args.end());
     return res;
 }
 
-SymbolType make_sym_class(const std::string& class_name, const SymbolType& base_class) {
+SymbolType make_sym_class(const std::string& class_name, std::vector<std::string>&& base_class_names) {
     SymbolType res;
     res.high_level_type = high_type::classes;
-    res.class_name = class_name;
-    res.son_types.push_back(base_class);
+    res.son_classes = std::move(base_class_names);
     return res;
 }
 

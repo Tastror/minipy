@@ -28,6 +28,7 @@ enum class ir_op_type {
     error,
     label_hint,  // label_name1:  # type1 == label, but not show here; number should be <label>:num:
     declare,  // declare type1 name1
+    // assign,  // name1 = assign name2  // no, it is no use to just "assign", x = a, c = x + b --> c = a + b 
     alloca,  // name1 = alloca type1
     load,  // name1 = load type1, ptr_type2 name2
     store,  // store type1 name1, ptr_type2 name2
@@ -42,7 +43,9 @@ enum class ir_op_type {
     switch_inner,  // type1 value1, label_type2 name2 
     switch_end,  // ]
     func_begin,  // define return_value[type1] \@func_name[name1] (type name, ...) #0 {
-    func_end,  // } 
+    func_end,  // }
+    func_call,  // call type1 @name1(type2 name2, ...)
+    func_call_assign,  // name1 = call type2[not type1!!!] @name2(type3 name3, ...)
 };
 
 enum class ir_data_type {
