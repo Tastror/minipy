@@ -79,11 +79,14 @@ class SymbolTable {
 private:
     SymbolTableNode* now;
     std::vector<std::unique_ptr<SymbolTableNode>> node_buff;
+    std::string last_update_name;
 public:
     SymbolTable();
     void add_son_goto_son();
     void del_son_goto_parent();
     void update(const std::string& name, const SymbolType& type);
+    // last update name, please make sure it is in.
+    std::string last_update_to_string();
     bool del(const std::string& name);
     bool is_in_and_get(const std::string& name, SymbolType& result);
 };

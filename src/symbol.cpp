@@ -168,6 +168,12 @@ void SymbolTable::del_son_goto_parent() {
 
 void SymbolTable::update(const std::string& name, const SymbolType& type) {
     now->map[name] = type;
+    last_update_name = name;
+}
+
+// last update name, please make sure it is in.
+std::string SymbolTable::last_update_to_string() {
+    return last_update_name + ": " + now->map[last_update_name].to_string();
 }
 
 bool SymbolTable::del(const std::string& name) {

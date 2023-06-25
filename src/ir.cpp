@@ -113,6 +113,26 @@ std::string IRSentence::to_string() const {
     return four_spaces + "ir sentence error";
 }
 
+
+// always use xxx_name() after getting token's xxx.name
+std::string local_name(const std::string& name) {
+    return "%" + name;
+}
+
+// always use xxx_name() after getting token's xxx.name
+std::string global_name(const std::string& name) {
+    return "@" + name;
+}
+
+// change to global or local name
+// always use xxx_name() after getting token's xxx.name
+std::string global_or_lobal_name(const std::string& name, const RegisterManager& global_reg) {
+    if (global_reg.is_global) return "@" + name;
+    else return "%" + name;
+}
+
+// always get the first token if has
+// if no, will assert false!
 Token* get_token_of_parameter(AstNode* parameter_node) {
     if (parameter_node->is_token_leaf) {
         return &parameter_node->token_leaf;
@@ -141,6 +161,7 @@ std::string calculate_expression_and_return_result_name(
     return "";
 }
 
+// search astnode, update symboltable, generate ir
 void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec, RegisterManager& global_reg) {
     if (astnode_now == nullptr) return;
     switch (astnode_now->type) {
@@ -156,15 +177,15 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
 
     case astnode_type::pen_op_function_block: do {
 
-        std::string name = astnode_now->sons[0]->token_leaf.content.name;
-        if (global_reg.is_global) name = "@" + name;
-        else name = "%" + name;
+        std::string name = global_or_lobal_name(
+            astnode_now->sons[0]->token_leaf.content.name, global_reg
+        );
 
         // sym and ir update simultaneously
         auto function_sym_type = make_sym_function(basic_type::none);
         IRSentence define_func_ir(ir_op_type::func_begin);
         define_func_ir.names.push_back(name);
-        define_func_ir.types.push_back(ir_data_type::voids);
+        define_func_ir.types.push_back(ir_data_type::any);
 
         // add params (depend on calls) <-- use <any> first, and implement one if a new call comes.
         auto params = astnode_now->sons[1];
@@ -174,7 +195,7 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
                 switch (tp->type) {
                 case token_type::identifier:
                     function_sym_type.son_types.emplace_back(basic_type::any);
-                    define_func_ir.names.push_back(tp->content.name);
+                    define_func_ir.names.push_back(local_name(tp->content.name));
                     define_func_ir.types.push_back(ir_data_type::any);
                     break;
                 default:
@@ -185,10 +206,19 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
 
         ir_vec.push_back(define_func_ir);
         sym_table.update(name, function_sym_type);
-        stdlog::log << stdlog::info << name << ": " << function_sym_type.to_string() << stdlog::endl;
+        stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
         sym_table.add_son_goto_son();
 
-        // TODO: func params to inner symble table + inner search
+        // +1: no funtion name
+        for (auto i = define_func_ir.names.begin() + 1; i < define_func_ir.names.end(); ++i) {
+            sym_table.update(*i, basic_type::any);
+            stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
+        }
+
+        // inner block
+        for (auto i : astnode_now->sons[3]->sons) {
+            sausgi(i, sym_table, ir_vec, global_reg);
+        }
 
         ir_vec.emplace_back(ir_op_type::func_end);
         sym_table.del_son_goto_parent();
