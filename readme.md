@@ -28,7 +28,7 @@ use demo `test.py`, see res in `log.txt`
 ```shell
 make help  # --help of this compiler
 make test  # or `make show` if you want to print to terminal colorfully, :)
-make sample  # compile all testsamples in testsample/right to sample-output/
+make sample  # compile all testsamples in testsample/ to sample-output/
 ```
 
 refer to help, you'll see

@@ -1,4 +1,4 @@
-# test usual func
+# test usual function define
 def a():
     return
 
@@ -14,12 +14,11 @@ def d(a: int, b = 0):
 def e(a, b: int = 2) -> int:
     return a * b
 
-# test func use
-a()
-s = b()
-c(not 3 == 1, y = 2)
-y = 1, 2
-d(*y)
+# test inner function
+def outer():
+    def inner():
+        return 1
+    return
 
 # test yield
 def y():
@@ -32,3 +31,10 @@ def z():
     return
     yield
     yield from y()
+
+# test function use
+a()
+s = b()
+c(not 3 == 1, y = 2)
+y = 1, 2
+d(*y)

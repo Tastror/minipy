@@ -75,7 +75,7 @@ clean:
 
 
 
-SAMPLE_DIR = testsample/right
+SAMPLE_DIR = testsample
 SAMPLE_FILES = $(notdir $(wildcard $(addprefix $(SAMPLE_DIR)/, *.py)))
 
 SAMPLE_OUTPUT_DIR = sample-output
