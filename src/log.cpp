@@ -134,9 +134,6 @@ namespace stdlog {
         case debug:
             log_func = std::bind(&logstream::log_debug, this, std::placeholders::_1);
             break;
-        default:
-            log_func = std::bind(&logstream::log_std, this, std::placeholders::_1);
-            break;
         }
         return *this;
     }

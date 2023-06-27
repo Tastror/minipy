@@ -128,8 +128,14 @@ std::string to_string(astnode_type a) {
         case astnode_type::sin_op_await: return "sin_op_await";
         case astnode_type::bin_op_dot: return "bin_op_dot";
         case astnode_type::bin_op_fcall: return "bin_op_fcall";
+        case astnode_type::bin_op_index: return "bin_op_index";
 
-        case astnode_type::list_op_slices: return "list_op_slices";
+        case astnode_type::list_mayempty_op_list: return "list_mayempty_op_list";
+        case astnode_type::list_mayempty_op_tuple: return "list_mayempty_op_tuple";
+        case astnode_type::list_mayempty_op_set: return "list_mayempty_op_set";
+        case astnode_type::list_mayempty_op_dict: return "list_mayempty_op_dict";
+
+        case astnode_type::tri_op_slice: return "tri_op_slice";
         case astnode_type::list_op_strings: return "list_op_strings";
         case astnode_type::list_op_args_or_prams: return "list_op_args_or_prams";
 

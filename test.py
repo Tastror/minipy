@@ -1,5 +1,6 @@
 def init(r) -> None:
-    r.c = 4
+    r = 4
+    return r
 
 class TypeA:
     a: int = 1

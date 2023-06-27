@@ -260,9 +260,10 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> expressions_rhs
 
 %type <astnode_ptr> yield_expr
-%type <astnode_ptr> _normal_expression
-%type <astnode_ptr> star_expressions
-%type <astnode_ptr> _no_endcomma_star_expressions
+%type <astnode_ptr> _normal_multiple_or_single_expr
+%type <astnode_ptr> _tuple_like_multiple_or_single_expr
+%type <astnode_ptr> _no_endcomma_multiple_expressions
+%type <astnode_ptr> _normal_single_expression
 %type <astnode_ptr> star_expression
 %type <astnode_ptr> _expression_if_else
 %type <astnode_ptr> _disjunction_or_just_conjunction
@@ -300,18 +301,10 @@ void yyerror(AstNode*& ast_head, char* msg);
 
 // [6] basic defines
 
-%type <astnode_ptr> slices
-%type <astnode_ptr> slice
-%type <astnode_ptr> _part_fo_slice
 %type <astnode_ptr> list
 %type <astnode_ptr> tuple
 %type <astnode_ptr> set
 %type <astnode_ptr> dict
-%type <astnode_ptr> double_starred_kvpairs
-%type <astnode_ptr> double_starred_kvpair
-%type <astnode_ptr> kvpair
-%type <astnode_ptr> strings
-%type <astnode_ptr> string_text
 
 %type <astnode_ptr> for_if_clauses
 %type <astnode_ptr> for_if_clause
@@ -320,6 +313,12 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> genexp
 %type <astnode_ptr> dictcomp
 
+%type <astnode_ptr> double_starred_kvpairs
+%type <astnode_ptr> double_starred_kvpair
+%type <astnode_ptr> kvpair
+%type <astnode_ptr> slice
+%type <astnode_ptr> strings
+%type <astnode_ptr> string_text
 %type <astnode_ptr> arguments_or_parameters
 %type <astnode_ptr> argparas
 %type <astnode_ptr> argpara
@@ -414,7 +413,7 @@ simple_stmt:
                 $$ = make_astnode(astnode_type::zero_op_continue);
             }
         | assignment
-        | _normal_expression
+        | _normal_multiple_or_single_expr
         | yield_expr
         | t_keyword_return
             {
@@ -422,7 +421,7 @@ simple_stmt:
                 $$ = make_astnode(astnode_type::sin_op_return);
                 $$->eat(make_empty_astnode());
             }
-        | t_keyword_return _normal_expression
+        | t_keyword_return _normal_multiple_or_single_expr
             {
                 LOG_ASTNODE("t_keyword_return (for simple_stmt)");
                 $$ = make_astnode(astnode_type::sin_op_return);
@@ -541,7 +540,7 @@ function_def_raw:
                 $$->eat(make_empty_astnode());
                 $$->eat($7);
             }
-        | t_keyword_def t_identifier t_bracket_parentheses_l t_bracket_parentheses_r t_delimiter_arrow _normal_expression t_delimiter_colon block
+        | t_keyword_def t_identifier t_bracket_parentheses_l t_bracket_parentheses_r t_delimiter_arrow _normal_multiple_or_single_expr t_delimiter_colon block
             {
                 LOG_ASTNODE("t_keyword_def (for function_def_raw)");
                 LOG_ASTNODE("t_identifier (for function_def_raw)");
@@ -555,7 +554,7 @@ function_def_raw:
                 $$->eat($6);
                 $$->eat($8);
             }
-        | t_keyword_def t_identifier t_bracket_parentheses_l arguments_or_parameters t_bracket_parentheses_r t_delimiter_arrow _normal_expression t_delimiter_colon block
+        | t_keyword_def t_identifier t_bracket_parentheses_l arguments_or_parameters t_bracket_parentheses_r t_delimiter_arrow _normal_multiple_or_single_expr t_delimiter_colon block
             {
                 LOG_ASTNODE("t_keyword_def (for function_def_raw)");
                 LOG_ASTNODE("t_identifier (for function_def_raw)");
@@ -614,7 +613,7 @@ class_def_raw:
             }
 
 if_stmt:
-          t_keyword_if _normal_expression t_delimiter_colon block elif_stmt
+          t_keyword_if _normal_multiple_or_single_expr t_delimiter_colon block elif_stmt
             {
                 LOG_ASTNODE("t_keyword_if (for if_stmt)");
                 LOG_ASTNODE("t_delimiter_colon (for if_stmt)");
@@ -623,7 +622,7 @@ if_stmt:
                 $$->eat($4);
                 $$->eat($5);
             }
-        | t_keyword_if _normal_expression t_delimiter_colon block
+        | t_keyword_if _normal_multiple_or_single_expr t_delimiter_colon block
             {
                 LOG_ASTNODE("t_keyword_if (for if_stmt)");
                 LOG_ASTNODE("t_delimiter_colon (for if_stmt)");
@@ -632,7 +631,7 @@ if_stmt:
                 $$->eat($4);
                 $$->eat(make_empty_astnode());
             }
-        | t_keyword_if _normal_expression t_delimiter_colon block else_block
+        | t_keyword_if _normal_multiple_or_single_expr t_delimiter_colon block else_block
             {
                 LOG_ASTNODE("t_keyword_if (for if_stmt)");
                 LOG_ASTNODE("t_delimiter_colon (for if_stmt)");
@@ -643,7 +642,7 @@ if_stmt:
             }
 
 elif_stmt:
-          t_keyword_elif _normal_expression t_delimiter_colon block elif_stmt
+          t_keyword_elif _normal_multiple_or_single_expr t_delimiter_colon block elif_stmt
             {
                 LOG_ASTNODE("t_keyword_elif (for elif_stmt)");
                 LOG_ASTNODE("t_delimiter_colon (for elif_stmt)");
@@ -652,7 +651,7 @@ elif_stmt:
                 $$->eat($4);
                 $$->eat($5);
             }
-        | t_keyword_elif _normal_expression t_delimiter_colon block
+        | t_keyword_elif _normal_multiple_or_single_expr t_delimiter_colon block
             {
                 LOG_ASTNODE("t_keyword_elif (for elif_stmt)");
                 LOG_ASTNODE("t_delimiter_colon (for elif_stmt)");
@@ -661,7 +660,7 @@ elif_stmt:
                 $$->eat($4);
                 $$->eat(make_empty_astnode());
             }
-        | t_keyword_elif _normal_expression t_delimiter_colon block else_block
+        | t_keyword_elif _normal_multiple_or_single_expr t_delimiter_colon block else_block
             {
                 LOG_ASTNODE("t_keyword_elif (for elif_stmt)");
                 LOG_ASTNODE("t_delimiter_colon (for elif_stmt)");
@@ -694,7 +693,7 @@ block:
 
 // expression order
 // (no genexp yet)
-// i means identifier, p means primary, g means arguments, s means slices, a means atom
+// i means identifier, p means primary, g means arguments, s means slice, a means atom
 
 // xx if xx else xx
 // yield xx, yield from xx
@@ -721,10 +720,10 @@ expressions_type:
           primary
 
 expressions_lhs:
-          _normal_expression
+          _normal_multiple_or_single_expr
 
 expressions_rhs:
-          _normal_expression
+          _normal_multiple_or_single_expr
         | yield_expr
 
 // below are not normal
@@ -746,13 +745,13 @@ yield_expr:
                 $$ = make_astnode(astnode_type::sin_op_yield);
                 $$->eat(make_empty_astnode());
             }
-        | t_keyword_yield _normal_expression
+        | t_keyword_yield _normal_multiple_or_single_expr
             {
                 LOG_ASTNODE("t_keyword_yield (for yield_expr)");
                 $$ = make_astnode(astnode_type::sin_op_yield);
                 $$->eat($2);
             }
-        | t_keyword_yield t_keyword_from _normal_expression
+        | t_keyword_yield t_keyword_from _normal_multiple_or_single_expr
             {
                 LOG_ASTNODE("t_keyword_yield (for yield_expr)");
                 LOG_ASTNODE("t_keyword_from (for yield_expr)");
@@ -760,37 +759,40 @@ yield_expr:
                 $$->eat($3);
             }
 
-_normal_expression:
-          star_expressions
-        | star_expression
+_normal_multiple_or_single_expr:
+          _tuple_like_multiple_or_single_expr
+        | _normal_single_expression
 
-star_expressions:
-          _no_endcomma_star_expressions
-        | _no_endcomma_star_expressions t_delimiter_comma
+_tuple_like_multiple_or_single_expr:
+          _no_endcomma_multiple_expressions
+        | _no_endcomma_multiple_expressions t_delimiter_comma
             {
-                LOG_ASTNODE("t_delimiter_comma (for star_expressions)");
+                LOG_ASTNODE("t_delimiter_comma (for _tuple_like_multiple_or_single_expr)");
                 $$ = $1;
             }
-        | star_expression t_delimiter_comma
+        | _normal_single_expression t_delimiter_comma
             {
-                LOG_ASTNODE("t_delimiter_comma (for star_expressions)");
+                LOG_ASTNODE("t_delimiter_comma (for _tuple_like_multiple_or_single_expr)");
                 $$ = make_astnode(astnode_type::expressions);  // to normal expressions
                 $$->eat($1);
             }
 
-_no_endcomma_star_expressions:
-          star_expression t_delimiter_comma star_expression
+_no_endcomma_multiple_expressions:
+          _normal_single_expression t_delimiter_comma _normal_single_expression
             {
-                LOG_ASTNODE("t_delimiter_comma (for star_expressions)");
+                LOG_ASTNODE("t_delimiter_comma (for _no_endcomma_multiple_expressions)");
                 $$ = make_astnode(astnode_type::expressions);  // to normal expressions
                 $$->eat($1);
                 $$->eat($3);
             }
-        | _no_endcomma_star_expressions t_delimiter_comma star_expression
+        | _no_endcomma_multiple_expressions t_delimiter_comma _normal_single_expression
             {
-                LOG_ASTNODE("t_delimiter_comma (for _no_endcomma_star_expressions)");
+                LOG_ASTNODE("t_delimiter_comma (for _no_endcomma_multiple_expressions)");
                 $$ = $1->eat($3);
             }
+
+_normal_single_expression:
+          star_expression
 
 star_expression:
           _expression_if_else
@@ -1105,7 +1107,22 @@ primary:
                 $$->eat($1);
                 $$->eat($3);
             }
-        // | primary t_bracket_square_l   // wait for slices
+        | primary t_bracket_square_l slice t_bracket_square_r
+            {
+                LOG_ASTNODE("t_bracket_square_l (for primary)");
+                LOG_ASTNODE("t_bracket_square_r (for primary)");
+                $$ = make_astnode(astnode_type::bin_op_index);
+                $$->eat($1);
+                $$->eat($3);
+            }
+        | primary t_bracket_square_l _normal_multiple_or_single_expr t_bracket_square_r
+            {
+                LOG_ASTNODE("t_bracket_square_l (for primary)");
+                LOG_ASTNODE("t_bracket_square_r (for primary)");
+                $$ = make_astnode(astnode_type::bin_op_index);
+                $$->eat($1);
+                $$->eat($3);
+            }
 
 atom:
          t_identifier
@@ -1143,6 +1160,9 @@ atom:
                 LOG_ASTNODE("t_delimiter_3dot (for atom)");
                 $$ = make_astnode_from_token($1, astnode_type::atom);
             }
+        | list
+        | tuple
+        | set
         | strings
         | t_bracket_parentheses_l yield_expr t_bracket_parentheses_r
             {
@@ -1150,7 +1170,7 @@ atom:
                 LOG_ASTNODE("t_bracket_parentheses_r (for atom)");
                 $$ = $2;
             }
-        | t_bracket_parentheses_l _normal_expression t_bracket_parentheses_r
+        | t_bracket_parentheses_l _normal_multiple_or_single_expr t_bracket_parentheses_r
             {
                 LOG_ASTNODE("t_bracket_parentheses_l (for atom)");
                 LOG_ASTNODE("t_bracket_parentheses_r (for atom)");
@@ -1160,6 +1180,175 @@ atom:
 
 
 // [6] basic defines
+
+list:
+          t_bracket_square_l t_bracket_square_r
+            {
+                LOG_ASTNODE("t_bracket_square_l (for list)");
+                LOG_ASTNODE("t_bracket_square_r (for list)");
+                $$ = make_astnode(astnode_type::list_mayempty_op_list);
+            }
+        | t_bracket_square_l _tuple_like_multiple_or_single_expr t_bracket_square_r
+            {
+                LOG_ASTNODE("t_bracket_square_l (for list)");
+                LOG_ASTNODE("t_bracket_square_r (for list)");
+                $$ = make_astnode(astnode_type::list_mayempty_op_list);
+                $$->eat_sons($2);
+                remove_from_astnode_buff($2);
+            }
+        | t_bracket_square_l _normal_single_expression t_bracket_square_r
+            {
+                LOG_ASTNODE("t_bracket_square_l (for list)");
+                LOG_ASTNODE("t_bracket_square_r (for list)");
+                $$ = make_astnode(astnode_type::list_mayempty_op_list);
+                $$->eat($2);
+            }
+
+tuple:
+          t_bracket_parentheses_l t_bracket_parentheses_r
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for tuple)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for tuple)");
+                $$ = make_astnode(astnode_type::list_mayempty_op_tuple);
+            }
+        | t_bracket_parentheses_l _tuple_like_multiple_or_single_expr t_bracket_parentheses_r
+            {
+                LOG_ASTNODE("t_bracket_parentheses_l (for tuple)");
+                LOG_ASTNODE("t_delimiter_comma (for tuple)");
+                LOG_ASTNODE("t_bracket_parentheses_r (for tuple)");
+                $$ = make_astnode(astnode_type::list_mayempty_op_tuple);
+                $$->eat_sons($2);
+                remove_from_astnode_buff($2);
+            }
+
+set:
+          t_bracket_curly_l t_bracket_curly_r
+            {
+                LOG_ASTNODE("t_bracket_curly_l (for set)");
+                LOG_ASTNODE("t_bracket_curly_r (for set)");
+                $$ = make_astnode(astnode_type::list_mayempty_op_set);
+            }
+        | t_bracket_curly_l _tuple_like_multiple_or_single_expr t_bracket_curly_r
+            {
+                LOG_ASTNODE("t_bracket_square_l (for list)");
+                LOG_ASTNODE("t_bracket_square_r (for list)");
+                $$ = make_astnode(astnode_type::list_mayempty_op_set);
+                $$->eat_sons($2);
+                remove_from_astnode_buff($2);
+            }
+        | t_bracket_curly_l _normal_single_expression t_bracket_curly_r
+            {
+                LOG_ASTNODE("t_bracket_square_l (for list)");
+                LOG_ASTNODE("t_bracket_square_r (for list)");
+                $$ = make_astnode(astnode_type::list_mayempty_op_set);
+                $$->eat($2);
+            }
+
+slice:
+                                    t_delimiter_colon
+            {
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                $$ = make_astnode(astnode_type::tri_op_slice);
+                $$->eat(make_empty_astnode());
+                $$->eat(make_empty_astnode());
+                $$->eat(make_empty_astnode());
+            }
+        |                           t_delimiter_colon _normal_single_expression
+            {
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                $$ = make_astnode(astnode_type::tri_op_slice);
+                $$->eat(make_empty_astnode());
+                $$->eat($2);
+                $$->eat(make_empty_astnode());
+            }
+        | _normal_single_expression t_delimiter_colon
+            {
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                $$ = make_astnode(astnode_type::tri_op_slice);
+                $$->eat($1);
+                $$->eat(make_empty_astnode());
+                $$->eat(make_empty_astnode());
+            }
+        | _normal_single_expression t_delimiter_colon _normal_single_expression
+            {
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                $$ = make_astnode(astnode_type::tri_op_slice);
+                $$->eat($1);
+                $$->eat($3);
+                $$->eat(make_empty_astnode());
+            }
+        |                           t_delimiter_colon                           t_delimiter_colon
+            {
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                $$ = make_astnode(astnode_type::tri_op_slice);
+                $$->eat(make_empty_astnode());
+                $$->eat(make_empty_astnode());
+                $$->eat(make_empty_astnode());
+            }
+        |                           t_delimiter_colon                           t_delimiter_colon _normal_single_expression
+            {
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                $$ = make_astnode(astnode_type::tri_op_slice);
+                $$->eat(make_empty_astnode());
+                $$->eat(make_empty_astnode());
+                $$->eat($3);
+            }
+        |                           t_delimiter_colon _normal_single_expression t_delimiter_colon
+            {
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                $$ = make_astnode(astnode_type::tri_op_slice);
+                $$->eat(make_empty_astnode());
+                $$->eat($2);
+                $$->eat(make_empty_astnode());
+            }
+        |                           t_delimiter_colon _normal_single_expression t_delimiter_colon _normal_single_expression
+            {
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                $$ = make_astnode(astnode_type::tri_op_slice);
+                $$->eat(make_empty_astnode());
+                $$->eat($2);
+                $$->eat($4);
+            }
+        | _normal_single_expression t_delimiter_colon                           t_delimiter_colon
+            {
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                $$ = make_astnode(astnode_type::tri_op_slice);
+                $$->eat($1);
+                $$->eat(make_empty_astnode());
+                $$->eat(make_empty_astnode());
+            }
+        | _normal_single_expression t_delimiter_colon                           t_delimiter_colon _normal_single_expression
+            {
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                $$ = make_astnode(astnode_type::tri_op_slice);
+                $$->eat($1);
+                $$->eat(make_empty_astnode());
+                $$->eat($4);
+            }
+        | _normal_single_expression t_delimiter_colon _normal_single_expression t_delimiter_colon
+            {
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                $$ = make_astnode(astnode_type::tri_op_slice);
+                $$->eat($1);
+                $$->eat($3);
+                $$->eat(make_empty_astnode());
+            }
+        | _normal_single_expression t_delimiter_colon _normal_single_expression t_delimiter_colon _normal_single_expression
+            {
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                LOG_ASTNODE("t_delimiter_colon (for slice)");
+                $$ = make_astnode(astnode_type::tri_op_slice);
+                $$->eat($1);
+                $$->eat($3);
+                $$->eat($5);
+            }
 
 strings:
           string_text
@@ -1209,7 +1398,7 @@ argparas:
             }
 
 argpara:
-          _expression_if_else
+          _normal_single_expression
         | primary t_delimiter_colon primary
             {
                 LOG_ASTNODE("t_delimiter_colon (for argpara)");
@@ -1217,26 +1406,26 @@ argpara:
                 $$->eat($1);
                 $$->eat($3);
             }
-        | t_operators_mul _expression_if_else
+        | t_operators_mul _normal_single_expression
             {
                 LOG_ASTNODE("t_operators_mul (for argpara)");
                 $$ = make_astnode(astnode_type::sin_op_apstar);
                 $$->eat($2);
             }
-        | t_operators_pow _expression_if_else
+        | t_operators_pow _normal_single_expression
             {
                 LOG_ASTNODE("t_operators_pow (for argpara)");
                 $$ = make_astnode(astnode_type::sin_op_apdstar);
                 $$->eat($2);
             }
-        | primary t_operators_assign _expression_if_else
+        | primary t_operators_assign _normal_single_expression
             {
                 LOG_ASTNODE("t_operators_assign (for argpara)");
                 $$ = make_astnode(astnode_type::bin_op_apequ);
                 $$->eat($1);
                 $$->eat($3);
             }
-        | primary t_delimiter_colon primary t_operators_assign _expression_if_else
+        | primary t_delimiter_colon primary t_operators_assign _normal_single_expression
             {
                 LOG_ASTNODE("t_delimiter_colon (for argpara)");
                 LOG_ASTNODE("t_operators_assign (for argpara)");
@@ -1270,10 +1459,10 @@ ast_error :
         // | t_bracket_dquotes { BRACKET($$, $1); }
         // | t_bracket_parentheses_l { BRACKET($$, $1); }
         // | t_bracket_parentheses_r { BRACKET($$, $1); }
-        | t_bracket_square_l { BRACKET($$, $1); }
-        | t_bracket_square_r { BRACKET($$, $1); }
-        | t_bracket_curly_l { BRACKET($$, $1); }
-        | t_bracket_curly_r { BRACKET($$, $1); }
+        // | t_bracket_square_l { BRACKET($$, $1); }
+        // | t_bracket_square_r { BRACKET($$, $1); }
+        // | t_bracket_curly_l { BRACKET($$, $1); }
+        // | t_bracket_curly_r { BRACKET($$, $1); }
         // | t_operators_add { OPERATORS($$, $1); }
         // | t_operators_sub { OPERATORS($$, $1); }
         // | t_operators_mul { OPERATORS($$, $1); }

@@ -19,22 +19,24 @@ extern FILE* yyin;
 
 // Types can only be:
 //   [1] operator types:
-//     zero_op_...
-//     sin_op_... (including: comp_op_...)
-//     bin_op_...
-//     tri_op_..., qua_op_..., ...
-//     list_op_... (including: statements, expressions)
+//     0: zero_op_... {empty}
+//     1: sin_op_..., comp_op_...
+//     2: bin_op_...
+//     3,4,...: tri_op_..., qua_op_..., ...
+//     >=1: list_op_... (including: statements, expressions, ...)
+//     >=0: list_mayempty_op_... (including: list, tuple, ...) {may-empty}
 //  [2] substance types:
 //     error (with token leaf)
 //     atom (with token leaf)
-//     placeholder (no token leaf)
+//     placeholder (no token leaf) {empty}
+//  [3] warning: {empty} and {may-empty} have (may have) no token at the end! so be careful!
 enum class astnode_type {
 
 // substance types
 
     error,  // with token_leaf
     atom,  // with token_leaf
-    placeholder,  // empty
+    placeholder,  // no real data, no token leaf, is not token {empty}
 
 // temp
 
@@ -44,16 +46,16 @@ enum class astnode_type {
 
     statements,  // list_op_statements
 
-    tri_op_assign,  // type (may be empty), lhs, rhs
+    tri_op_assign,  // type (may be placeholder), lhs, rhs
     tri_op_augassign,  // operator, lhs, rhs
 
-    zero_op_pass,
-    zero_op_break,
-    zero_op_continue,
-    sin_op_return,  // expr (may be empty)
+    zero_op_pass, // {empty}
+    zero_op_break, // {empty}
+    zero_op_continue,  // {empty}
+    sin_op_return,  // expr (may be placeholder)
 
-    qua_op_class_block,  // name, base classes (may be empty), block, decorators
-    pen_op_function_block,  // name, params (may be empty), return type (may be empty), block, decorators (may be empty)
+    qua_op_class_block,  // name, base classes (may be placeholder), block, decorators
+    pen_op_function_block,  // name, params (may be placeholder), return type (may be placeholder), block, decorators (may be placeholder)
     tri_op_if_else_block,  // condition, if, else (else can also be if_else_block, which means elif)
 
     sin_op_yield,
@@ -84,9 +86,15 @@ enum class astnode_type {
 
     sin_op_await,
     bin_op_dot,  // name, dot_expr (may be recursive)
-    bin_op_fcall,  // name, args_list (may be empty)
+    bin_op_fcall,  // name, args_list (may be placeholder)
+    bin_op_index,  // name, tri_op_slice or index
 
-    list_op_slices,
+    list_mayempty_op_list,  // {may-empty}
+    list_mayempty_op_tuple,  // {may-empty}
+    list_mayempty_op_set,  // {may-empty}
+    list_mayempty_op_dict,  // {may-empty}
+
+    tri_op_slice,  // start (maybe placeholder), end (maybe placeholder), step (maybe placeholder)
     list_op_strings,
     list_op_args_or_prams,
 
