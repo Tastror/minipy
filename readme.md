@@ -23,15 +23,15 @@ make  # or `make building`
 
 ## Run
 
-use demo `test.py`, see res in `log.txt`
+Commands below will use demo `test.py`, and output results to `log.txt` and `result_ir.ll`.
 
 ```shell
-make help  # --help of this compiler
+make help  # help message of this compiler
 make test  # or `make show` if you want to print to terminal colorfully, :)
-make sample  # compile all testsamples in testsample/ to sample-output/
+make sample  # compile all testsamples in testsample/
 ```
 
-refer to help, you'll see
+Referring to `--help`, you'll see the usage as below,
 
 ```shell
 # help
@@ -57,7 +57,7 @@ compiler \
 -s == --show 
 ```
 
-do what you like
+and you can do whatever you like.
 
 ```shell
 build\compiler.exe --help
