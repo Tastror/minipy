@@ -1,7 +1,13 @@
-def init(r) -> None:
-    r = 8
-    return r
+# test usual function define
+def a():
+    return
 
-a = init
-b = c = a
-b = c = 2
+def b() -> int:
+    return 1
+
+def c(x):
+    return x
+
+def d():
+    r = 2
+    return r

@@ -44,28 +44,6 @@ std::string RegisterManager::get_str_and_next() {
 
 
 
-void PointerManager::next() {
-    id++;
-}
-
-int PointerManager::get_int() {
-    return id;
-}
-
-int PointerManager::get_int_and_next() {
-    return ++id;
-}
-
-std::string PointerManager::get_str() {
-    return "$" + std::to_string(id);
-}
-
-std::string PointerManager::get_str_and_next() {
-    return "$" + std::to_string(++id);
-}
-
-
-
 std::string to_string(ir_data_type a) {
     switch (a) {
     case ir_data_type::error: return "error";
@@ -74,11 +52,15 @@ std::string to_string(ir_data_type a) {
     case ir_data_type::label: return "label";
     case ir_data_type::voids: return "void";
     case ir_data_type::i1: return "i1";
+    case ir_data_type::i8: return "i8";
+    case ir_data_type::i16: return "i16";
     case ir_data_type::i32: return "i32";
     case ir_data_type::i64: return "i64";
     case ir_data_type::floats: return "float";
     case ir_data_type::doubles: return "double";
     case ir_data_type::i1_p: return "i1*";
+    case ir_data_type::i8_p: return "i8*";
+    case ir_data_type::i16_p: return "i16*";
     case ir_data_type::i32_p: return "i32*";
     case ir_data_type::i64_p: return "i64*";
     case ir_data_type::float_p: return "float*";
@@ -88,12 +70,46 @@ std::string to_string(ir_data_type a) {
 }
 
 
+inline ir_data_type symbol_basic_type_to_ir_data_type(sym_basic_type type) {
+    switch (type) {
+    case sym_basic_type::any: return ir_data_type::any;
+    case sym_basic_type::none: return ir_data_type::voids;
+    case sym_basic_type::bools: return ir_data_type::i1;
+    case sym_basic_type::ints: return ir_data_type::i32;
+    case sym_basic_type::floats: return ir_data_type::doubles;
+    case sym_basic_type::str: return ir_data_type::i8_p;
+    }
+    return ir_data_type::any;
+}
+
+ir_data_type symbol_to_ir_data_type(const SymbolType& type) {
+    if (type.is_assigned) return ir_data_type::any;
+    if (type.high_level_type != sym_high_level_type::use_basic) return ir_data_type::any;
+    return symbol_basic_type_to_ir_data_type(type.basic_type);
+}
+
+std::string symbol_to_value_string(const std::string& backward_str, const SymbolType& type) {
+    if (type.is_assigned) return type.assign_origin;
+    if (type.high_level_type != sym_high_level_type::use_basic) return backward_str;
+    if (!type.is_valued) return backward_str;
+    switch (type.basic_type) {
+    case sym_basic_type::any: return backward_str;
+    case sym_basic_type::none: return "void";
+    case sym_basic_type::bools: return type.data.b ? "1" : "0";
+    case sym_basic_type::ints: return std::to_string(type.data.i);
+    case sym_basic_type::floats: return std::to_string(type.data.d);
+    case sym_basic_type::str: return std::string(type.data.s);
+    }
+    return "symbol_to_value_string error";
+}
+
+
 
 IRSentence::IRSentence(ir_op_type operator_type) {
     op_type = operator_type;
 }
 
-IRSentence::IRSentence(ir_op_type operator_type, std::vector<std::string>& names, std::vector<ir_data_type>& types) {
+IRSentence::IRSentence(ir_op_type operator_type, std::vector<std::string>&& names, std::vector<ir_data_type>&& types) {
     op_type = operator_type;
     this->names = std::move(names);
     this->types = std::move(types);
@@ -122,6 +138,14 @@ std::string IRSentence::to_string() const {
 
     case ir_op_type::alloca:
         return four_spaces + names[0] + " = alloca " + ::to_string(types[0]);
+
+
+    case ir_op_type::ret:
+        if (types[0] == ir_data_type::voids)
+            return four_spaces + "ret";
+        else
+            return four_spaces + "ret " + ::to_string(types[0]) + " " + names[0];
+
 
     case ir_op_type::func_begin: do {
         std::string res = "define " + ::to_string(types[0]) + " " + names[0] + "(";
@@ -189,8 +213,7 @@ inline Token* get_name_token_of_parameter_node(AstNode* parameter_node) {
 
 void calculate_expression(
     AstNode*& astnode_now, SymbolTableBlockStack& sym_table, std::vector<IRSentence>& ir_vec,
-    RegisterManager& global_or_local_reg, PointerManager& pointer_mgr,
-    bool add_sym_pointer_to_astnode_if_could
+    RegisterManager& global_or_local_reg, bool add_sym_pointer_to_astnode_if_could
 ) {
     // calculate each kind of expressions
     switch (astnode_now->type) {
@@ -256,7 +279,7 @@ void calculate_expression(
 
         if (add_sym_pointer_to_astnode_if_could && atom_token->type != token_type::identifier) {
             astnode_now->is_expression_built = true;
-            astnode_now->bound_value_name = pointer_mgr.get_str_and_next();;
+            astnode_now->bound_value_name = global_or_local_reg.get_str_and_next();;
             sym_table.update(astnode_now->bound_value_name, result_sym_type);
             stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
         }
@@ -272,7 +295,7 @@ void calculate_expression(
         auto rhs_node = astnode_now->sons[2];
 
         calculate_expression(
-            rhs_node, sym_table, ir_vec, global_or_local_reg, pointer_mgr, true
+            rhs_node, sym_table, ir_vec, global_or_local_reg, true
         );
 
         switch (lhs_node->type)
@@ -295,6 +318,8 @@ void calculate_expression(
             // a = b = c = d
             //     -> c = d; b = (c = d); a = (b = c = d)
             //     -> c = $r; @b/%b = $r; a = $r [d = $r]
+            // a: int
+            //     -> ignore
         case astnode_type::atom: do {
             auto name_token = lhs_node->first_token();
 
@@ -303,6 +328,11 @@ void calculate_expression(
             if (name_token->type != token_type::identifier) {
                 stdlog::log << stdlog::error << "cannot use such name in assign: " << name_token->to_string() << stdlog::endl;
                 assert((false && "cannot use such name in assign"));
+            }
+
+            // a: int
+            if (rhs_node->type == astnode_type::placeholder) {
+                return;
             }
 
             std::string lhs_name = global_or_local_name(
@@ -314,7 +344,7 @@ void calculate_expression(
             // update self node
             // no ir need to be generated
             if (!rhs_node->is_expression_built) {
-                stdlog::log << stdlog::error << "cannot define the value of rhs" << rhs_node->to_string() << stdlog::endl;
+                stdlog::log << stdlog::error << "cannot define the value of rhs " << rhs_node->to_string() << stdlog::endl;
                 assert((false && "cannot use such name in assign"));
             }
 
@@ -519,7 +549,7 @@ void calculate_expression(
 // search astnode, update symboltable, generate ir
 void sausgi(
     AstNode*& astnode_now, SymbolTableBlockStack& sym_table, std::vector<IRSentence>& ir_vec,
-    RegisterManager& global_or_local_reg, PointerManager& pointer_mgr
+    RegisterManager& global_or_local_reg
 ) {
     
     if (astnode_now == nullptr) return;
@@ -536,10 +566,42 @@ void sausgi(
 
     case astnode_type::statements: do {
         for (auto i : astnode_now->sons) {
-            sausgi(i, sym_table, ir_vec, global_or_local_reg, pointer_mgr);
+            sausgi(i, sym_table, ir_vec, global_or_local_reg);
         }
         break;
     } while (0); break;
+
+
+    case astnode_type::sin_op_return: do {
+        // astnode_now->sons[0]: expr (may be placeholder)
+        auto expr_node = astnode_now->sons[0];
+        if (expr_node->type == astnode_type::placeholder) {
+            ir_vec.emplace_back(
+                ir_op_type::ret,
+                std::vector<std::string>{"void"},
+                std::vector<ir_data_type>{ir_data_type::voids}
+            );
+        } else {
+            calculate_expression(
+                expr_node, sym_table, ir_vec, global_or_local_reg, true
+            );
+            if (!expr_node->is_expression_built) {
+                stdlog::log << stdlog::error << "cannot use such expression in return statement: " << expr_node->to_string() << stdlog::endl;
+                assert((false && "cannot use such expression in return statement"));
+            }
+            SymbolType return_sym_data;
+            if (!sym_table.is_in_and_get(expr_node->bound_value_name, return_sym_data)) {
+                stdlog::log << stdlog::error << "identifier used before defined: " << expr_node->to_string() << stdlog::endl;
+                assert((false && "identifier used before defined"));
+            }
+            ir_vec.emplace_back(
+                ir_op_type::ret,
+                std::vector<std::string>{symbol_to_value_string(expr_node->bound_value_name, return_sym_data)},
+                std::vector<ir_data_type>{symbol_to_ir_data_type(return_sym_data)}
+            );
+        }
+    } while (0); break;
+
 
     case astnode_type::pen_op_function_block: do {
         // astnode_now->sons[0]: name
@@ -619,11 +681,11 @@ void sausgi(
         if (global_or_local_reg.is_global) {
             RegisterManager local_reg;
             for (auto i : block_node->sons) {
-                sausgi(i, sym_table, ir_vec, local_reg, pointer_mgr);
+                sausgi(i, sym_table, ir_vec, local_reg);
             }
         } else {
             for (auto i : block_node->sons) {
-                sausgi(i, sym_table, ir_vec, global_or_local_reg, pointer_mgr);
+                sausgi(i, sym_table, ir_vec, global_or_local_reg);
             }
         }
 
@@ -656,7 +718,7 @@ void sausgi(
     case astnode_type::sin_op_negative:
     case astnode_type::sin_op_wavenot:
     case astnode_type::atom: do {
-        calculate_expression(astnode_now, sym_table, ir_vec, global_or_local_reg, pointer_mgr, false);
+        calculate_expression(astnode_now, sym_table, ir_vec, global_or_local_reg, false);
     } while (0); break;
 
 
@@ -670,7 +732,6 @@ std::vector<IRSentence> search_astnode_update_symboltable_generate_ir(
 ) {
     std::vector<IRSentence> res;
     RegisterManager global_reg(true);
-    PointerManager pointer_mgr;
-    sausgi(ast_root, sym_table, res, global_reg, pointer_mgr);
+    sausgi(ast_root, sym_table, res, global_reg);
     return res;
 }

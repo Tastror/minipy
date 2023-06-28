@@ -3,6 +3,9 @@ num_2 = (1)
 
 tuple_1 = ()
 tuple_2 = (1,)
+tuple_3 = 1, 2, 3
+tuple_4 = 1, 2, 3, 4,
+tuple_5 = 1,
 
 tuple_2[0]
 
