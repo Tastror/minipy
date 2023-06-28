@@ -10,54 +10,76 @@
 #include "lexer.h"
 #include "parser.h"
 
-enum class basic_type {
+enum class sym_basic_type {
     none, bools, ints, floats, str, any,
 };
 
-std::string to_string(basic_type a);
+std::string to_string(sym_basic_type a);
 
-enum class high_type {
+enum class sym_high_level_type {
     use_basic, dict, list, tuple, set, function, classes,
 };
 
-std::string to_string(high_type a);
+std::string to_string(sym_high_level_type a);
 
 // this is a single type, such as int, str, ...
 // or function(return_type, )
 class SymbolType {
 
 public:
-    // for basic
-
-    basic_type base_type;  // if <high_level_type> is "use_basic" then it is basic_type; or it is high_type
-    bool is_valued;
-    union data_t {
-        bool b; int i; double d; char* s;
-    } data;
-
-    // for higher
-
-    high_type high_level_type;
-    std::vector<SymbolType> son_types;  // for list(1), set(1), dict(2), function(1 + n), tuple(n)
-    std::vector<std::string> son_classes;  // for class
 
     // for assign
 
+    // if `true`, enable this and use <assign_origin>
+    // if you need <high_level_type> or <basic_type>, this must be `false`
     bool is_assigned;
+    // see <is_assigned>
     // if b = a, then the `assign_origin` of b is "a"
     // if b = 1, then b is valued, see `data`, not `assign_origin`
     // if b = (a, 1), then b's son_types will have two: 1st is `assign_origin` "a", 2nd is `data` 1
     std::string assign_origin;
 
+    // for higher
+
+    // if <is_assigned> is `false`, then this could be enabled
+    // if not `use_basic`, enabled this and use <son_types> or <son_classes>
+    // if you need <basic_type>, this must be `use_basic`
+    sym_high_level_type high_level_type;
+    // see <high_level_type>
+    // for list(1), set(1), dict(2), function(1 + n), tuple(n)
+    std::vector<SymbolType> son_types;
+    // see <high_level_type>
+    // for class
+    std::vector<std::string> son_classes;
+
+    // for basic
+
+    // if <is_assigned> is `false`, and <high_level_type> is `use_basic`, then this is enabled
+    // use <is_valued> if you need
+    sym_basic_type basic_type;
+    // see <basic_type>
+    // must use <data>
+    bool is_valued;
+    // see <is_valued>
+    // bool, int, double or char* (b, i, d, s)
+    union data_t {
+        bool b; int i; double d; char* s;
+    } data;
+
+    // <basic_type> = sym_basic_type::none
     SymbolType();
-    SymbolType(basic_type type);
-    SymbolType(basic_type type, SymbolType::data_t data);
+    // <basic_type> = input type
+    SymbolType(sym_basic_type type);
+    // <basic_type> = input type, is_valued, data = input data
+    SymbolType(sym_basic_type type, SymbolType::data_t data);
     
     std::string to_string() const;
 };
 
-SymbolType make_sym_basic(basic_type type);
-SymbolType make_sym_basic_valued(basic_type type, SymbolType::data_t data);
+// please make sure name is valid.
+SymbolType make_sym_assign(const std::string& name);
+SymbolType make_sym_basic(sym_basic_type type);
+SymbolType make_sym_basic_valued(sym_basic_type type, SymbolType::data_t data);
 // careful, your vector will be passed to son_types and deleted (moved). do not use it anymore if you do this
 SymbolType make_sym_tuple(std::vector<SymbolType>&& types);
 SymbolType make_sym_same_set(const SymbolType& contain_type);

@@ -46,7 +46,7 @@ enum class astnode_type {
 
     statements,  // list_op_statements
 
-    tri_op_assign,  // type (may be placeholder), lhs, rhs
+    tri_op_assign,  // type_comment (fake type) (may be placeholder), lhs, rhs
     tri_op_augassign,  // operator, lhs, rhs
 
     zero_op_pass, // {empty}
@@ -55,7 +55,7 @@ enum class astnode_type {
     sin_op_return,  // expr (may be placeholder)
 
     qua_op_class_block,  // name, base classes (may be placeholder), block, decorators
-    pen_op_function_block,  // name, params (may be placeholder), return type (may be placeholder), block, decorators (may be placeholder)
+    pen_op_function_block,  // name, params (may be placeholder), return type_comment (fake type) (may be placeholder), block, decorators (may be placeholder)
     tri_op_if_else_block,  // condition, if, else (else can also be if_else_block, which means elif)
 
     sin_op_yield,

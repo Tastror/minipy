@@ -11,58 +11,58 @@
 
 
 
-std::string to_string(basic_type a) {
+std::string to_string(sym_basic_type a) {
     switch (a) {
-    case basic_type::none: return "none";
-    case basic_type::bools: return "bool";
-    case basic_type::ints: return "int";
-    case basic_type::floats: return "float";
-    case basic_type::str: return "str";
-    case basic_type::any: return "any";
+    case sym_basic_type::none: return "none";
+    case sym_basic_type::bools: return "bool";
+    case sym_basic_type::ints: return "int";
+    case sym_basic_type::floats: return "float";
+    case sym_basic_type::str: return "str";
+    case sym_basic_type::any: return "any";
     }
     return "<enum to_string error>";
 }
 
-std::string to_string(high_type a) {
+std::string to_string(sym_high_level_type a) {
     switch (a) {
-    case high_type::use_basic: return "use_basic";
-    case high_type::dict: return "dict";
-    case high_type::list: return "list";
-    case high_type::tuple: return "tuple";
-    case high_type::set: return "set";
-    case high_type::function: return "function";
-    case high_type::classes: return "class";
+    case sym_high_level_type::use_basic: return "use_basic";
+    case sym_high_level_type::dict: return "dict";
+    case sym_high_level_type::list: return "list";
+    case sym_high_level_type::tuple: return "tuple";
+    case sym_high_level_type::set: return "set";
+    case sym_high_level_type::function: return "function";
+    case sym_high_level_type::classes: return "class";
     }
     return "<enum to_string error>";
 }
 
-SymbolType::SymbolType() : SymbolType(basic_type::none) {}
+SymbolType::SymbolType() : SymbolType(sym_basic_type::none) {}
 
-SymbolType::SymbolType(basic_type type) {
-    base_type = type;
+SymbolType::SymbolType(sym_basic_type type) {
+    basic_type = type;
     is_valued = false;
     data.i = 0;
-    high_level_type = high_type::use_basic;
+    high_level_type = sym_high_level_type::use_basic;
     is_assigned = false;
 }
 
-SymbolType::SymbolType(basic_type type, SymbolType::data_t data) {
-    base_type = type;
+SymbolType::SymbolType(sym_basic_type type, SymbolType::data_t data) {
+    basic_type = type;
     is_valued = true;
     data = data;
-    high_level_type = high_type::use_basic;
+    high_level_type = sym_high_level_type::use_basic;
     is_assigned = false;
 }
 
 std::string SymbolType::to_string() const {
     if (is_assigned) {
         return "assigned to " + assign_origin;
-    } else if (high_level_type == high_type::use_basic) {
-        return ::to_string(base_type);
+    } else if (high_level_type == sym_high_level_type::use_basic) {
+        return ::to_string(basic_type);
     } else {
         std::string res = "";
         res += ::to_string(high_level_type);
-        if (high_level_type == high_type::classes) {
+        if (high_level_type == sym_high_level_type::classes) {
             res += ": extend (";
             for (auto i = son_classes.begin(); i < son_classes.end(); ++i) {
                 if (i == son_classes.begin())
@@ -84,38 +84,45 @@ std::string SymbolType::to_string() const {
     }
 }
 
-SymbolType make_sym_basic(basic_type type) {
+SymbolType make_sym_assign(const std::string& name) {
+    auto res = SymbolType();
+    res.is_assigned = true;
+    res.assign_origin = name;
+    return res;
+}
+
+SymbolType make_sym_basic(sym_basic_type type) {
     return SymbolType(type);
 }
 
-SymbolType make_sym_basic_valued(basic_type type, SymbolType::data_t data) {
+SymbolType make_sym_basic_valued(sym_basic_type type, SymbolType::data_t data) {
     return SymbolType(type, data);
 }
 
 SymbolType make_sym_tuple(std::vector<SymbolType>&& types) {
     SymbolType res;
-    res.high_level_type = high_type::tuple;
+    res.high_level_type = sym_high_level_type::tuple;
     res.son_types = std::move(types);
     return res;
 }
 
 SymbolType make_sym_same_set(const SymbolType& contain_type) {
     SymbolType res;
-    res.high_level_type = high_type::set;
+    res.high_level_type = sym_high_level_type::set;
     res.son_types.push_back(contain_type);
     return res;
 }
 
 SymbolType make_sym_same_list(const SymbolType& contain_type) {
     SymbolType res;
-    res.high_level_type = high_type::list;
+    res.high_level_type = sym_high_level_type::list;
     res.son_types.push_back(contain_type);
     return res;
 }
 
 SymbolType make_sym_same_dict(const SymbolType& contain_key, const SymbolType& contain_value) {
     SymbolType res;
-    res.high_level_type = high_type::dict;
+    res.high_level_type = sym_high_level_type::dict;
     res.son_types.push_back(contain_key);
     res.son_types.push_back(contain_value);
     return res;
@@ -123,7 +130,7 @@ SymbolType make_sym_same_dict(const SymbolType& contain_key, const SymbolType& c
 
 SymbolType make_sym_function(const SymbolType& return_value, std::vector<SymbolType>&& args) {
     SymbolType res;
-    res.high_level_type = high_type::function;
+    res.high_level_type = sym_high_level_type::function;
     res.son_types.push_back(return_value);
     res.son_types.insert(
         res.son_types.end(),
@@ -136,7 +143,7 @@ SymbolType make_sym_function(const SymbolType& return_value, std::vector<SymbolT
 
 SymbolType make_sym_class(const std::string& class_name, std::vector<std::string>&& base_class_names) {
     SymbolType res;
-    res.high_level_type = high_type::classes;
+    res.high_level_type = sym_high_level_type::classes;
     res.son_classes = std::move(base_class_names);
     return res;
 }

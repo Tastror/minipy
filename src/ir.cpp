@@ -63,6 +63,8 @@ std::string to_string(ir_data_type a) {
     return "<enum to_string error>";
 }
 
+
+
 IRSentence::IRSentence(ir_op_type operator_type) {
     op_type = operator_type;
 }
@@ -73,18 +75,26 @@ IRSentence::IRSentence(ir_op_type operator_type, std::vector<std::string>& names
     this->types = std::move(types);
 }
 
+
+
 std::string IRSentence::to_string() const {
     const std::string four_spaces("    ");
+
+    // print ir_node to std::string
     switch (op_type) {
+
 
     case ir_op_type::error:
         return four_spaces + "ir sentence error";
 
+
     case ir_op_type::label_hint:
         return names[0] + ":";
 
+
     case ir_op_type::declare:
         return four_spaces + "declare " + ::to_string(types[0]) + " " + names[0];
+
 
     case ir_op_type::alloca:
         return four_spaces + names[0] + " = alloca " + ::to_string(types[0]);
@@ -114,26 +124,28 @@ std::string IRSentence::to_string() const {
 }
 
 
+// utils functions
+
 // always use xxx_name() after getting token's xxx.name
-std::string local_name(const std::string& name) {
+inline std::string local_name(const std::string& name) {
     return "%" + name;
 }
 
 // always use xxx_name() after getting token's xxx.name
-std::string global_name(const std::string& name) {
+inline std::string global_name(const std::string& name) {
     return "@" + name;
 }
 
 // change to global or local name
 // always use xxx_name() after getting token's xxx.name
-std::string global_or_lobal_name(const std::string& name, const RegisterManager& global_reg) {
-    if (global_reg.is_global) return "@" + name;
+inline std::string global_or_local_name(const std::string& name, bool is_global) {
+    if (is_global) return "@" + name;
     else return "%" + name;
 }
 
 // always get the first token if has
 // if no, will assert false!
-Token* get_token_of_parameter(AstNode* parameter_node) {
+inline Token* get_token_of_parameter(AstNode* parameter_node) {
     if (parameter_node->is_token_leaf) {
         return &parameter_node->token_leaf;
     } else {
@@ -149,58 +161,77 @@ Token* get_token_of_parameter(AstNode* parameter_node) {
     }
 }
 
-void calculate_expression_and_no_result_name(
+inline void calculate_expression_and_no_result_name(
     AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec, RegisterManager& global_reg
 ) {
     return;
 }
 
-std::string calculate_expression_and_return_result_name(
+inline std::string calculate_expression_and_return_result_name(
     AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec, RegisterManager& global_reg
 ) {
     return "";
 }
 
+
+
 // search astnode, update symboltable, generate ir
-void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec, RegisterManager& global_reg) {
+void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec, RegisterManager& global_or_local_reg) {
+    
     if (astnode_now == nullptr) return;
+
+    // updating symboltable, generating ir
+    // searching astnode is in specific cases such as `astnode_type::statements`
     switch (astnode_now->type) {
 
-    case astnode_type::error:
-        break;
 
-    case astnode_type::statements:
+    case astnode_type::error: do {
+        ; // nothing
+    } while (0); break;
+
+
+    case astnode_type::statements: do {
         for (auto i : astnode_now->sons) {
-            sausgi(i, sym_table, ir_vec, global_reg);
+            sausgi(i, sym_table, ir_vec, global_or_local_reg);
         }
         break;
+    } while (0); break;
 
     case astnode_type::pen_op_function_block: do {
+        // astnode_now->sons[0]: name
+        // astnode_now->sons[1]: params (may be placeholder)
+        // astnode_now->sons[2]: return type_comment (fake type) (may be placeholder) (useless)
+        // astnode_now->sons[3]: block
+        // astnode_now->sons[3]: decorators  (may be placeholder)
+        auto name_node = astnode_now->sons[0];
+        auto params_node = astnode_now->sons[1];
+        auto block_node = astnode_now->sons[3];
+        auto decorators_node = astnode_now->sons[4];
 
-        std::string name = global_or_lobal_name(
-            astnode_now->sons[0]->token_leaf.content.name, global_reg
+        std::string name = global_or_local_name(
+            name_node->token_leaf.content.name, global_or_local_reg.is_global
         );
 
         // sym and ir update simultaneously
-        auto function_sym_type = make_sym_function(basic_type::none);
+        auto function_sym_type = make_sym_function(sym_basic_type::none);
         IRSentence define_func_ir(ir_op_type::func_begin);
         define_func_ir.names.push_back(name);
         define_func_ir.types.push_back(ir_data_type::any);
 
         // add params (depend on calls) <-- use <any> first, and implement one if a new call comes.
-        auto params = astnode_now->sons[1];
-        if (params->type != astnode_type::placeholder)
-            for (auto i : params->sons) {
+        if (params_node->type != astnode_type::placeholder)
+            for (auto i : params_node->sons) {
                 auto tp = get_token_of_parameter(i);
                 switch (tp->type) {
                 case token_type::identifier:
-                    function_sym_type.son_types.emplace_back(basic_type::any);
+                    function_sym_type.son_types.emplace_back(sym_basic_type::any);
                     define_func_ir.names.push_back(local_name(tp->content.name));
                     define_func_ir.types.push_back(ir_data_type::any);
                     break;
                 default:
                     stdlog::log << stdlog::error << "cannot use such expression in parameters: " << tp->to_string() << stdlog::endl;
                     assert((false && "cannot use such expression in parameters"));
+                    break;
                 }
             }
 
@@ -211,18 +242,65 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
 
         // +1: no funtion name
         for (auto i = define_func_ir.names.begin() + 1; i < define_func_ir.names.end(); ++i) {
-            sym_table.update(*i, basic_type::any);
+            sym_table.update(*i, sym_basic_type::any);
             stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
         }
 
-        // inner block
-        for (auto i : astnode_now->sons[3]->sons) {
-            sausgi(i, sym_table, ir_vec, global_reg);
+        // inner block, if is global, change to a new local var
+        if (global_or_local_reg.is_global) {
+            RegisterManager local_reg;
+            for (auto i : block_node->sons) {
+                sausgi(i, sym_table, ir_vec, local_reg);
+            }
+        } else {
+            for (auto i : block_node->sons) {
+                sausgi(i, sym_table, ir_vec, global_or_local_reg);
+            }
         }
 
         ir_vec.emplace_back(ir_op_type::func_end);
         sym_table.del_son_goto_parent();
     } while (0); break;
+
+
+    case astnode_type::tri_op_assign: do {
+        // astnode_now->sons[0]: type_comment (fake type) (useless) (may be placeholder)
+        // astnode_now->sons[1]: lhs
+        // astnode_now->sons[2]: rhs
+        auto lhs_node = astnode_now->sons[1];
+        auto rhs_node = astnode_now->sons[2];
+        switch (lhs_node->type)
+        {
+        // a, b = 1, 2
+        // a, *b = 1, 2, 3
+        // *a, b = 1, 2, 3
+        case astnode_type::expressions:
+            break;
+        
+        case astnode_type::sin_op_star:
+            break;
+
+        case astnode_type::atom:
+            break;
+        
+        default:
+            stdlog::log << stdlog::error << "cannot use such expression in assign: " << lhs_node->to_string() << stdlog::endl;
+            assert((false && "cannot use such expression in assign"));
+            break;
+        }
+    } while (0); break;
+
+
+    case astnode_type::tri_op_augassign: do {
+        // astnode_now->sons[0]: operator
+        // astnode_now->sons[1]: lhs
+        // astnode_now->sons[2]: rhs
+        auto operator_node = astnode_now->sons[0];
+        auto lhs_node = astnode_now->sons[1];
+        auto rhs_node = astnode_now->sons[2];
+
+    } while (0); break;
+
 
     // these are nude (nothing capture the result), so only do the expression
     // and forget it (do not need real add, unless it's a class __add__,
@@ -239,18 +317,30 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
     case astnode_type::bin_op_ediv:
     case astnode_type::bin_op_mod:
     case astnode_type::bin_op_at:
-    case astnode_type::bin_op_power:
-        calculate_expression_and_no_result_name(astnode_now->sons[1], sym_table, ir_vec, global_reg);
-        calculate_expression_and_no_result_name(astnode_now->sons[0], sym_table, ir_vec, global_reg);
-        break;
+    case astnode_type::bin_op_power: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        calculate_expression_and_no_result_name(expr1_node, sym_table, ir_vec, global_or_local_reg);
+        calculate_expression_and_no_result_name(expr2_node, sym_table, ir_vec, global_or_local_reg);
+    } while (0); break;
+
+
+    // these are nude (nothing capture the result), so only do the expression
     case astnode_type::sin_op_positive:
     case astnode_type::sin_op_negative:
-    case astnode_type::sin_op_wavenot:
-        calculate_expression_and_no_result_name(astnode_now->sons[0], sym_table, ir_vec, global_reg);
-        break;
+    case astnode_type::sin_op_wavenot: do {
+        // astnode_now->sons[0]: expr1
+        auto expr1_node = astnode_now->sons[0];
+        calculate_expression_and_no_result_name(expr1_node, sym_table, ir_vec, global_or_local_reg);
+    } while (0); break;
+
 
     }
 }
+
+
 
 std::vector<IRSentence> search_astnode_update_symboltable_generate_ir(
     AstNode*& ast_root, SymbolTable& sym_table

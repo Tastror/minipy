@@ -64,7 +64,7 @@ public:
     std::vector<std::string> names;
     std::vector<ir_data_type> types;
     IRSentence(ir_op_type operator_type);
-    // names and types outside will be deleted!
+    // use std::move for vectors, so names and types outside will be deleted!
     IRSentence(ir_op_type operator_type, std::vector<std::string>& names, std::vector<ir_data_type>& types);
     std::string to_string() const;
 };
