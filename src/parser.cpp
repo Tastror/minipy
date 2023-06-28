@@ -37,7 +37,7 @@ AstNode* make_astnode_from_token(Token* token, astnode_type type) {
     return res;
 }
 
-void remove_from_astnode_buff(AstNode*& del) {
+void delete_astnode(AstNode*& del) {
     for (auto i = _buff::astnode_buff.begin(); i != _buff::astnode_buff.end(); ++i) {
         if (i->get() == del) {
             _buff::astnode_buff.erase(i);

@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <stack>
 
 #include "timing.h"
 #include "log.h"
@@ -97,13 +98,13 @@ public:
     SymbolTableNode* parent;
 };
 
-class SymbolTable {
+class SymbolTableTree {
 private:
     SymbolTableNode* now;
-    std::vector<std::unique_ptr<SymbolTableNode>> node_buff;
+    std::stack<std::unique_ptr<SymbolTableNode>> node_buff;
     std::string last_update_name;
 public:
-    SymbolTable();
+    SymbolTableTree();
     void add_son_goto_son();
     void del_son_goto_parent();
     void update(const std::string& name, const SymbolType& type);

@@ -41,7 +41,8 @@ uint64_t translate_python_int(const std::string& str);
 // --- 3 ---
 // class (include class to_string)
 
-struct Token {
+class Token {
+public:
     token_type type;
 
     uint32_t lineno;
@@ -72,13 +73,10 @@ struct Token {
         ~content_t();
     } content;
 
-    // better implement those functions
     Token();
-    ~Token();
 
     Token(const Token& other);
     Token(Token&& other);
-
     Token& operator=(Token&& other);
     Token& operator=(const Token& other);
 
@@ -91,3 +89,4 @@ struct Token {
 // buff and make
 
 Token* make_token();
+void delete_token(Token*& del);

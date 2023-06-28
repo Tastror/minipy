@@ -22,6 +22,16 @@ Token* make_token() {
     return _buff::token_buff.back().get();
 }
 
+void delete_token(Token*& del) {
+    for (auto i = _buff::token_buff.begin(); i != _buff::token_buff.end(); ++i) {
+        if (i->get() == del) {
+            _buff::token_buff.erase(i);
+            break;
+        }
+    }
+    del = nullptr;
+}
+
 
 
 // --- 2 ---
@@ -63,11 +73,14 @@ uint64_t translate_python_int(const std::string& str) {
 
 // class with none-trivial union should implement those functions
 
-Token::content_t::content_t() {};
-Token::content_t::~content_t() {};
+Token::content_t::content_t() {}
+Token::content_t::~content_t() {}
 
-Token::Token() {};
-Token::~Token() {};
+Token::Token() {
+    this->type = token_type::error;
+    this->lineno = 0;
+    this->columnno = 0;
+}
 
 Token::Token(const Token& other) {
     this->type = other.type;

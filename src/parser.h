@@ -111,8 +111,8 @@ std::string to_string(astnode_type a);
 // --- 3 ---
 // class (include class to_string)
 
-struct AstNode {
-
+class AstNode {
+public:
     astnode_type type;
     AstNode* parent;
     std::vector<AstNode*> sons;
@@ -146,7 +146,7 @@ int yyparse(AstNode*& ast_head);
 AstNode* make_empty_astnode();
 AstNode* make_astnode(astnode_type type = astnode_type::error);
 AstNode* make_astnode_from_token(Token* token, astnode_type type = astnode_type::error);
-void remove_from_astnode_buff(AstNode*& del);
+void delete_astnode(AstNode*& del);
 
 
 

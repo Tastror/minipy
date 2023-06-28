@@ -186,14 +186,14 @@ inline Token* get_token_of_parameter(AstNode* parameter_node) {
 }
 
 inline void calculate_expression_and_no_result_name(
-    AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec,
+    AstNode*& astnode_now, SymbolTableTree& sym_table, std::vector<IRSentence>& ir_vec,
     RegisterManager& global_reg, PointerManager& pointer_mgr
 ) {
     return;
 }
 
 inline std::string calculate_expression_and_return_result_name(
-    AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec,
+    AstNode*& astnode_now, SymbolTableTree& sym_table, std::vector<IRSentence>& ir_vec,
     RegisterManager& global_reg, PointerManager& pointer_mgr
 ) {
     return "";
@@ -203,7 +203,7 @@ inline std::string calculate_expression_and_return_result_name(
 
 // search astnode, update symboltable, generate ir
 void sausgi(
-    AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec,
+    AstNode*& astnode_now, SymbolTableTree& sym_table, std::vector<IRSentence>& ir_vec,
     RegisterManager& global_or_local_reg, PointerManager& pointer_mgr
 ) {
     
@@ -394,7 +394,7 @@ void sausgi(
 
 
 std::vector<IRSentence> search_astnode_update_symboltable_generate_ir(
-    AstNode*& ast_root, SymbolTable& sym_table
+    AstNode*& ast_root, SymbolTableTree& sym_table
 ) {
     std::vector<IRSentence> res;
     RegisterManager global_reg(true);

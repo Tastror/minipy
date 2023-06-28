@@ -343,7 +343,7 @@ statements:
             {
                 $$ = make_astnode(astnode_type::statements);
                 $$->eat_sons($1);
-                remove_from_astnode_buff($1);
+                delete_astnode($1);
             }
         | compound_stmt
             {
@@ -353,7 +353,7 @@ statements:
         | statements simple_stmts
             {
                 $$ = $1->eat_sons($2);
-                remove_from_astnode_buff($2);
+                delete_astnode($2);
             }
         | statements compound_stmt
             {
@@ -1194,7 +1194,7 @@ list:
                 LOG_ASTNODE("t_bracket_square_r (for list)");
                 $$ = make_astnode(astnode_type::list_mayempty_op_list);
                 $$->eat_sons($2);
-                remove_from_astnode_buff($2);
+                delete_astnode($2);
             }
         | t_bracket_square_l _normal_single_expression t_bracket_square_r
             {
@@ -1218,7 +1218,7 @@ tuple:
                 LOG_ASTNODE("t_bracket_parentheses_r (for tuple)");
                 $$ = make_astnode(astnode_type::list_mayempty_op_tuple);
                 $$->eat_sons($2);
-                remove_from_astnode_buff($2);
+                delete_astnode($2);
             }
 
 set:
@@ -1234,7 +1234,7 @@ set:
                 LOG_ASTNODE("t_bracket_square_r (for list)");
                 $$ = make_astnode(astnode_type::list_mayempty_op_set);
                 $$->eat_sons($2);
-                remove_from_astnode_buff($2);
+                delete_astnode($2);
             }
         | t_bracket_curly_l _normal_single_expression t_bracket_curly_r
             {

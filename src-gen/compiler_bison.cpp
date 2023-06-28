@@ -1682,7 +1682,7 @@ yyreduce:
             {
                 (yyval.astnode_ptr) = make_astnode(astnode_type::statements);
                 (yyval.astnode_ptr)->eat_sons((yyvsp[0].astnode_ptr));
-                remove_from_astnode_buff((yyvsp[0].astnode_ptr));
+                delete_astnode((yyvsp[0].astnode_ptr));
             }
 #line 1688 "src-gen/compiler_bison.cpp"
     break;
@@ -1700,7 +1700,7 @@ yyreduce:
 #line 354 "src/parser.y"
             {
                 (yyval.astnode_ptr) = (yyvsp[-1].astnode_ptr)->eat_sons((yyvsp[0].astnode_ptr));
-                remove_from_astnode_buff((yyvsp[0].astnode_ptr));
+                delete_astnode((yyvsp[0].astnode_ptr));
             }
 #line 1706 "src-gen/compiler_bison.cpp"
     break;
@@ -2786,7 +2786,7 @@ yyreduce:
                 LOG_ASTNODE("t_bracket_square_r (for list)");
                 (yyval.astnode_ptr) = make_astnode(astnode_type::list_mayempty_op_list);
                 (yyval.astnode_ptr)->eat_sons((yyvsp[-1].astnode_ptr));
-                remove_from_astnode_buff((yyvsp[-1].astnode_ptr));
+                delete_astnode((yyvsp[-1].astnode_ptr));
             }
 #line 2792 "src-gen/compiler_bison.cpp"
     break;
@@ -2820,7 +2820,7 @@ yyreduce:
                 LOG_ASTNODE("t_bracket_parentheses_r (for tuple)");
                 (yyval.astnode_ptr) = make_astnode(astnode_type::list_mayempty_op_tuple);
                 (yyval.astnode_ptr)->eat_sons((yyvsp[-1].astnode_ptr));
-                remove_from_astnode_buff((yyvsp[-1].astnode_ptr));
+                delete_astnode((yyvsp[-1].astnode_ptr));
             }
 #line 2826 "src-gen/compiler_bison.cpp"
     break;
@@ -2842,7 +2842,7 @@ yyreduce:
                 LOG_ASTNODE("t_bracket_square_r (for list)");
                 (yyval.astnode_ptr) = make_astnode(astnode_type::list_mayempty_op_set);
                 (yyval.astnode_ptr)->eat_sons((yyvsp[-1].astnode_ptr));
-                remove_from_astnode_buff((yyvsp[-1].astnode_ptr));
+                delete_astnode((yyvsp[-1].astnode_ptr));
             }
 #line 2848 "src-gen/compiler_bison.cpp"
     break;

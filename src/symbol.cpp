@@ -148,42 +148,38 @@ SymbolType make_sym_class(const std::string& class_name, std::vector<std::string
     return res;
 }
 
-SymbolTable::SymbolTable() {
-    node_buff.push_back(std::make_unique<SymbolTableNode>());
-    now = node_buff.back().get();
+
+
+SymbolTableTree::SymbolTableTree() {
+    node_buff.push(std::make_unique<SymbolTableNode>());
+    now = node_buff.top().get();
     now->parent = nullptr;
     now->son = nullptr;
 }
 
-void SymbolTable::add_son_goto_son() {
-    node_buff.push_back(std::make_unique<SymbolTableNode>());
-    now->son = node_buff.back().get();
+void SymbolTableTree::add_son_goto_son() {
+    node_buff.push(std::make_unique<SymbolTableNode>());
+    now->son = node_buff.top().get();
     now->son->parent = now;
     now = now->son;
 }
 
-void SymbolTable::del_son_goto_parent() {
-    auto del = now;
+void SymbolTableTree::del_son_goto_parent() {
     now = now->parent;
-    for (auto i = node_buff.begin(); i != node_buff.end(); ++i) {
-        if (i->get() == del) {
-            node_buff.erase(i);
-            break;
-        }
-    }
+    node_buff.pop();
 }
 
-void SymbolTable::update(const std::string& name, const SymbolType& type) {
+void SymbolTableTree::update(const std::string& name, const SymbolType& type) {
     now->map[name] = type;
     last_update_name = name;
 }
 
 // last update name, please make sure it is in.
-std::string SymbolTable::last_update_to_string() {
+std::string SymbolTableTree::last_update_to_string() {
     return last_update_name + ": " + now->map[last_update_name].to_string();
 }
 
-bool SymbolTable::del(const std::string& name) {
+bool SymbolTableTree::del(const std::string& name) {
     auto i = now->map.find(name);
     if (i == now->map.end()) {
         now->map.erase(i);
@@ -192,7 +188,7 @@ bool SymbolTable::del(const std::string& name) {
     return false;
 }
 
-bool SymbolTable::is_in_and_get(const std::string& name, SymbolType& result) {
+bool SymbolTableTree::is_in_and_get(const std::string& name, SymbolType& result) {
     auto mama = now;
     auto i = mama->map.find(name);
     while (i == mama->map.end()) {
