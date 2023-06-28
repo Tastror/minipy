@@ -21,7 +21,7 @@ enum class none {};
 // type to_string and to_num
 
 // token only has indent
-//    indent_num.relative_depth > 0 means indent in astnode, 
+//    indent_num.relative_depth > 0 means indent in astnode,
 //    indent_num.relative_depth < 0 means dedent in astnode,
 //    indent_num.relative_depth == 0 means nothing in astnode.
 
@@ -63,7 +63,7 @@ public:
         } indent_num;  // indent
 
         union data_t {
-            int64_t int_num;  
+            int64_t int_num;
             double double_num;
         } data;  // integer, floats
 

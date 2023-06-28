@@ -49,7 +49,7 @@ std::string to_string(token_type a) {
         case token_type::delimiter: return "delimiter";
         case token_type::bracket: return "bracket";
         case token_type::operators: return "operators";
-        case token_type::keyword: return "keyword"; 
+        case token_type::keyword: return "keyword";
     }
     return "<enum to_string error>";
 }

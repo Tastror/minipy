@@ -59,7 +59,7 @@ std::string to_string(astnode_type a) {
         case astnode_type::placeholder: return "placeholder";
 
         case astnode_type::temp: return "temp";
-        
+
         case astnode_type::statements: return "statements";
 
         case astnode_type::tri_op_assign: return "tri_op_assign";
@@ -73,8 +73,8 @@ std::string to_string(astnode_type a) {
         case astnode_type::pen_op_function_block: return "pen_op_function_block";
         case astnode_type::tri_op_if_else_block: return "tri_op_if_else_block";
 
-        case astnode_type::sin_op_yield: return "sin_op_yield"; 
-        case astnode_type::sin_op_yield_from: return "sin_op_yield_from"; 
+        case astnode_type::sin_op_yield: return "sin_op_yield";
+        case astnode_type::sin_op_yield_from: return "sin_op_yield_from";
         case astnode_type::expressions: return "expressions";
         case astnode_type::sin_op_star: return "sin_op_star";
         case astnode_type::tri_op_if_else_expr: return "tri_op_if_else_expr";
@@ -124,7 +124,7 @@ std::string to_string(astnode_type a) {
 
         case astnode_type::bin_op_aptype: return "bin_op_aptype";
         case astnode_type::sin_op_apstar: return "sin_op_apstar";
-        case astnode_type::sin_op_apdstar: return "sin_op_apdstar"; 
+        case astnode_type::sin_op_apdstar: return "sin_op_apdstar";
         case astnode_type::bin_op_apequ: return "bin_op_apequ";
     }
     return "<enum to_string error>";

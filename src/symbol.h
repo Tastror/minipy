@@ -73,7 +73,7 @@ public:
     SymbolType(sym_basic_type type);
     // <basic_type> = input type, is_valued, data = input data
     SymbolType(sym_basic_type type, SymbolType::data_t data);
-    
+
     std::string to_string() const;
 };
 

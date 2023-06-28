@@ -170,7 +170,7 @@ std::string IRSentence::to_string() const {
 
     case ir_op_type::func_end:
         return "}";
-    
+
     }
 
     return four_spaces + "ir sentence error";
@@ -222,7 +222,7 @@ void calculate_expression(
 ) {
     // calculate each kind of expressions
     switch (astnode_now->type) {
-    
+
     // 0, right value atom
     case astnode_type::atom: do {
         auto atom_token = astnode_now->token_leaf;
@@ -241,7 +241,7 @@ void calculate_expression(
                 result_sym_type = make_sym_basic_valued(sym_basic_type::bools, data);
             } else if (atom_token->content.name == "None") {
                 result_sym_type = make_sym_basic_valued(sym_basic_type::none, SymbolType::data_t());
-            } else {  // including "_", "..."
+            } else {  // including "_", "...", "__in", "__out"
                 stdlog::log << stdlog::error << "cannot use such keyword as an right value expression: " << atom_token->to_string() << stdlog::endl;
                 assert((false && "cannot use such keyword as an right value expression"));
             }
@@ -305,12 +305,14 @@ void calculate_expression(
 
         switch (lhs_node->type)
         {
-        
+
             // a, b = 1, 2
             // a, *b = 1, 2, 3
             // *a, b = 1, 2, 3
         case astnode_type::expressions: do {
+
             // TODO;
+
         } while (0); break;
 
             // a = 1, 2, 3
@@ -653,7 +655,7 @@ void sausgi(
         );
 
         // (2) parameters
-        
+
         // sym and ir update simultaneously
 
         // update sym
@@ -672,7 +674,7 @@ void sausgi(
                     stdlog::log << stdlog::error << "cannot use such expression in parameters: " << param_token->to_string() << stdlog::endl;
                     assert((false && "cannot use such expression in parameters"));
                 }
-                
+
                 std::string param_name = local_name(param_token->content.name);
 
                 // update sym
@@ -682,7 +684,7 @@ void sausgi(
                 define_func_ir.types.push_back(ir_data_type::any);
                 break;
             }
-        
+
         // update sym
         sym_table.update(func_name, function_sym_type);
         stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
@@ -728,6 +730,15 @@ void sausgi(
 
     } while (0); break;
 
+    case astnode_type::bin_op_fcall: do {
+        // astnode_now->sons[0]: name
+        // astnode_now->sons[1]: args (may be placeholder)
+        auto name_node = astnode_now->sons[0];
+        auto args_node = astnode_now->sons[1];
+
+        // TODO;
+
+    } while (0); break;
 
     // these are nude (nothing capture the result),
     // so only do the expression assign to anything

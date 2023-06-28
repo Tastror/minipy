@@ -171,7 +171,8 @@ extern int yydebug;
     t_keyword_except = 346,        /* t_keyword_except  */
     t_keyword_finally = 347,       /* t_keyword_finally  */
     t_keyword_assert = 348,        /* t_keyword_assert  */
-    t_keyword_tastror_out = 349    /* t_keyword_tastror_out  */
+    t_keyword___in = 349,          /* t_keyword___in  */
+    t_keyword___out = 350          /* t_keyword___out  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -185,7 +186,7 @@ union YYSTYPE
     Token* token_ptr;
     AstNode* astnode_ptr;
 
-#line 189 "src-gen/compiler_bison.h"
+#line 190 "src-gen/compiler_bison.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

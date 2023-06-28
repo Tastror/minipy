@@ -4,5 +4,7 @@ log.txt
 result_ir.ll
 compiler_bison.output
 
+testsample/c/
+
 .vscode/
 .VSCodeCounter/

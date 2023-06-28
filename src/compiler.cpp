@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
     // print detail message of shell
 
     BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::shell, debug_file);
-    
+
     stdlog::log << stdlog::debug << "shell_config.detail_message() begin" << stdlog::endl;
     stdlog::log << stdlog::std << shell_config.detail_message() << stdlog::endl;
 

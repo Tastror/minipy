@@ -151,7 +151,8 @@ void yyerror(AstNode*& ast_head, char* msg);
 
 %token <token_ptr> t_keyword_assert
 
-%token <token_ptr> t_keyword_tastror_out
+%token <token_ptr> t_keyword___in
+%token <token_ptr> t_keyword___out
 
 
 
@@ -811,7 +812,7 @@ _expression_if_else:
                 $$->eat($3);
                 $$->eat($1);
                 $$->eat($5);
-            } 
+            }
         // | lambdef
 
 _disjunction_or_just_conjunction:
@@ -1143,6 +1144,16 @@ atom:
         | t_keyword_None
             {
                 LOG_ASTNODE("t_keyword_None (for atom)");
+                $$ = make_astnode_from_token($1, astnode_type::atom);
+            }
+        | t_keyword___in
+            {
+                LOG_ASTNODE("t_keyword___in (for atom)");
+                $$ = make_astnode_from_token($1, astnode_type::atom);
+            }
+        | t_keyword___out
+            {
+                LOG_ASTNODE("t_keyword___out (for atom)");
                 $$ = make_astnode_from_token($1, astnode_type::atom);
             }
         | t_keyword_underline
@@ -1533,7 +1544,8 @@ ast_error :
         | t_keyword_except { KEYWORD($$, $1); }
         | t_keyword_finally { KEYWORD($$, $1); }
         | t_keyword_assert { KEYWORD($$, $1); }
-        | t_keyword_tastror_out { KEYWORD($$, $1); }
+        // | t_keyword___in { KEYWORD($$, $1); }
+        // | t_keyword___out { KEYWORD($$, $1); }
 
 %%
 

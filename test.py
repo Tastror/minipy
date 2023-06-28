@@ -11,3 +11,6 @@ def c(x):
 def d():
     r = 2
     return r
+
+def main():
+    return 0

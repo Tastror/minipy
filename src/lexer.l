@@ -420,7 +420,7 @@ float_value ([0-9]*\.[0-9]+|[0-9]+\.)
 
 <PRODUCE_INDENT>{all} {
                 yyless(0);
-                
+
                 yylval.token_ptr = last_ptr;
                 LOG_TOKEN_INDENT();
                 tmp_dent--;
@@ -679,7 +679,8 @@ finally     { KEYWORD_TOKEN_GEN; return t_keyword_finally; }
 
 assert      { KEYWORD_TOKEN_GEN; return t_keyword_assert; }
 
-tastror_out { KEYWORD_TOKEN_GEN; return t_keyword_tastror_out; }
+__in        { KEYWORD_TOKEN_GEN; return t_keyword___in; }
+__out       { KEYWORD_TOKEN_GEN; return t_keyword___out; }
 
 {letter}+({digit}|{letter})* {
                 yylval.token_ptr = make_token();

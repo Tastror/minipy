@@ -156,7 +156,7 @@ SymbolType make_sym_function(const SymbolType& return_value, std::vector<SymbolT
     res.son_types.push_back(return_value);
     res.son_types.insert(
         res.son_types.end(),
-        std::make_move_iterator(args.begin()), 
+        std::make_move_iterator(args.begin()),
         std::make_move_iterator(args.end())
     );
     args.erase(args.begin(), args.end());
