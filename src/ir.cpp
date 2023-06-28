@@ -575,6 +575,13 @@ void sausgi(
     case astnode_type::sin_op_return: do {
         // astnode_now->sons[0]: expr (may be placeholder)
         auto expr_node = astnode_now->sons[0];
+
+        ir_vec.emplace_back(
+            ir_op_type::label_hint,
+            std::vector<std::string>{"return"},
+            std::vector<ir_data_type>{ir_data_type::label}
+        );
+
         if (expr_node->type == astnode_type::placeholder) {
             ir_vec.emplace_back(
                 ir_op_type::ret,
@@ -666,6 +673,12 @@ void sausgi(
         stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
         // update ir
         ir_vec.push_back(define_func_ir);
+
+        ir_vec.emplace_back(
+            ir_op_type::label_hint,
+            std::vector<std::string>{"entry"},
+            std::vector<ir_data_type>{ir_data_type::label}
+        );
 
         // (3) blocks
 
