@@ -316,12 +316,12 @@ void calculate_expression(
         } while (0); break;
 
             // a = 1, 2, 3
-            //     -> $1 = (1, 2 ,3); @a/%a = $1
+            //     -> $1 stores &(1, 2 ,3); @a/%a = $1
             // a = b
             //     -> a = $r [b = $r]
             // a = b = c = 1, 2 ,3
             //     -> c = (1, 2 ,3); b = (c = (1, 2 ,3)); a = (b = c = (1, 2 ,3))
-            //     -> $1 = (1, 2 ,3); @c/%c = $1; @b/%b = $1; @a/%a = $1
+            //     -> $1 stores &(1, 2 ,3); @c/%c = $1; @b/%b = $1; @a/%a = $1
             // a = b = c = d
             //     -> c = d; b = (c = d); a = (b = c = d)
             //     -> c = $r; @b/%b = $r; a = $r [d = $r]
@@ -338,6 +338,7 @@ void calculate_expression(
             }
 
             // a: int
+            //     -> ignore
             if (rhs_node->type == astnode_type::placeholder) {
                 return;
             }
@@ -349,9 +350,12 @@ void calculate_expression(
             // 2 updates:
             // update symbol table
             // update self node
-            // TODO: add: 
+            // well, don't add ir like: 
             //     data = load i32* bound_name, align 4
             //     store i32 data, i32* now_name, align 4
+            // since
+            //     a = 1 (%1); a = 2 (%2)
+            // is to change the alias of A from %1 to %2, not change the data stored in %1
             if (!rhs_node->is_expression_built) {
                 stdlog::log << stdlog::error << "cannot define the value of rhs " << rhs_node->to_string() << stdlog::endl;
                 assert((false && "cannot use such name in assign"));
