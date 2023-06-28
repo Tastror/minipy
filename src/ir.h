@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <stack>
 #include <string>
 #include <memory>
 #include <cassert>
@@ -23,6 +24,12 @@ public:
     int get_int_and_next();
     std::string get_str();
     std::string get_str_and_next();
+};
+
+class FuntionManager {
+public:
+    std::stack<int> func_entry_stack;
+    FuntionManager();
 };
 
 enum class ir_op_type {

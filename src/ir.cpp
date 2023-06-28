@@ -1,4 +1,5 @@
 #include <vector>
+#include <stack>
 #include <string>
 #include <memory>
 #include <cassert>
@@ -41,6 +42,10 @@ std::string RegisterManager::get_str_and_next() {
     else
         return "%" + std::to_string(++id);
 }
+
+
+
+FuntionManager::FuntionManager() {}
 
 
 
@@ -549,9 +554,8 @@ void calculate_expression(
 // search astnode, update symboltable, generate ir
 void sausgi(
     AstNode*& astnode_now, SymbolTableBlockStack& sym_table, std::vector<IRSentence>& ir_vec,
-    RegisterManager& global_or_local_reg
+    RegisterManager& global_or_local_reg, FuntionManager& func_mgr
 ) {
-    
     if (astnode_now == nullptr) return;
 
     // updating symboltable, generating ir
@@ -566,7 +570,7 @@ void sausgi(
 
     case astnode_type::statements: do {
         for (auto i : astnode_now->sons) {
-            sausgi(i, sym_table, ir_vec, global_or_local_reg);
+            sausgi(i, sym_table, ir_vec, global_or_local_reg, func_mgr);
         }
         break;
     } while (0); break;
@@ -575,6 +579,11 @@ void sausgi(
     case astnode_type::sin_op_return: do {
         // astnode_now->sons[0]: expr (may be placeholder)
         auto expr_node = astnode_now->sons[0];
+
+        if (func_mgr.func_entry_stack.empty()) {
+            stdlog::log << stdlog::error << "cannot use such return outside functions: " << astnode_now->to_string() << stdlog::endl;
+            assert((false && "cannot use such return outside functions"));
+        }
 
         ir_vec.emplace_back(
             ir_op_type::label_hint,
@@ -588,6 +597,9 @@ void sausgi(
                 std::vector<std::string>{"void"},
                 std::vector<ir_data_type>{ir_data_type::voids}
             );
+            // This will change the types of the function to the last return statment
+            // so please return the same types, for example in if-else
+            ir_vec[func_mgr.func_entry_stack.top()].types[0] = ir_vec.back().types[0];
         } else {
             calculate_expression(
                 expr_node, sym_table, ir_vec, global_or_local_reg, true
@@ -606,6 +618,9 @@ void sausgi(
                 std::vector<std::string>{symbol_to_value_string(expr_node->bound_value_name, return_sym_data)},
                 std::vector<ir_data_type>{symbol_to_ir_data_type(return_sym_data)}
             );
+            // This will change the types of the function to the last return statment
+            // so please return the same types, for example in if-else
+            ir_vec[func_mgr.func_entry_stack.top()].types[0] = ir_vec.back().types[0];
         }
     } while (0); break;
 
@@ -674,6 +689,8 @@ void sausgi(
         // update ir
         ir_vec.push_back(define_func_ir);
 
+        func_mgr.func_entry_stack.push(ir_vec.end() - ir_vec.begin() - 1);
+
         ir_vec.emplace_back(
             ir_op_type::label_hint,
             std::vector<std::string>{"entry"},
@@ -694,16 +711,18 @@ void sausgi(
         if (global_or_local_reg.is_global) {
             RegisterManager local_reg;
             for (auto i : block_node->sons) {
-                sausgi(i, sym_table, ir_vec, local_reg);
+                sausgi(i, sym_table, ir_vec, local_reg, func_mgr);
             }
         } else {
             for (auto i : block_node->sons) {
-                sausgi(i, sym_table, ir_vec, global_or_local_reg);
+                sausgi(i, sym_table, ir_vec, global_or_local_reg, func_mgr);
             }
         }
 
         // update ir (})
         ir_vec.emplace_back(ir_op_type::func_end);
+
+        func_mgr.func_entry_stack.pop();
 
         sym_table.goto_outside_block();
 
@@ -745,6 +764,7 @@ std::vector<IRSentence> search_astnode_update_symboltable_generate_ir(
 ) {
     std::vector<IRSentence> res;
     RegisterManager global_reg(true);
-    sausgi(ast_root, sym_table, res, global_reg);
+    FuntionManager func_mgr;
+    sausgi(ast_root, sym_table, res, global_reg, func_mgr);
     return res;
 }
