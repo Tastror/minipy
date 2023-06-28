@@ -138,20 +138,20 @@ std::string to_string(astnode_type a) {
 AstNode::AstNode() {
     this->type = astnode_type::placeholder;
     this->is_token_leaf = false;
-    this->is_symbol_built = false;
+    this->is_expression_built = false;
 }
 
 AstNode::AstNode(astnode_type type) {
     this->type = type;
     this->is_token_leaf = false;
-    this->is_symbol_built = false;
+    this->is_expression_built = false;
 }
 
 AstNode::AstNode(Token* token, astnode_type type) {
     this->type = type;
     this->is_token_leaf = true;
     this->token_leaf = token;
-    this->is_symbol_built = false;
+    this->is_expression_built = false;
 }
 
 // <son> cannot be `nullptr`

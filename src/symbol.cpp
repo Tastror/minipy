@@ -36,20 +36,18 @@ std::string to_string(sym_high_level_type a) {
     return "<enum to_string error>";
 }
 
+
 SymbolType::SymbolType() : SymbolType(sym_basic_type::none) {}
 
-SymbolType::SymbolType(sym_basic_type type) {
-    basic_type = type;
+SymbolType::SymbolType(sym_basic_type type) : basic_type(type) {
     is_valued = false;
     data.i = 0;
     high_level_type = sym_high_level_type::use_basic;
     is_assigned = false;
 }
 
-SymbolType::SymbolType(sym_basic_type type, SymbolType::data_t data) {
-    basic_type = type;
+SymbolType::SymbolType(sym_basic_type type, SymbolType::data_t data) : basic_type(type), data(data) {
     is_valued = true;
-    data = data;
     high_level_type = sym_high_level_type::use_basic;
     is_assigned = false;
 }
@@ -58,7 +56,31 @@ std::string SymbolType::to_string() const {
     if (is_assigned) {
         return "assigned to " + assign_origin;
     } else if (high_level_type == sym_high_level_type::use_basic) {
-        return ::to_string(basic_type);
+        std::string res = ::to_string(basic_type);
+        if (is_valued) {
+            res += " valued ";
+            switch (basic_type) {
+            case sym_basic_type::any:
+                stdlog::log << stdlog::error << "sym_basic_type::any cannot be valued" << stdlog::endl;
+                assert((false && "sym_basic_type::any cannot be valued"));
+            case sym_basic_type::none:
+                res += "None";
+                break;
+            case sym_basic_type::bools:
+                res += data.b ? "True" : "False";
+                break;
+            case sym_basic_type::ints:
+                res += std::to_string(data.i);
+                break;
+            case sym_basic_type::floats:
+                res += std::to_string(data.d);
+                break;
+            case sym_basic_type::str:
+                res += data.s;
+                break;
+            }
+        }
+        return res;
     } else {
         std::string res = "";
         res += ::to_string(high_level_type);
@@ -157,14 +179,14 @@ SymbolTableBlockStack::SymbolTableBlockStack() {
     now->son = nullptr;
 }
 
-void SymbolTableBlockStack::add_son_goto_son() {
+void SymbolTableBlockStack::goto_inner_block() {
     node_buff.push(std::make_unique<SymbolTableNode>());
     now->son = node_buff.top().get();
     now->son->parent = now;
     now = now->son;
 }
 
-void SymbolTableBlockStack::del_son_goto_parent() {
+void SymbolTableBlockStack::goto_outside_block() {
     now = now->parent;
     node_buff.pop();
 }

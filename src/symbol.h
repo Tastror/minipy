@@ -105,8 +105,8 @@ private:
     std::string last_update_name;
 public:
     SymbolTableBlockStack();
-    void add_son_goto_son();
-    void del_son_goto_parent();
+    void goto_inner_block();
+    void goto_outside_block();
     void update(const std::string& name, const SymbolType& type);
     // last update name, please make sure it is in.
     std::string last_update_to_string();

@@ -169,7 +169,7 @@ inline std::string global_or_local_name(const std::string& name, bool is_global)
 
 // always get the first token if has
 // if no, will assert false!
-inline Token* get_token_of_parameter(AstNode* parameter_node) {
+inline Token* get_name_token_of_parameter_node(AstNode* parameter_node) {
     if (parameter_node->is_token_leaf) {
         return parameter_node->token_leaf;
     } else {
@@ -185,18 +185,333 @@ inline Token* get_token_of_parameter(AstNode* parameter_node) {
     }
 }
 
-inline void calculate_expression_and_no_result_name(
-    AstNode*& astnode_now, SymbolTableBlockStack& sym_table, std::vector<IRSentence>& ir_vec,
-    RegisterManager& global_reg, PointerManager& pointer_mgr
-) {
-    return;
-}
 
-inline std::string calculate_expression_and_return_result_name(
+
+void calculate_expression(
     AstNode*& astnode_now, SymbolTableBlockStack& sym_table, std::vector<IRSentence>& ir_vec,
-    RegisterManager& global_reg, PointerManager& pointer_mgr
+    RegisterManager& global_or_local_reg, PointerManager& pointer_mgr,
+    bool add_sym_pointer_to_astnode_if_could
 ) {
-    return "";
+    // calculate each kind of expressions
+    switch (astnode_now->type) {
+    
+    // 0, right value atom
+    case astnode_type::atom: do {
+        auto atom_token = astnode_now->token_leaf;
+        SymbolType result_sym_type;
+
+        switch (atom_token->type) {
+
+        case token_type::keyword: do {
+            if (atom_token->content.name == "True") {
+                SymbolType::data_t data;
+                data.b = true;
+                result_sym_type = make_sym_basic_valued(sym_basic_type::bools, data);
+            } else if (atom_token->content.name == "False") {
+                SymbolType::data_t data;
+                data.b = false;
+                result_sym_type = make_sym_basic_valued(sym_basic_type::bools, data);
+            } else if (atom_token->content.name == "None") {
+                result_sym_type = make_sym_basic_valued(sym_basic_type::none, SymbolType::data_t());
+            } else {  // including "_", "..."
+                stdlog::log << stdlog::error << "cannot use such keyword as an right value expression: " << atom_token->to_string() << stdlog::endl;
+                assert((false && "cannot use such keyword as an right value expression"));
+            }
+        } while (0); break;
+
+        case token_type::integer: do {
+            SymbolType::data_t data;
+            data.i = atom_token->content.data.int_num;
+            result_sym_type = make_sym_basic_valued(sym_basic_type::ints, data);
+        } while (0); break;
+
+        case token_type::floats: do {
+            SymbolType::data_t data;
+            data.d = atom_token->content.data.double_num;
+            result_sym_type = make_sym_basic_valued(sym_basic_type::floats, data);
+        } while (0); break;
+
+        case token_type::identifier: do {
+            std::string id_name = global_or_local_name(
+                atom_token->content.name, global_or_local_reg.is_global
+            );
+            if (!sym_table.is_in_and_get(id_name, result_sym_type)) {
+                stdlog::log << stdlog::error << "identifier used before defined: " << atom_token->to_string() << stdlog::endl;
+                assert((false && "identifier used before defined"));
+            }
+            if (result_sym_type.is_assigned) {  // normal
+                astnode_now->is_expression_built = true;
+                astnode_now->bound_value_name = result_sym_type.assign_origin;
+            } else {  // function, class, function_parameters
+                astnode_now->is_expression_built = true;
+                astnode_now->bound_value_name = id_name;
+            }
+        } while (0); break;
+
+        default: do {
+            stdlog::log << stdlog::error << "cannot use such thing as an right value expression: " << atom_token->to_string() << stdlog::endl;
+            assert((false && "cannot use such thing as an right value expression"));
+        } while (0); break;
+        }
+
+        if (add_sym_pointer_to_astnode_if_could && atom_token->type != token_type::identifier) {
+            astnode_now->is_expression_built = true;
+            astnode_now->bound_value_name = pointer_mgr.get_str_and_next();;
+            sym_table.update(astnode_now->bound_value_name, result_sym_type);
+            stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
+        }
+    } while (0); break;
+
+
+    // 1, assignment
+    case astnode_type::tri_op_assign: do {
+        // astnode_now->sons[0]: type_comment (fake type) (useless) (may be placeholder)
+        // astnode_now->sons[1]: lhs
+        // astnode_now->sons[2]: rhs
+        auto lhs_node = astnode_now->sons[1];
+        auto rhs_node = astnode_now->sons[2];
+
+        calculate_expression(
+            rhs_node, sym_table, ir_vec, global_or_local_reg, pointer_mgr, true
+        );
+
+        switch (lhs_node->type)
+        {
+        
+            // a, b = 1, 2
+            // a, *b = 1, 2, 3
+            // *a, b = 1, 2, 3
+        case astnode_type::expressions: do {
+            // TODO;
+        } while (0); break;
+
+            // a = 1, 2, 3
+            //     -> $1 = (1, 2 ,3); @a/%a = $1
+            // a = b
+            //     -> a = $r [b = $r]
+            // a = b = c = 1, 2 ,3
+            //     -> c = (1, 2 ,3); b = (c = (1, 2 ,3)); a = (b = c = (1, 2 ,3))
+            //     -> $1 = (1, 2 ,3); @c/%c = $1; @b/%b = $1; @a/%a = $1
+            // a = b = c = d
+            //     -> c = d; b = (c = d); a = (b = c = d)
+            //     -> c = $r; @b/%b = $r; a = $r [d = $r]
+        case astnode_type::atom: do {
+            auto name_token = lhs_node->first_token();
+
+            // (1) name
+
+            if (name_token->type != token_type::identifier) {
+                stdlog::log << stdlog::error << "cannot use such name in assign: " << name_token->to_string() << stdlog::endl;
+                assert((false && "cannot use such name in assign"));
+            }
+
+            std::string lhs_name = global_or_local_name(
+                name_token->content.name, global_or_local_reg.is_global
+            );
+
+            // 2 updates:
+            // update symbol table
+            // update self node
+            // no ir need to be generated
+            if (!rhs_node->is_expression_built) {
+                stdlog::log << stdlog::error << "cannot define the value of rhs" << rhs_node->to_string() << stdlog::endl;
+                assert((false && "cannot use such name in assign"));
+            }
+
+            // update symbol table
+            auto rhs_name = rhs_node->bound_value_name;
+            sym_table.update(lhs_name, make_sym_assign(rhs_name));
+            stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
+
+            // update self node
+            if (add_sym_pointer_to_astnode_if_could) {
+                astnode_now->is_expression_built = true;
+                astnode_now->bound_value_name = rhs_name;
+            }
+
+        } while (0); break;
+
+        default:
+            stdlog::log << stdlog::error << "cannot use such expression in assign: " << lhs_node->to_string() << stdlog::endl;
+            assert((false && "cannot use such expression in assign"));
+            break;
+        }
+    } while (0); break;
+
+
+    // 2, +=, -=, ...
+    case astnode_type::tri_op_augassign: do {
+        // astnode_now->sons[0]: operator
+        // astnode_now->sons[1]: lhs
+        // astnode_now->sons[2]: rhs
+        auto operator_node = astnode_now->sons[0];
+        auto lhs_node = astnode_now->sons[1];
+        auto rhs_node = astnode_now->sons[2];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_or: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_xor: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_and: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_sleft: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_sright: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_add: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_sub: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_mul: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_div: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_ediv: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_mod: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_at: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::bin_op_power: do {
+        // astnode_now->sons[0]: expr1
+        // astnode_now->sons[1]: expr2
+        auto expr1_node = astnode_now->sons[0];
+        auto expr2_node = astnode_now->sons[1];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::sin_op_positive: do {
+        // astnode_now->sons[0]: expr1
+        auto expr1_node = astnode_now->sons[0];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::sin_op_negative: do {
+        // astnode_now->sons[0]: expr1
+        auto expr1_node = astnode_now->sons[0];
+        // TODO;
+
+    } while (0); break;
+
+
+    case astnode_type::sin_op_wavenot: do {
+        // astnode_now->sons[0]: expr1
+        auto expr1_node = astnode_now->sons[0];
+        // TODO;
+
+    } while (0); break;
+
+
+    default:
+        break;
+
+    }
+
+    return;
 }
 
 
@@ -237,39 +552,64 @@ void sausgi(
         auto block_node = astnode_now->sons[3];
         auto decorators_node = astnode_now->sons[4];
 
-        std::string name = global_or_local_name(
+        // (1) name
+
+        if (!name_node->is_token_leaf) {
+            stdlog::log << stdlog::error << "cannot use such name in function define: " << name_node->to_string() << stdlog::endl;
+            assert((false && "cannot use such name in function define"));
+        }
+
+        if (name_node->token_leaf->type != token_type::identifier) {
+            stdlog::log << stdlog::error << "cannot use such name in function define: " << name_node->token_leaf->to_string() << stdlog::endl;
+            assert((false && "cannot use such name in function define"));
+        }
+
+        std::string func_name = global_or_local_name(
             name_node->token_leaf->content.name, global_or_local_reg.is_global
         );
 
+        // (2) parameters
+        
         // sym and ir update simultaneously
+
+        // update sym
         auto function_sym_type = make_sym_function(sym_basic_type::none);
+        // update ir
         IRSentence define_func_ir(ir_op_type::func_begin);
-        define_func_ir.names.push_back(name);
+        define_func_ir.names.push_back(func_name);
         define_func_ir.types.push_back(ir_data_type::any);
 
         // add params (depend on calls) <-- use <any> first, and implement one if a new call comes.
         if (params_node->type != astnode_type::placeholder)
             for (auto i : params_node->sons) {
-                auto tp = get_token_of_parameter(i);
-                switch (tp->type) {
-                case token_type::identifier:
-                    function_sym_type.son_types.emplace_back(sym_basic_type::any);
-                    define_func_ir.names.push_back(local_name(tp->content.name));
-                    define_func_ir.types.push_back(ir_data_type::any);
-                    break;
-                default:
-                    stdlog::log << stdlog::error << "cannot use such expression in parameters: " << tp->to_string() << stdlog::endl;
+                auto param_token = get_name_token_of_parameter_node(i);
+
+                if (param_token->type != token_type::identifier) {
+                    stdlog::log << stdlog::error << "cannot use such expression in parameters: " << param_token->to_string() << stdlog::endl;
                     assert((false && "cannot use such expression in parameters"));
-                    break;
                 }
+                
+                std::string param_name = local_name(param_token->content.name);
+
+                // update sym
+                function_sym_type.son_types.emplace_back(sym_basic_type::any);
+                // update ir
+                define_func_ir.names.push_back(param_name);
+                define_func_ir.types.push_back(ir_data_type::any);
+                break;
             }
-
-        ir_vec.push_back(define_func_ir);
-        sym_table.update(name, function_sym_type);
+        
+        // update sym
+        sym_table.update(func_name, function_sym_type);
         stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
-        sym_table.add_son_goto_son();
+        // update ir
+        ir_vec.push_back(define_func_ir);
 
-        // +1: no funtion name
+        // (3) blocks
+
+        sym_table.goto_inner_block();
+
+        // .begin() + 1: ignore funtion name
         for (auto i = define_func_ir.names.begin() + 1; i < define_func_ir.names.end(); ++i) {
             sym_table.update(*i, sym_basic_type::any);
             stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
@@ -287,75 +627,18 @@ void sausgi(
             }
         }
 
+        // update ir (})
         ir_vec.emplace_back(ir_op_type::func_end);
-        sym_table.del_son_goto_parent();
-    } while (0); break;
 
-
-    case astnode_type::tri_op_assign: do {
-        // astnode_now->sons[0]: type_comment (fake type) (useless) (may be placeholder)
-        // astnode_now->sons[1]: lhs
-        // astnode_now->sons[2]: rhs
-        auto lhs_node = astnode_now->sons[1];
-        auto rhs_node = astnode_now->sons[2];
-        switch (lhs_node->type)
-        {
-        // a, b = 1, 2
-        // a, *b = 1, 2, 3
-        // *a, b = 1, 2, 3
-        case astnode_type::expressions: do {
-
-        } while (0); break;
-
-        // a = 1
-        //     -> @a/%a = 1
-        // a = 1, 2, 3
-        //     -> $1 = (1, 2 ,3); @a/%a = $1
-        // a = b
-        //     -> a = $r [b = $r]; or
-        //     -> @a/%a = 1 [b = 1]
-        // a = b = c = 1
-        //     -> c = 1; b = (c = 1); a = (b = c = 1)
-        //     -> @c/%c = 1; @b/%b = 1; @a/%a = 1
-        // a = b = c = 1, 2 ,3
-        //     -> c = (1, 2 ,3); b = (c = (1, 2 ,3)); a = (b = c = (1, 2 ,3))
-        //     -> $1 = (1, 2 ,3); @c/%c = $1; @b/%b = $1; @a/%a = $1
-        // a = b = c = d
-        //     -> c = d; b = (c = d); a = (b = c = d)
-        //     -> c = $r; @b/%b = $r; a = $r [d = $r]; or
-        //     -> @c/%c = 1; @b/%b = 1; @a/%a = 1 [d = 1]
-        case astnode_type::atom: do {
-            auto atom_token = lhs_node->first_token();
-            if (atom_token->type == token_type::identifier) {
-                
-            } else {
-                stdlog::log << stdlog::error << "cannot use such expression in assign: " << atom_token->to_string() << stdlog::endl;
-                assert((false && "cannot use such expression in assign"));
-            }
-        } while (0); break;
-
-        default:
-            stdlog::log << stdlog::error << "cannot use such expression in assign: " << lhs_node->to_string() << stdlog::endl;
-            assert((false && "cannot use such expression in assign"));
-            break;
-        }
-    } while (0); break;
-
-
-    case astnode_type::tri_op_augassign: do {
-        // astnode_now->sons[0]: operator
-        // astnode_now->sons[1]: lhs
-        // astnode_now->sons[2]: rhs
-        auto operator_node = astnode_now->sons[0];
-        auto lhs_node = astnode_now->sons[1];
-        auto rhs_node = astnode_now->sons[2];
+        sym_table.goto_outside_block();
 
     } while (0); break;
 
 
-    // these are nude (nothing capture the result), so only do the expression
-    // and forget it (do not need real add, unless it's a class __add__,
-    // but we do not implement __add__ yet, which is a TODO feature)
+    // these are nude (nothing capture the result),
+    // so only do the expression assign to anything
+    case astnode_type::tri_op_assign:
+    case astnode_type::tri_op_augassign:
     case astnode_type::bin_op_or:
     case astnode_type::bin_op_xor:
     case astnode_type::bin_op_and:
@@ -368,23 +651,12 @@ void sausgi(
     case astnode_type::bin_op_ediv:
     case astnode_type::bin_op_mod:
     case astnode_type::bin_op_at:
-    case astnode_type::bin_op_power: do {
-        // astnode_now->sons[0]: expr1
-        // astnode_now->sons[1]: expr2
-        auto expr1_node = astnode_now->sons[0];
-        auto expr2_node = astnode_now->sons[1];
-        calculate_expression_and_no_result_name(expr1_node, sym_table, ir_vec, global_or_local_reg, pointer_mgr);
-        calculate_expression_and_no_result_name(expr2_node, sym_table, ir_vec, global_or_local_reg, pointer_mgr);
-    } while (0); break;
-
-
-    // these are nude (nothing capture the result), so only do the expression
+    case astnode_type::bin_op_power:
     case astnode_type::sin_op_positive:
     case astnode_type::sin_op_negative:
-    case astnode_type::sin_op_wavenot: do {
-        // astnode_now->sons[0]: expr1
-        auto expr1_node = astnode_now->sons[0];
-        calculate_expression_and_no_result_name(expr1_node, sym_table, ir_vec, global_or_local_reg, pointer_mgr);
+    case astnode_type::sin_op_wavenot:
+    case astnode_type::atom: do {
+        calculate_expression(astnode_now, sym_table, ir_vec, global_or_local_reg, pointer_mgr, false);
     } while (0); break;
 
 

@@ -121,8 +121,8 @@ public:
     bool is_token_leaf;
     Token* token_leaf;
 
-    bool is_symbol_built;
-    // see <is_symbol_built>
+    bool is_expression_built;
+    // see <is_expression_built>
     std::string bound_value_name;
 
     AstNode();
