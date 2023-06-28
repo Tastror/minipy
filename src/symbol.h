@@ -31,18 +31,18 @@ public:
 
     // for assign
 
-    // if `true`, enable this and use <assign_origin>
+    // if `true`, enable this and use <alias_origin>
     // if you need <high_level_type> or <basic_type>, this must be `false`
-    bool is_assigned;
-    // see <is_assigned>
-    // if b = a, then the `assign_origin` of b is "a"
-    // if b = 1, then b is valued, see `data`, not `assign_origin`
-    // if b = (a, 1), then b's son_types will have two: 1st is `assign_origin` "a", 2nd is `data` 1
-    std::string assign_origin;
+    bool is_alias;
+    // see <is_alias>
+    // if b = a, then the `alias_origin` of b is "a"
+    // if b = 1, then the `alias_origin` of b maybe "%1", %1 is an i32* stores 1
+    // if b = (a, 1), then the `alias_origin` of b maybe "%2", %2 is an i32*, stores the struct {i32* alias_origin of a (stores xxx), i32* %1 (stores 1)}
+    std::string alias_origin;
 
     // for higher
 
-    // if <is_assigned> is `false`, then this could be enabled
+    // if <is_alias> is `false`, then this could be enabled
     // if not `use_basic`, enabled this and use <son_types> or <son_classes>
     // if you need <basic_type>, this must be `use_basic`
     sym_high_level_type high_level_type;
@@ -55,7 +55,7 @@ public:
 
     // for basic
 
-    // if <is_assigned> is `false`, and <high_level_type> is `use_basic`, then this is enabled
+    // if <is_alias> is `false`, and <high_level_type> is `use_basic`, then this is enabled
     // use <is_valued> if you need
     sym_basic_type basic_type;
     // see <basic_type>
@@ -107,9 +107,11 @@ public:
     SymbolTableBlockStack();
     void goto_inner_block();
     void goto_outside_block();
-    void update(const std::string& name, const SymbolType& type);
-    // last update name, please make sure it is in.
-    std::string last_update_to_string();
+    void insert_or_change(const std::string& name, const SymbolType& type);
+    bool update(const std::string& name, const SymbolType& type);
+    bool update_func_return(const std::string& name, const SymbolType& type);
+    // last update / insert name, please make sure it is in.
+    std::string last_to_string();
     bool del(const std::string& name);
     bool is_in_and_get(const std::string& name, SymbolType& result);
 };

@@ -43,18 +43,18 @@ SymbolType::SymbolType(sym_basic_type type) : basic_type(type) {
     is_valued = false;
     data.i = 0;
     high_level_type = sym_high_level_type::use_basic;
-    is_assigned = false;
+    is_alias = false;
 }
 
 SymbolType::SymbolType(sym_basic_type type, SymbolType::data_t data) : basic_type(type), data(data) {
     is_valued = true;
     high_level_type = sym_high_level_type::use_basic;
-    is_assigned = false;
+    is_alias = false;
 }
 
 std::string SymbolType::to_string() const {
-    if (is_assigned) {
-        return "assigned to " + assign_origin;
+    if (is_alias) {
+        return "alias to " + alias_origin;
     } else if (high_level_type == sym_high_level_type::use_basic) {
         std::string res = ::to_string(basic_type);
         if (is_valued) {
@@ -108,8 +108,8 @@ std::string SymbolType::to_string() const {
 
 SymbolType make_sym_assign(const std::string& name) {
     auto res = SymbolType();
-    res.is_assigned = true;
-    res.assign_origin = name;
+    res.is_alias = true;
+    res.alias_origin = name;
     return res;
 }
 
@@ -191,14 +191,50 @@ void SymbolTableBlockStack::goto_outside_block() {
     node_buff.pop();
 }
 
-void SymbolTableBlockStack::update(const std::string& name, const SymbolType& type) {
+void SymbolTableBlockStack::insert_or_change(const std::string& name, const SymbolType& type) {
     now->map[name] = type;
     last_update_name = name;
 }
 
-// last update name, please make sure it is in.
-std::string SymbolTableBlockStack::last_update_to_string() {
-    return last_update_name + ": " + now->map[last_update_name].to_string();
+bool SymbolTableBlockStack::update(const std::string& name, const SymbolType& type) {
+    auto mama = now;
+    auto i = mama->map.find(name);
+    while (i == mama->map.end()) {
+        if (mama->parent == nullptr) {
+            return false;
+        } else {
+            mama = mama->parent;
+            i = mama->map.find(name);
+        }
+    }
+    i->second = type;
+    last_update_name = name;
+    return true;
+}
+
+bool SymbolTableBlockStack::update_func_return(const std::string& name, const SymbolType& type) {
+    auto mama = now;
+    auto i = mama->map.find(name);
+    while (i == mama->map.end()) {
+        if (mama->parent == nullptr) {
+            return false;
+        } else {
+            mama = mama->parent;
+            i = mama->map.find(name);
+        }
+    }
+    if (i->second.son_types.empty())
+        return false;
+    i->second.son_types[0] = type;
+    last_update_name = name;
+    return true;
+}
+
+// last update / insert name, please make sure it is in.
+std::string SymbolTableBlockStack::last_to_string() {
+    SymbolType result;
+    is_in_and_get(last_update_name, result);
+    return last_update_name + ": " + result.to_string();
 }
 
 bool SymbolTableBlockStack::del(const std::string& name) {

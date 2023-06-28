@@ -88,13 +88,13 @@ inline ir_data_type symbol_basic_type_to_ir_data_type(sym_basic_type type) {
 }
 
 ir_data_type symbol_to_ir_data_type(const SymbolType& type) {
-    if (type.is_assigned) return ir_data_type::any;
+    if (type.is_alias) return ir_data_type::any;
     if (type.high_level_type != sym_high_level_type::use_basic) return ir_data_type::any;
     return symbol_basic_type_to_ir_data_type(type.basic_type);
 }
 
 std::string symbol_to_value_string(const std::string& backward_str, const SymbolType& type) {
-    if (type.is_assigned) return type.assign_origin;
+    if (type.is_alias) return type.alias_origin;
     if (type.high_level_type != sym_high_level_type::use_basic) return backward_str;
     if (!type.is_valued) return backward_str;
     switch (type.basic_type) {
@@ -267,9 +267,9 @@ void calculate_expression(
                 stdlog::log << stdlog::error << "identifier used before defined: " << atom_token->to_string() << stdlog::endl;
                 assert((false && "identifier used before defined"));
             }
-            if (result_sym_type.is_assigned) {  // normal
+            if (result_sym_type.is_alias) {  // normal
                 astnode_now->is_expression_built = true;
-                astnode_now->bound_value_name = result_sym_type.assign_origin;
+                astnode_now->bound_value_name = result_sym_type.alias_origin;
             } else {  // function, class, function_parameters
                 astnode_now->is_expression_built = true;
                 astnode_now->bound_value_name = id_name;
@@ -285,8 +285,8 @@ void calculate_expression(
         if (add_sym_pointer_to_astnode_if_could && atom_token->type != token_type::identifier) {
             astnode_now->is_expression_built = true;
             astnode_now->bound_value_name = global_or_local_reg.get_str_and_next();;
-            sym_table.update(astnode_now->bound_value_name, result_sym_type);
-            stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
+            sym_table.insert_or_change(astnode_now->bound_value_name, result_sym_type);
+            stdlog::log << stdlog::info << sym_table.last_to_string() << stdlog::endl;
         }
     } while (0); break;
 
@@ -349,7 +349,9 @@ void calculate_expression(
             // 2 updates:
             // update symbol table
             // update self node
-            // no ir need to be generated
+            // TODO: add: 
+            //     data = load i32* bound_name, align 4
+            //     store i32 data, i32* now_name, align 4
             if (!rhs_node->is_expression_built) {
                 stdlog::log << stdlog::error << "cannot define the value of rhs " << rhs_node->to_string() << stdlog::endl;
                 assert((false && "cannot use such name in assign"));
@@ -357,8 +359,8 @@ void calculate_expression(
 
             // update symbol table
             auto rhs_name = rhs_node->bound_value_name;
-            sym_table.update(lhs_name, make_sym_assign(rhs_name));
-            stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
+            sym_table.insert_or_change(lhs_name, make_sym_assign(rhs_name));
+            stdlog::log << stdlog::info << sym_table.last_to_string() << stdlog::endl;
 
             // update self node
             if (add_sym_pointer_to_astnode_if_could) {
@@ -602,6 +604,11 @@ void sausgi(
             // This will change the types of the function to the last return statment
             // so please return the same types, for example in if-else
             ir_vec[func_mgr.func_entry_stack.top()].types[0] = ir_vec.back().types[0];
+            if (!sym_table.update_func_return(ir_vec[func_mgr.func_entry_stack.top()].names[0], sym_basic_type::none)) {
+                stdlog::log << stdlog::error << "fatal error: [1] function update return error: " << expr_node->to_string() << stdlog::endl;
+                assert((false && "fatal error: [1] function update return error"));
+            }
+            stdlog::log << stdlog::info << sym_table.last_to_string() << stdlog::endl;
         } else {
             calculate_expression(
                 expr_node, sym_table, ir_vec, global_or_local_reg, true
@@ -610,19 +617,24 @@ void sausgi(
                 stdlog::log << stdlog::error << "cannot use such expression in return statement: " << expr_node->to_string() << stdlog::endl;
                 assert((false && "cannot use such expression in return statement"));
             }
-            SymbolType return_sym_data;
-            if (!sym_table.is_in_and_get(expr_node->bound_value_name, return_sym_data)) {
+            SymbolType return_sym_type;
+            if (!sym_table.is_in_and_get(expr_node->bound_value_name, return_sym_type)) {
                 stdlog::log << stdlog::error << "identifier used before defined: " << expr_node->to_string() << stdlog::endl;
                 assert((false && "identifier used before defined"));
             }
             ir_vec.emplace_back(
                 ir_op_type::ret,
-                std::vector<std::string>{symbol_to_value_string(expr_node->bound_value_name, return_sym_data)},
-                std::vector<ir_data_type>{symbol_to_ir_data_type(return_sym_data)}
+                std::vector<std::string>{symbol_to_value_string(expr_node->bound_value_name, return_sym_type)},
+                std::vector<ir_data_type>{symbol_to_ir_data_type(return_sym_type)}
             );
             // This will change the types of the function to the last return statment
             // so please return the same types, for example in if-else
             ir_vec[func_mgr.func_entry_stack.top()].types[0] = ir_vec.back().types[0];
+            if (!sym_table.update_func_return(ir_vec[func_mgr.func_entry_stack.top()].names[0], return_sym_type)) {
+                stdlog::log << stdlog::error << "fatal error: [2] function update return error: " << expr_node->to_string() << stdlog::endl;
+                assert((false && "fatal error: [2] function update return error"));
+            }
+            stdlog::log << stdlog::info << sym_table.last_to_string() << stdlog::endl;
         }
     } while (0); break;
 
@@ -686,8 +698,8 @@ void sausgi(
             }
 
         // update sym
-        sym_table.update(func_name, function_sym_type);
-        stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
+        sym_table.insert_or_change(func_name, function_sym_type);
+        stdlog::log << stdlog::info << sym_table.last_to_string() << stdlog::endl;
         // update ir
         ir_vec.push_back(define_func_ir);
 
@@ -705,8 +717,8 @@ void sausgi(
 
         // .begin() + 1: ignore funtion name
         for (auto i = define_func_ir.names.begin() + 1; i < define_func_ir.names.end(); ++i) {
-            sym_table.update(*i, sym_basic_type::any);
-            stdlog::log << stdlog::info << sym_table.last_update_to_string() << stdlog::endl;
+            sym_table.insert_or_change(*i, sym_basic_type::any);
+            stdlog::log << stdlog::info << sym_table.last_to_string() << stdlog::endl;
         }
 
         // inner block, if is global, change to a new local var

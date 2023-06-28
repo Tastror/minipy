@@ -124,8 +124,8 @@ public:
     // if the expression value of this node is calculated, become `true`
     // such as:
     // a = 1, the expression value of `a` is `%123` (%123 = 1);
-    // c = b = a, the expression value of `b = a` is `%123` (a = %123 = 1, b = %123 = 1);
-    // d = a + 2, the expression value of `a + 2` is `%456` (%456 = %123 + 2, a = %123 = 1)
+    // c = b = a, the expression value of `b = a` is `%123` (a = %123 stores 1, b = %123 stores 1);
+    // d = a + 2, the expression value of `a + 2` is `%456` (%456 stores %123 + 2, a = %123 stores 1)
     // "%123" "%456" is saved in <bound_value_name>
     // however, if the expression is not used (such as a nude `a + 2`),
     // we will not calculate the value of `a + 2`, and this will still be `false`.
@@ -136,9 +136,9 @@ public:
     // %456 -> int (not valued)
     // also the `a`, `b`, `c` itself will update in SymbolTable too,
     // but will only assigned as
-    // %a -> assigned to %123, %d -> assigned to %456
+    // %a -> alias to %123, %d -> alias to %456
     // an execption of this is function parameters, it will be as
-    // %param -> any (not assigned to %xxx)
+    // %param -> any (not an alias to anything)
     bool is_expression_built;
     // see <is_expression_built>
     std::string bound_value_name;
