@@ -20,7 +20,6 @@ AstNode* make_astnode(astnode_type type) {
     astnode_buff.push_back(std::make_unique<AstNode>());
     auto res = astnode_buff.back().get();
     res->type = type;
-    res->is_empty = false;
     res->is_token_leaf = false;
     return res;
 }
@@ -29,18 +28,7 @@ AstNode* make_empty_astnode() {
     astnode_buff.push_back(std::make_unique<AstNode>());
     auto res = astnode_buff.back().get();
     res->type = astnode_type::placeholder;
-    res->is_empty = true;
     res->is_token_leaf = false;
-    return res;
-}
-
-AstNode* make_astnode_from_token(const Token& token, astnode_type type) {
-    astnode_buff.push_back(std::make_unique<AstNode>());
-    auto res = astnode_buff.back().get();
-    res->type = type;
-    res->is_empty = false;
-    res->is_token_leaf = true;
-    res->token_leaf = token;
     return res;
 }
 
@@ -48,9 +36,8 @@ AstNode* make_astnode_from_token(Token* token, astnode_type type) {
     astnode_buff.push_back(std::make_unique<AstNode>());
     auto res = astnode_buff.back().get();
     res->type = type;
-    res->is_empty = false;
     res->is_token_leaf = true;
-    res->token_leaf = *token;
+    res->token_leaf = token;
     return res;
 }
 
@@ -158,12 +145,14 @@ Attribute::~Attribute() {}
 AstNode::AstNode() {}
 AstNode::~AstNode() {}
 
+// <son> cannot be `nullptr`
 AstNode* AstNode::eat(AstNode* son) {
     this->sons.push_back(son);
     son->parent = this;
     return this;
 }
 
+// <old_mother> cannot be `nullptr`, but can be empty (no sons)
 AstNode* AstNode::eat_sons(AstNode* old_mother) {
     for (auto i : old_mother->sons) {
         this->sons.push_back(i);
@@ -174,9 +163,9 @@ AstNode* AstNode::eat_sons(AstNode* old_mother) {
     return this;
 }
 
-// do not use it with/contains `placeholder` and `zero_op_...`
+// do not use it with/contains `placeholder` and `zero_op_...`, or it will `assert(false)`
 Token* AstNode::first_token() {
-    if (is_token_leaf) return &token_leaf;
+    if (is_token_leaf) return token_leaf;
     if (sons.empty()) {
         assert((false && "use AstNode::first_token() with no token as the leaf! (maybe: placeholder, zero_op_... or just error)"));
         return nullptr;
@@ -185,10 +174,8 @@ Token* AstNode::first_token() {
 }
 
 std::string AstNode::to_string() const {
-    if (this->is_empty)
-        return ::to_string(this->type) + ", empty";
-    else if (this->is_token_leaf)
-        return ::to_string(this->type) + " >> " + this->token_leaf.to_string();
+    if (this->is_token_leaf)
+        return ::to_string(this->type) + " >> " + this->token_leaf->to_string();
     else
         return ::to_string(this->type) + " | OT";
 }

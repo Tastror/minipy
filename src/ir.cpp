@@ -147,7 +147,7 @@ inline std::string global_or_local_name(const std::string& name, bool is_global)
 // if no, will assert false!
 inline Token* get_token_of_parameter(AstNode* parameter_node) {
     if (parameter_node->is_token_leaf) {
-        return &parameter_node->token_leaf;
+        return parameter_node->token_leaf;
     } else {
         switch (parameter_node->type) {
         case astnode_type::bin_op_apequ:
@@ -209,7 +209,7 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
         auto decorators_node = astnode_now->sons[4];
 
         std::string name = global_or_local_name(
-            name_node->token_leaf.content.name, global_or_local_reg.is_global
+            name_node->token_leaf->content.name, global_or_local_reg.is_global
         );
 
         // sym and ir update simultaneously
@@ -274,15 +274,24 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
         // a, b = 1, 2
         // a, *b = 1, 2, 3
         // *a, b = 1, 2, 3
-        case astnode_type::expressions:
-            break;
-        
-        case astnode_type::sin_op_star:
-            break;
+        case astnode_type::expressions: do {
 
-        case astnode_type::atom:
-            break;
-        
+        } while (0); break;
+
+        case astnode_type::sin_op_star: do {
+
+        } while (0); break;
+
+        case astnode_type::atom: do {
+            auto atom_token = lhs_node->first_token();
+            if (atom_token->type == token_type::identifier) {
+
+            } else {
+                stdlog::log << stdlog::error << "cannot use such expression in assign: " << atom_token->to_string() << stdlog::endl;
+                assert((false && "cannot use such expression in assign"));
+            }
+        } while (0); break;
+
         default:
             stdlog::log << stdlog::error << "cannot use such expression in assign: " << lhs_node->to_string() << stdlog::endl;
             assert((false && "cannot use such expression in assign"));
