@@ -42,6 +42,30 @@ std::string RegisterManager::get_str_and_next() {
         return "%" + std::to_string(++id);
 }
 
+
+
+void PointerManager::next() {
+    id++;
+}
+
+int PointerManager::get_int() {
+    return id;
+}
+
+int PointerManager::get_int_and_next() {
+    return ++id;
+}
+
+std::string PointerManager::get_str() {
+    return "$" + std::to_string(id);
+}
+
+std::string PointerManager::get_str_and_next() {
+    return "$" + std::to_string(++id);
+}
+
+
+
 std::string to_string(ir_data_type a) {
     switch (a) {
     case ir_data_type::error: return "error";
@@ -162,13 +186,15 @@ inline Token* get_token_of_parameter(AstNode* parameter_node) {
 }
 
 inline void calculate_expression_and_no_result_name(
-    AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec, RegisterManager& global_reg
+    AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec,
+    RegisterManager& global_reg, PointerManager& pointer_mgr
 ) {
     return;
 }
 
 inline std::string calculate_expression_and_return_result_name(
-    AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec, RegisterManager& global_reg
+    AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec,
+    RegisterManager& global_reg, PointerManager& pointer_mgr
 ) {
     return "";
 }
@@ -176,7 +202,10 @@ inline std::string calculate_expression_and_return_result_name(
 
 
 // search astnode, update symboltable, generate ir
-void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec, RegisterManager& global_or_local_reg) {
+void sausgi(
+    AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentence>& ir_vec,
+    RegisterManager& global_or_local_reg, PointerManager& pointer_mgr
+) {
     
     if (astnode_now == nullptr) return;
 
@@ -192,7 +221,7 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
 
     case astnode_type::statements: do {
         for (auto i : astnode_now->sons) {
-            sausgi(i, sym_table, ir_vec, global_or_local_reg);
+            sausgi(i, sym_table, ir_vec, global_or_local_reg, pointer_mgr);
         }
         break;
     } while (0); break;
@@ -250,11 +279,11 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
         if (global_or_local_reg.is_global) {
             RegisterManager local_reg;
             for (auto i : block_node->sons) {
-                sausgi(i, sym_table, ir_vec, local_reg);
+                sausgi(i, sym_table, ir_vec, local_reg, pointer_mgr);
             }
         } else {
             for (auto i : block_node->sons) {
-                sausgi(i, sym_table, ir_vec, global_or_local_reg);
+                sausgi(i, sym_table, ir_vec, global_or_local_reg, pointer_mgr);
             }
         }
 
@@ -278,14 +307,27 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
 
         } while (0); break;
 
-        case astnode_type::sin_op_star: do {
-
-        } while (0); break;
-
+        // a = 1
+        //     -> @a/%a = 1
+        // a = 1, 2, 3
+        //     -> $1 = (1, 2 ,3); @a/%a = $1
+        // a = b
+        //     -> a = $r [b = $r]; or
+        //     -> @a/%a = 1 [b = 1]
+        // a = b = c = 1
+        //     -> c = 1; b = (c = 1); a = (b = c = 1)
+        //     -> @c/%c = 1; @b/%b = 1; @a/%a = 1
+        // a = b = c = 1, 2 ,3
+        //     -> c = (1, 2 ,3); b = (c = (1, 2 ,3)); a = (b = c = (1, 2 ,3))
+        //     -> $1 = (1, 2 ,3); @c/%c = $1; @b/%b = $1; @a/%a = $1
+        // a = b = c = d
+        //     -> c = d; b = (c = d); a = (b = c = d)
+        //     -> c = $r; @b/%b = $r; a = $r [d = $r]; or
+        //     -> @c/%c = 1; @b/%b = 1; @a/%a = 1 [d = 1]
         case astnode_type::atom: do {
             auto atom_token = lhs_node->first_token();
             if (atom_token->type == token_type::identifier) {
-
+                
             } else {
                 stdlog::log << stdlog::error << "cannot use such expression in assign: " << atom_token->to_string() << stdlog::endl;
                 assert((false && "cannot use such expression in assign"));
@@ -331,8 +373,8 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
         // astnode_now->sons[1]: expr2
         auto expr1_node = astnode_now->sons[0];
         auto expr2_node = astnode_now->sons[1];
-        calculate_expression_and_no_result_name(expr1_node, sym_table, ir_vec, global_or_local_reg);
-        calculate_expression_and_no_result_name(expr2_node, sym_table, ir_vec, global_or_local_reg);
+        calculate_expression_and_no_result_name(expr1_node, sym_table, ir_vec, global_or_local_reg, pointer_mgr);
+        calculate_expression_and_no_result_name(expr2_node, sym_table, ir_vec, global_or_local_reg, pointer_mgr);
     } while (0); break;
 
 
@@ -342,7 +384,7 @@ void sausgi(AstNode*& astnode_now, SymbolTable& sym_table, std::vector<IRSentenc
     case astnode_type::sin_op_wavenot: do {
         // astnode_now->sons[0]: expr1
         auto expr1_node = astnode_now->sons[0];
-        calculate_expression_and_no_result_name(expr1_node, sym_table, ir_vec, global_or_local_reg);
+        calculate_expression_and_no_result_name(expr1_node, sym_table, ir_vec, global_or_local_reg, pointer_mgr);
     } while (0); break;
 
 
@@ -356,6 +398,7 @@ std::vector<IRSentence> search_astnode_update_symboltable_generate_ir(
 ) {
     std::vector<IRSentence> res;
     RegisterManager global_reg(true);
-    sausgi(ast_root, sym_table, res, global_reg);
+    PointerManager pointer_mgr;
+    sausgi(ast_root, sym_table, res, global_reg, pointer_mgr);
     return res;
 }

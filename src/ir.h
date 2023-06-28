@@ -25,6 +25,17 @@ public:
     std::string get_str_and_next();
 };
 
+class PointerManager {
+private:
+    int id;
+public:
+    void next();
+    int get_int();
+    int get_int_and_next();
+    std::string get_str();
+    std::string get_str_and_next();
+};
+
 enum class ir_op_type {
     error,
     label_hint,  // label_name1:  # type1 == label, but not show here; number should be <label>:num:

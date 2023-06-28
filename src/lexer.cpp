@@ -12,11 +12,14 @@
 // --- 1 ---
 // buff and make
 
-std::vector<std::unique_ptr<Token>> token_buff;
+namespace _buff {
+    // 所有权 (unique_ptr) 在这个 vector 里，其他函数只能获得 Token*，即 Token 的读写权限，并非所有权。
+    std::vector<std::unique_ptr<Token>> token_buff;
+}
 
 Token* make_token() {
-    token_buff.push_back(std::make_unique<Token>());
-    return token_buff.back().get();
+    _buff::token_buff.push_back(std::make_unique<Token>());
+    return _buff::token_buff.back().get();
 }
 
 

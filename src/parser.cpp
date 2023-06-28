@@ -14,37 +14,33 @@
 // --- 1 ---
 // buff and make
 
-std::vector<std::unique_ptr<AstNode>> astnode_buff;
-
-AstNode* make_astnode(astnode_type type) {
-    astnode_buff.push_back(std::make_unique<AstNode>());
-    auto res = astnode_buff.back().get();
-    res->type = type;
-    res->is_token_leaf = false;
-    return res;
+namespace _buff {
+    // 所有权 (unique_ptr) 在这个 vector 里，其他函数只能获得 AstNode*，即 AstNode 的读写权限，并非所有权。
+    std::vector<std::unique_ptr<AstNode>> astnode_buff;
 }
 
 AstNode* make_empty_astnode() {
-    astnode_buff.push_back(std::make_unique<AstNode>());
-    auto res = astnode_buff.back().get();
-    res->type = astnode_type::placeholder;
-    res->is_token_leaf = false;
+    _buff::astnode_buff.push_back(std::make_unique<AstNode>());
+    auto res = _buff::astnode_buff.back().get();
+    return res;
+}
+
+AstNode* make_astnode(astnode_type type) {
+    _buff::astnode_buff.push_back(std::make_unique<AstNode>(type));
+    auto res = _buff::astnode_buff.back().get();
     return res;
 }
 
 AstNode* make_astnode_from_token(Token* token, astnode_type type) {
-    astnode_buff.push_back(std::make_unique<AstNode>());
-    auto res = astnode_buff.back().get();
-    res->type = type;
-    res->is_token_leaf = true;
-    res->token_leaf = token;
+    _buff::astnode_buff.push_back(std::make_unique<AstNode>(token, type));
+    auto res = _buff::astnode_buff.back().get();
     return res;
 }
 
 void remove_from_astnode_buff(AstNode*& del) {
-    for (auto i = astnode_buff.begin(); i != astnode_buff.end(); ++i) {
+    for (auto i = _buff::astnode_buff.begin(); i != _buff::astnode_buff.end(); ++i) {
         if (i->get() == del) {
-            astnode_buff.erase(i);
+            _buff::astnode_buff.erase(i);
             break;
         }
     }
@@ -139,11 +135,24 @@ std::string to_string(astnode_type a) {
 // --- 3 ---
 // class (include class to_string)
 
-Attribute::Attribute() {}
-Attribute::~Attribute() {}
+AstNode::AstNode() {
+    this->type = astnode_type::placeholder;
+    this->is_token_leaf = false;
+    this->is_symbol_built = false;
+}
 
-AstNode::AstNode() {}
-AstNode::~AstNode() {}
+AstNode::AstNode(astnode_type type) {
+    this->type = type;
+    this->is_token_leaf = false;
+    this->is_symbol_built = false;
+}
+
+AstNode::AstNode(Token* token, astnode_type type) {
+    this->type = type;
+    this->is_token_leaf = true;
+    this->token_leaf = token;
+    this->is_symbol_built = false;
+}
 
 // <son> cannot be `nullptr`
 AstNode* AstNode::eat(AstNode* son) {
