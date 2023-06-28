@@ -150,36 +150,36 @@ SymbolType make_sym_class(const std::string& class_name, std::vector<std::string
 
 
 
-SymbolTableTree::SymbolTableTree() {
+SymbolTableBlockStack::SymbolTableBlockStack() {
     node_buff.push(std::make_unique<SymbolTableNode>());
     now = node_buff.top().get();
     now->parent = nullptr;
     now->son = nullptr;
 }
 
-void SymbolTableTree::add_son_goto_son() {
+void SymbolTableBlockStack::add_son_goto_son() {
     node_buff.push(std::make_unique<SymbolTableNode>());
     now->son = node_buff.top().get();
     now->son->parent = now;
     now = now->son;
 }
 
-void SymbolTableTree::del_son_goto_parent() {
+void SymbolTableBlockStack::del_son_goto_parent() {
     now = now->parent;
     node_buff.pop();
 }
 
-void SymbolTableTree::update(const std::string& name, const SymbolType& type) {
+void SymbolTableBlockStack::update(const std::string& name, const SymbolType& type) {
     now->map[name] = type;
     last_update_name = name;
 }
 
 // last update name, please make sure it is in.
-std::string SymbolTableTree::last_update_to_string() {
+std::string SymbolTableBlockStack::last_update_to_string() {
     return last_update_name + ": " + now->map[last_update_name].to_string();
 }
 
-bool SymbolTableTree::del(const std::string& name) {
+bool SymbolTableBlockStack::del(const std::string& name) {
     auto i = now->map.find(name);
     if (i == now->map.end()) {
         now->map.erase(i);
@@ -188,7 +188,7 @@ bool SymbolTableTree::del(const std::string& name) {
     return false;
 }
 
-bool SymbolTableTree::is_in_and_get(const std::string& name, SymbolType& result) {
+bool SymbolTableBlockStack::is_in_and_get(const std::string& name, SymbolType& result) {
     auto mama = now;
     auto i = mama->map.find(name);
     while (i == mama->map.end()) {

@@ -81,5 +81,5 @@ public:
 };
 
 std::vector<IRSentence> search_astnode_update_symboltable_generate_ir(
-    AstNode*& ast_root, SymbolTableTree& sym_table
+    AstNode*& ast_root, SymbolTableBlockStack& sym_table
 );

@@ -202,7 +202,7 @@ int main(int argc, char** argv) {
 
     BEGIN_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::symbol, debug_file);
 
-    SymbolTableTree symbol_table;
+    SymbolTableBlockStack symbol_table;
     auto ir_result = search_astnode_update_symboltable_generate_ir(ast_head, symbol_table);
 
     END_DEBUG_PRINT_FILE(shell_config.debug_type() == debug::symbol);
