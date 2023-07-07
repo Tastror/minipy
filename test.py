@@ -2,7 +2,7 @@
 def a():
     return
 
-def b() -> int:
+def b() -> str:
     return 1
 
 def c(x):

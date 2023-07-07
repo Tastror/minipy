@@ -39,9 +39,9 @@ FLEX_BISON_OBJS = $(FLEX_OBJ) $(BISON_OBJ)
 
 
 
-.PHONY: building help test show clean sample clean-sample
+.PHONY: all help test show clean sample clean-sample
 
-building: $(BUILD_DIR) $(FLEX_BISON_REQUIRES) $(TARGET)
+all: $(BUILD_DIR) $(FLEX_BISON_REQUIRES) $(TARGET)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -61,13 +61,13 @@ $(BUILD_DIR)/%.o: $(FLEX_BISON_SRC_DIR)/%.cpp
 $(TARGET): $(OBJS) $(FLEX_BISON_OBJS)
 	$(CC) $^ -o $@ $(CFLAGS)
 
-help: building
+help: all
 	$(TARGET) --help
 
-test: building
+test: all
 	$(TARGET) test.py --ir --time
 
-show: building
+show: all
 	$(TARGET) test.py --ir --time --show
 
 clean:
@@ -83,7 +83,7 @@ SAMPLE_OUTPUT_DIR = sample-output
 $(SAMPLE_OUTPUT_DIR):
 	mkdir -p $(SAMPLE_OUTPUT_DIR)
 
-sample: building $(SAMPLE_OUTPUT_DIR)
+sample: all $(SAMPLE_OUTPUT_DIR)
 	@for f in $(SAMPLE_FILES); do \
 	echo $(TARGET) $(SAMPLE_DIR)/$$f -t -dast -e$(SAMPLE_OUTPUT_DIR)/$$f.txt -i -o$(SAMPLE_OUTPUT_DIR)/$$f.ll; \
 	$(TARGET) $(SAMPLE_DIR)/$$f -t -dast -e$(SAMPLE_OUTPUT_DIR)/$$f.txt -i -o$(SAMPLE_OUTPUT_DIR)/$$f.ll; \
