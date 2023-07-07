@@ -152,27 +152,28 @@ extern int yydebug;
     t_keyword_class = 327,         /* t_keyword_class  */
     t_keyword_lambda = 328,        /* t_keyword_lambda  */
     t_keyword_await = 329,         /* t_keyword_await  */
-    t_keyword_if = 330,            /* t_keyword_if  */
-    t_keyword_else = 331,          /* t_keyword_else  */
-    t_keyword_elif = 332,          /* t_keyword_elif  */
-    t_keyword_for = 333,           /* t_keyword_for  */
-    t_keyword_break = 334,         /* t_keyword_break  */
-    t_keyword_continue = 335,      /* t_keyword_continue  */
-    t_keyword_match = 336,         /* t_keyword_match  */
-    t_keyword_case = 337,          /* t_keyword_case  */
-    t_keyword_global = 338,        /* t_keyword_global  */
-    t_keyword_nonlocal = 339,      /* t_keyword_nonlocal  */
-    t_keyword_del = 340,           /* t_keyword_del  */
-    t_keyword_import = 341,        /* t_keyword_import  */
-    t_keyword_from = 342,          /* t_keyword_from  */
-    t_keyword_as = 343,            /* t_keyword_as  */
-    t_keyword_raise = 344,         /* t_keyword_raise  */
-    t_keyword_try = 345,           /* t_keyword_try  */
-    t_keyword_except = 346,        /* t_keyword_except  */
-    t_keyword_finally = 347,       /* t_keyword_finally  */
-    t_keyword_assert = 348,        /* t_keyword_assert  */
-    t_keyword___in = 349,          /* t_keyword___in  */
-    t_keyword___out = 350          /* t_keyword___out  */
+    t_keyword_while = 330,         /* t_keyword_while  */
+    t_keyword_if = 331,            /* t_keyword_if  */
+    t_keyword_else = 332,          /* t_keyword_else  */
+    t_keyword_elif = 333,          /* t_keyword_elif  */
+    t_keyword_for = 334,           /* t_keyword_for  */
+    t_keyword_break = 335,         /* t_keyword_break  */
+    t_keyword_continue = 336,      /* t_keyword_continue  */
+    t_keyword_match = 337,         /* t_keyword_match  */
+    t_keyword_case = 338,          /* t_keyword_case  */
+    t_keyword_global = 339,        /* t_keyword_global  */
+    t_keyword_nonlocal = 340,      /* t_keyword_nonlocal  */
+    t_keyword_del = 341,           /* t_keyword_del  */
+    t_keyword_import = 342,        /* t_keyword_import  */
+    t_keyword_from = 343,          /* t_keyword_from  */
+    t_keyword_as = 344,            /* t_keyword_as  */
+    t_keyword_raise = 345,         /* t_keyword_raise  */
+    t_keyword_try = 346,           /* t_keyword_try  */
+    t_keyword_except = 347,        /* t_keyword_except  */
+    t_keyword_finally = 348,       /* t_keyword_finally  */
+    t_keyword_assert = 349,        /* t_keyword_assert  */
+    t_keyword___in = 350,          /* t_keyword___in  */
+    t_keyword___out = 351          /* t_keyword___out  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -186,7 +187,7 @@ union YYSTYPE
     Token* token_ptr;
     AstNode* astnode_ptr;
 
-#line 190 "src-gen/compiler_bison.h"
+#line 191 "src-gen/compiler_bison.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

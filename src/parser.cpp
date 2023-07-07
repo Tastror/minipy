@@ -71,6 +71,8 @@ std::string to_string(astnode_type a) {
 
         case astnode_type::qua_op_class_block: return "qua_op_class_block";
         case astnode_type::pen_op_function_block: return "pen_op_function_block";
+        case astnode_type::tri_op_while_block: return "tri_op_while_block";
+        case astnode_type::qua_op_for_block: return "qua_op_for_block";
         case astnode_type::tri_op_if_else_block: return "tri_op_if_else_block";
 
         case astnode_type::sin_op_yield: return "sin_op_yield";

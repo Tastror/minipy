@@ -127,6 +127,7 @@ void yyerror(AstNode*& ast_head, char* msg);
 %token <token_ptr> t_keyword_lambda
 %token <token_ptr> t_keyword_await
 
+%token <token_ptr> t_keyword_while
 %token <token_ptr> t_keyword_if
 %token <token_ptr> t_keyword_else
 %token <token_ptr> t_keyword_elif
@@ -197,11 +198,11 @@ void yyerror(AstNode*& ast_head, char* msg);
 %type <astnode_ptr> function_def
 %type <astnode_ptr> function_def_raw
 
+%type <astnode_ptr> while_stmt
+%type <astnode_ptr> for_stmt
 %type <astnode_ptr> if_stmt
 %type <astnode_ptr> elif_stmt
 %type <astnode_ptr> else_block
-%type <astnode_ptr> while_stmt
-%type <astnode_ptr> for_stmt
 %type <astnode_ptr> with_stmt
 %type <astnode_ptr> with_item
 
@@ -505,6 +506,8 @@ augassign:
 compound_stmt:
           function_def
         | class_def
+        | while_stmt
+        | for_stmt
         | if_stmt
 
 function_def:
@@ -611,6 +614,58 @@ class_def_raw:
                 $$->eat(make_astnode_from_token($2, astnode_type::atom));
                 $$->eat($4);
                 $$->eat($7);
+            }
+
+while_stmt:
+          t_keyword_while _normal_multiple_or_single_expr t_delimiter_colon block
+            {
+                LOG_ASTNODE("t_keyword_while (for while_stmt)");
+                LOG_ASTNODE("t_delimiter_colon (for while_stmt)");
+                $$ = make_astnode(astnode_type::tri_op_while_block);
+                $$->eat($2);
+                $$->eat($4);
+                $$->eat(make_empty_astnode());
+            }
+        | t_keyword_while _normal_multiple_or_single_expr t_delimiter_colon block else_block
+            {
+                LOG_ASTNODE("t_keyword_while (for while_stmt)");
+                LOG_ASTNODE("t_delimiter_colon (for while_stmt)");
+                $$ = make_astnode(astnode_type::tri_op_while_block);
+                $$->eat($2);
+                $$->eat($4);
+                $$->eat($5);
+            }
+
+for_stmt:
+          t_keyword_for _normal_multiple_or_single_expr t_delimiter_colon block
+            {
+                LOG_ASTNODE("t_keyword_for (for for_stmt)");
+                LOG_ASTNODE("t_delimiter_colon (for for_stmt)");
+                $$ = make_astnode(astnode_type::qua_op_for_block);
+                if ($2->type != astnode_type::list_op_comparison || $2->sons.size() != 2 || $2->sons[1]->type !=  astnode_type::comp_op_in) {
+                    yyerror(ast_head, "for statment must use `in` expression");
+                }
+                $$->eat($2->sons[0]);
+                $$->eat_sons($2->sons[1]);
+                delete_astnode($2->sons[1]);
+                delete_astnode($2);
+                $$->eat($4);
+                $$->eat(make_empty_astnode());
+            }
+        | t_keyword_for _normal_multiple_or_single_expr t_delimiter_colon block else_block
+            {
+                LOG_ASTNODE("t_keyword_for (for for_stmt)");
+                LOG_ASTNODE("t_delimiter_colon (for for_stmt)");
+                $$ = make_astnode(astnode_type::qua_op_for_block);
+                if ($2->type != astnode_type::list_op_comparison || $2->sons.size() != 2 || $2->sons[1]->type !=  astnode_type::comp_op_in) {
+                    yyerror(ast_head, "for statment must use `in` expression");
+                }
+                $$->eat($2->sons[0]);
+                $$->eat_sons($2->sons[1]);
+                delete_astnode($2->sons[1]);
+                delete_astnode($2);
+                $$->eat($4);
+                $$->eat($5);
             }
 
 if_stmt:
@@ -1525,10 +1580,11 @@ ast_error :
         // | t_keyword_class { KEYWORD($$, $1); }
         | t_keyword_lambda { KEYWORD($$, $1); }
         // | t_keyword_await { KEYWORD($$, $1); }
+        // | t_keyword_while { KEYWORD($$, $1); }
         // | t_keyword_if { KEYWORD($$, $1); }
         // | t_keyword_else { KEYWORD($$, $1); }
         // | t_keyword_elif { KEYWORD($$, $1); }
-        | t_keyword_for { KEYWORD($$, $1); }
+        // | t_keyword_for { KEYWORD($$, $1); }
         // | t_keyword_break { KEYWORD($$, $1); }
         // | t_keyword_continue { KEYWORD($$, $1); }
         | t_keyword_match { KEYWORD($$, $1); }

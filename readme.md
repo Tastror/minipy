@@ -87,7 +87,7 @@ color   timing
         compiler
 ```
 
-另外，修改了 enum 记得重新编译所有内容，因为其他文件的 enum 仍然是按照 int 记录的，没有改变。会导致奇奇怪怪的错误。
+另外，修改了 enum 记得重新编译所有内容（`make all -B`），因为其他文件的 enum 仍然是按照 int 记录的，没有改变。会导致奇奇怪怪的错误。
 
 ## Todo list (Chinese)
 

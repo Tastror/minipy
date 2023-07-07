@@ -655,6 +655,7 @@ class       { KEYWORD_TOKEN_GEN; return t_keyword_class; }
 lambda      { KEYWORD_TOKEN_GEN; return t_keyword_lambda; }
 await       { KEYWORD_TOKEN_GEN; return t_keyword_await; }
 
+while       { KEYWORD_TOKEN_GEN; return t_keyword_while; }
 if          { KEYWORD_TOKEN_GEN; return t_keyword_if; }
 else        { KEYWORD_TOKEN_GEN; return t_keyword_else; }
 elif        { KEYWORD_TOKEN_GEN; return t_keyword_elif; }

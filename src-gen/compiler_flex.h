@@ -477,7 +477,7 @@ extern int yylex (void);
 #undef yyTABLES_NAME
 #endif
 
-#line 705 "src/lexer.l"
+#line 706 "src/lexer.l"
 
 
 #line 483 "src-gen/compiler_flex.h"

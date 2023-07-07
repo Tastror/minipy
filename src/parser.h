@@ -56,7 +56,9 @@ enum class astnode_type {
 
     qua_op_class_block,  // name, base classes (may be placeholder), block, decorators
     pen_op_function_block,  // name, params (may be placeholder), return type_comment (fake type) (may be placeholder), block, decorators (may be placeholder)
-    tri_op_if_else_block,  // condition, if, else (else can also be if_else_block, which means elif)
+    tri_op_while_block,  // condition, while, else (may be placeholder)
+    qua_op_for_block,  // condition, for (must be: xx in xx), else (may be placeholder)
+    tri_op_if_else_block,  // condition, if, else (else can also be if_else_block, which means elif) (may be placeholder)
 
     sin_op_yield,
     sin_op_yield_from,
