@@ -18,7 +18,7 @@ Windows
 
 ```shell
 make clean
-make  # or `make building`
+make  # or `make all`
 ```
 
 ## Run
