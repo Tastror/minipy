@@ -11,7 +11,9 @@ def c(x):
 
 def d():
     r = 2
-    return r
+    s = r + 3
+    t = 1.2 + s
+    return t
 
 def g(k):
     k = 2

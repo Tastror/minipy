@@ -54,6 +54,7 @@ enum class ir_op_type {
     func_end,  // }
     func_call,  // call type0 @name0(type1 name1, ...)
     func_call_assign,  // name0 = call type1[not type0!!!] @name1(type2 name2, ...)
+    sitofp_to,  // name0 = sitofp type1 data1 to type0
 };
 
 enum class ir_data_type {

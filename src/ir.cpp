@@ -164,16 +164,22 @@ std::string IRSentence::to_string() const {
                 ++i; ++j;
             }
         }
-        res += ") #0 {";
+        res += ") {";
         return res;
     } while (0); break;
 
     case ir_op_type::func_end:
         return "}";
 
+    case ir_op_type::add:
+        return four_spaces + names[0] + " = " + "add " + ::to_string(types[0]) + " " + names[1] + ", " + names[2];
+
+    case ir_op_type::sitofp_to:
+        return four_spaces + names[0] + " = " + "sitofp " + ::to_string(types[1]) + " " + names[1] + " to " + ::to_string(types[0]);
+
     }
 
-    return four_spaces + "ir sentence error";
+    return four_spaces + "ir sentence did not find: " + std::to_string(int(op_type));
 }
 
 
@@ -450,8 +456,86 @@ void calculate_expression(
         // astnode_now->sons[1]: expr2
         auto expr1_node = astnode_now->sons[0];
         auto expr2_node = astnode_now->sons[1];
-        // TODO;
+        calculate_expression(expr1_node, sym_table, ir_vec, global_or_local_reg, true);
+        calculate_expression(expr2_node, sym_table, ir_vec, global_or_local_reg, true);
+        SymbolType res1, res2;
+        bool b1 = sym_table.is_in_and_get(expr1_node->bound_value_name, res1);
+        bool b2 = sym_table.is_in_and_get(expr2_node->bound_value_name, res2);
+        if (add_sym_pointer_to_astnode_if_could) {
+            if (!b1 || !b2) {
+                assert((false && "sym_table get result is false"));
+            }
+            if (res1.is_alias || res2.is_alias) {
+                assert((false && "sym_table get result is alias"));
+            }
+            if (res1.high_level_type == sym_high_level_type::use_basic && res2.high_level_type == sym_high_level_type::use_basic) {
+                if (res1.basic_type == sym_basic_type::ints && res2.basic_type == sym_basic_type::ints) {
+                    // update sym
+                    SymbolType result_sym_type = make_sym_basic(sym_basic_type::ints);
+                    astnode_now->is_expression_built = true;
+                    astnode_now->bound_value_name = global_or_local_reg.get_str_and_next();
+                    sym_table.insert_or_change(astnode_now->bound_value_name, result_sym_type);
+                    stdlog::log << stdlog::info << sym_table.last_to_string() << stdlog::endl;
+                    // update ir
+                    IRSentence expr_ir(ir_op_type::add);
+                    expr_ir.types.push_back(ir_data_type::i32);
+                    expr_ir.names.push_back(astnode_now->bound_value_name);
+                    expr_ir.names.push_back(symbol_to_value_string(expr1_node->bound_value_name, res1));
+                    expr_ir.names.push_back(symbol_to_value_string(expr2_node->bound_value_name, res2));
+                    ir_vec.push_back(expr_ir);
+                }
+                else if (res1.basic_type == sym_basic_type::ints && res2.basic_type == sym_basic_type::floats) {
+                    // int to double
+                    IRSentence cast_ir(ir_op_type::sitofp_to);
+                    std::string temp = global_or_local_reg.get_str_and_next();
+                    cast_ir.types.push_back(ir_data_type::doubles);
+                    cast_ir.types.push_back(ir_data_type::i32);
+                    cast_ir.names.push_back(temp);
+                    cast_ir.names.push_back(symbol_to_value_string(expr1_node->bound_value_name, res1));
+                    ir_vec.push_back(cast_ir);
+                    // update sym
+                    SymbolType result_sym_type = make_sym_basic(sym_basic_type::floats);
+                    astnode_now->is_expression_built = true;
+                    astnode_now->bound_value_name = global_or_local_reg.get_str_and_next();
+                    sym_table.insert_or_change(astnode_now->bound_value_name, result_sym_type);
+                    stdlog::log << stdlog::info << sym_table.last_to_string() << stdlog::endl;
+                    // update ir
+                    IRSentence expr_ir(ir_op_type::add);
+                    expr_ir.types.push_back(ir_data_type::doubles);
+                    expr_ir.names.push_back(astnode_now->bound_value_name);
+                    expr_ir.names.push_back(temp);
+                    expr_ir.names.push_back(symbol_to_value_string(expr2_node->bound_value_name, res2));
+                    ir_vec.push_back(expr_ir);
+                } else if (res1.basic_type == sym_basic_type::floats && res2.basic_type == sym_basic_type::ints) {
+                    // int to double
+                    IRSentence cast_ir(ir_op_type::sitofp_to);
+                    std::string temp = global_or_local_reg.get_str_and_next();
+                    cast_ir.types.push_back(ir_data_type::doubles);
+                    cast_ir.types.push_back(ir_data_type::i32);
+                    cast_ir.names.push_back(temp);
+                    cast_ir.names.push_back(symbol_to_value_string(expr2_node->bound_value_name, res2));
+                    ir_vec.push_back(cast_ir);
+                    // update sym
+                    SymbolType result_sym_type = make_sym_basic(sym_basic_type::floats);
+                    astnode_now->is_expression_built = true;
+                    astnode_now->bound_value_name = global_or_local_reg.get_str_and_next();
+                    sym_table.insert_or_change(astnode_now->bound_value_name, result_sym_type);
+                    stdlog::log << stdlog::info << sym_table.last_to_string() << stdlog::endl;
+                    // update ir
+                    IRSentence expr_ir(ir_op_type::add);
+                    expr_ir.types.push_back(ir_data_type::doubles);
+                    expr_ir.names.push_back(astnode_now->bound_value_name);
+                    expr_ir.names.push_back(symbol_to_value_string(expr1_node->bound_value_name, res1));
+                    expr_ir.names.push_back(temp);
+                    ir_vec.push_back(expr_ir);
+                }
 
+                // TODO: add other expression kinds, such as str.
+
+            } else {
+                assert((false && "add two high_level_type"));
+            }
+        }
     } while (0); break;
 
 
