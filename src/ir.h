@@ -50,7 +50,7 @@ enum class ir_op_type {
     switch_begin,  // switch type0 name0, label_type1 name1 [  # this label is for default
     switch_inner,  // type0 value1, label_type1 name1
     switch_end,  // ]
-    func_begin,  // define return_value[type0] \@func_name[name0] (type name, ...) #0 {
+    func_begin,  // define return_value[type0] \@func_name[name0] (type name, ...) {
     func_end,  // }
     func_call,  // call type0 @name0(type1 name1, ...)
     func_call_assign,  // name0 = call type1[not type0!!!] @name1(type2 name2, ...)
