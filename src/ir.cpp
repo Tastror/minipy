@@ -782,7 +782,6 @@ void sausgi(
                 // update ir
                 define_func_ir.names.push_back(param_name);
                 define_func_ir.types.push_back(ir_data_type::any);
-                break;
             }
 
         // update sym

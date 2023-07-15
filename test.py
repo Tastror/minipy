@@ -2,28 +2,16 @@
 def a():
     return
 
-def b() -> str:
+def b() -> int:
     return 1
 
-def c(x):
-    d = x
-    return x
+def c(a, b):
+    return a
 
-def d():
-    r = 2
-    s = r + 3
-    t = 1.2 + s
-    return t
+def d(a: int, b = 0):
+    a = 1
+    b = 2
+    return a + b
 
-def g(k):
-    k = 2
-    return
-
-def main():
-    return 0
-
-for i in [1, 2, 3]:
-    i
-
-while True:
-    x = 1
+def e(a, b: int = 2) -> int:
+    return b
