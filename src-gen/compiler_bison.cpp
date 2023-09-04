@@ -491,7 +491,7 @@ typedef int yy_state_fast_t;
 
 # ifdef YYSTACK_ALLOC
    /* Pacify GCC's 'empty if-body' warning.  */
-#  define YYSTACK_FREE(Ptr) do { /* empty */; } while (0)
+#  define YYSTACK_FREE(Ptr) do { /* empty */; } while (false)
 #  ifndef YYSTACK_ALLOC_MAXIMUM
     /* The OS might guarantee only one guard page at the bottom of the stack,
        and a page size can be as small as 4096 bytes.  So we cannot safely
@@ -564,7 +564,7 @@ union yyalloc
         yynewbytes = yystacksize * YYSIZEOF (*Stack) + YYSTACK_GAP_MAXIMUM; \
         yyptr += yynewbytes / YYSIZEOF (*yyptr);                        \
       }                                                                 \
-    while (0)
+    while (false)
 
 #endif
 
@@ -583,7 +583,7 @@ union yyalloc
           for (yyi = 0; yyi < (Count); yyi++)   \
             (Dst)[yyi] = (Src)[yyi];            \
         }                                       \
-      while (0)
+      while (false)
 #  endif
 # endif
 #endif /* !YYCOPY_NEEDED */
@@ -1290,7 +1290,7 @@ enum { YYENOMEM = -2 };
         yyerror (ast_head, YY_("syntax error: cannot back up")); \
         YYERROR;                                                  \
       }                                                           \
-  while (0)
+  while (false)
 
 /* Backward compatibility with an undocumented macro.
    Use YYerror or YYUNDEF. */
@@ -1309,7 +1309,7 @@ enum { YYENOMEM = -2 };
 do {                                            \
   if (yydebug)                                  \
     YYFPRINTF Args;                             \
-} while (0)
+} while (false)
 
 
 
@@ -1323,7 +1323,7 @@ do {                                                                      \
                   Kind, Value, ast_head); \
       YYFPRINTF (stderr, "\n");                                           \
     }                                                                     \
-} while (0)
+} while (false)
 
 
 /*-----------------------------------.
@@ -1381,7 +1381,7 @@ yy_stack_print (yy_state_t *yybottom, yy_state_t *yytop)
 do {                                                            \
   if (yydebug)                                                  \
     yy_stack_print ((Bottom), (Top));                           \
-} while (0)
+} while (false)
 
 
 /*------------------------------------------------.
@@ -1412,7 +1412,7 @@ yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp,
 do {                                    \
   if (yydebug)                          \
     yy_reduce_print (yyssp, yyvsp, Rule, ast_head); \
-} while (0)
+} while (false)
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
    multiple parsers can coexist.  */

@@ -154,7 +154,7 @@ public:
 
     Token* first_token();
 
-    std::string to_string() const;
+    [[nodiscard]] std::string to_string() const;
 };
 
 int yyparse(AstNode*& ast_head);

@@ -97,7 +97,7 @@ namespace stdlog {
 
         output_console = &std::cout;
         output_file = nullptr;
-        log_func = std::bind(&logstream::log_debug, this, std::placeholders::_1);
+        log_func = [this](auto&& info) { log_debug(std::forward<decltype(info)>(info)); };
     }
 
     void logstream::change_output_console(std::ostream& c) {
@@ -120,19 +120,19 @@ namespace stdlog {
     logstream& logstream::operator<<(stage st) {
         switch (st) {
         case error:
-            log_func = std::bind(&logstream::log_error, this, std::placeholders::_1);
+            log_func = [this](auto&& info) { log_error(std::forward<decltype(info)>(info)); };
             break;
         case warning:
-            log_func = std::bind(&logstream::log_warning, this, std::placeholders::_1);
+            log_func = [this](auto&& info) { log_warning(std::forward<decltype(info)>(info)); };
             break;
         case std:
-            log_func = std::bind(&logstream::log_std, this, std::placeholders::_1);
+            log_func = [this](auto&& info) { log_std(std::forward<decltype(info)>(info)); };
             break;
         case info:
-            log_func = std::bind(&logstream::log_info, this, std::placeholders::_1);
+            log_func = [this](auto&& info) { log_info(std::forward<decltype(info)>(info)); };
             break;
         case debug:
-            log_func = std::bind(&logstream::log_debug, this, std::placeholders::_1);
+            log_func = [this](auto&& info) { log_debug(std::forward<decltype(info)>(info)); };
             break;
         }
         return *this;

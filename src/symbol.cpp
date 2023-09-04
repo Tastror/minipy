@@ -114,11 +114,11 @@ SymbolType make_sym_assign(const std::string& name) {
 }
 
 SymbolType make_sym_basic(sym_basic_type type) {
-    return SymbolType(type);
+    return {type};
 }
 
 SymbolType make_sym_basic_valued(sym_basic_type type, SymbolType::data_t data) {
-    return SymbolType(type, data);
+    return {type, data};
 }
 
 SymbolType make_sym_tuple(std::vector<SymbolType>&& types) {

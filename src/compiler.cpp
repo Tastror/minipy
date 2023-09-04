@@ -21,7 +21,7 @@
             stdlog::log.add_temp_output_file(filename); \
             stdlog::log << stdlog::temp_files_on; \
         } \
-    } while (0)
+    } while (false)
 
 #define END_DEBUG_PRINT_FILE(condition) \
     do { \
@@ -30,7 +30,7 @@
             stdlog::log.del_all_temp_output_file(); \
             stdlog::log << stdlog::temp_files_off; \
         } \
-    } while (0)
+    } while (false)
 
 
 
@@ -106,7 +106,8 @@ int main(int argc, char** argv) {
         stdlog::log << stdlog::warning << "no file specified" << stdlog::endl;
         return 0;
     }
-    if ((input_file_ptr = fopen(input_file_path.c_str(), "r")) == nullptr) {
+    auto error_no = fopen_s(&input_file_ptr, input_file_path.c_str(), "r");
+    if (error_no != 0) {
         stdlog::log << stdlog::error << "input file '" << input_file_path << "' cannot open" << stdlog::endl;
         return 0;
     }

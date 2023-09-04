@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <vector>
 #include <stack>
 #include <string>
@@ -28,7 +29,7 @@ public:
 
 class FuntionManager {
 public:
-    std::stack<int> func_entry_stack;
+    std::stack<int64_t> func_entry_stack;
     FuntionManager();
 };
 
@@ -77,7 +78,7 @@ public:
     IRSentence(ir_op_type operator_type);
     // use std::move for vectors, so names and types outside will be deleted!
     IRSentence(ir_op_type operator_type, std::vector<std::string>&& names, std::vector<ir_data_type>&& types);
-    std::string to_string() const;
+    [[nodiscard]] std::string to_string() const;
 };
 
 std::vector<IRSentence> search_astnode_update_symboltable_generate_ir(

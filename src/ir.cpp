@@ -45,7 +45,7 @@ std::string RegisterManager::get_str_and_next() {
 
 
 
-FuntionManager::FuntionManager() {}
+FuntionManager::FuntionManager() = default;
 
 
 
@@ -103,7 +103,7 @@ std::string symbol_to_value_string(const std::string& backward_str, const Symbol
     case sym_basic_type::bools: return type.data.b ? "1" : "0";
     case sym_basic_type::ints: return std::to_string(type.data.i);
     case sym_basic_type::floats: return std::to_string(type.data.d);
-    case sym_basic_type::str: return std::string(type.data.s);
+    case sym_basic_type::str: return {type.data.s};
     }
     return "symbol_to_value_string error";
 }
@@ -166,7 +166,7 @@ std::string IRSentence::to_string() const {
         }
         res += ") {";
         return res;
-    } while (0); break;
+    } while (false); break;
 
     case ir_op_type::func_end:
         return "}";
@@ -251,19 +251,19 @@ void calculate_expression(
                 stdlog::log << stdlog::error << "cannot use such keyword as an right value expression: " << atom_token->to_string() << stdlog::endl;
                 assert((false && "cannot use such keyword as an right value expression"));
             }
-        } while (0); break;
+        } while (false); break;
 
         case token_type::integer: do {
             SymbolType::data_t data;
             data.i = atom_token->content.data.int_num;
             result_sym_type = make_sym_basic_valued(sym_basic_type::ints, data);
-        } while (0); break;
+        } while (false); break;
 
         case token_type::floats: do {
             SymbolType::data_t data;
             data.d = atom_token->content.data.double_num;
             result_sym_type = make_sym_basic_valued(sym_basic_type::floats, data);
-        } while (0); break;
+        } while (false); break;
 
         case token_type::identifier: do {
             std::string id_name = global_or_local_name(
@@ -280,12 +280,12 @@ void calculate_expression(
                 astnode_now->is_expression_built = true;
                 astnode_now->bound_value_name = id_name;
             }
-        } while (0); break;
+        } while (false); break;
 
         default: do {
             stdlog::log << stdlog::error << "cannot use such thing as an right value expression: " << atom_token->to_string() << stdlog::endl;
             assert((false && "cannot use such thing as an right value expression"));
-        } while (0); break;
+        } while (false); break;
         }
 
         if (add_sym_pointer_to_astnode_if_could && atom_token->type != token_type::identifier) {
@@ -294,7 +294,7 @@ void calculate_expression(
             sym_table.insert_or_change(astnode_now->bound_value_name, result_sym_type);
             stdlog::log << stdlog::info << sym_table.last_to_string() << stdlog::endl;
         }
-    } while (0); break;
+    } while (false); break;
 
 
     // 1, assignment
@@ -319,7 +319,7 @@ void calculate_expression(
 
             // TODO;
 
-        } while (0); break;
+        } while (false); break;
 
             // a = 1, 2, 3
             //     -> $1 stores &(1, 2 ,3); @a/%a = $1
@@ -378,14 +378,14 @@ void calculate_expression(
                 astnode_now->bound_value_name = rhs_name;
             }
 
-        } while (0); break;
+        } while (false); break;
 
         default:
             stdlog::log << stdlog::error << "cannot use such expression in assign: " << lhs_node->to_string() << stdlog::endl;
             assert((false && "cannot use such expression in assign"));
             break;
         }
-    } while (0); break;
+    } while (false); break;
 
 
     // 2, +=, -=, ...
@@ -398,7 +398,7 @@ void calculate_expression(
         auto rhs_node = astnode_now->sons[2];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_or: do {
@@ -408,7 +408,7 @@ void calculate_expression(
         auto expr2_node = astnode_now->sons[1];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_xor: do {
@@ -418,7 +418,7 @@ void calculate_expression(
         auto expr2_node = astnode_now->sons[1];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_and: do {
@@ -428,7 +428,7 @@ void calculate_expression(
         auto expr2_node = astnode_now->sons[1];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_sleft: do {
@@ -438,7 +438,7 @@ void calculate_expression(
         auto expr2_node = astnode_now->sons[1];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_sright: do {
@@ -448,7 +448,7 @@ void calculate_expression(
         auto expr2_node = astnode_now->sons[1];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_add: do {
@@ -536,7 +536,7 @@ void calculate_expression(
                 assert((false && "add two high_level_type"));
             }
         }
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_sub: do {
@@ -546,7 +546,7 @@ void calculate_expression(
         auto expr2_node = astnode_now->sons[1];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_mul: do {
@@ -556,7 +556,7 @@ void calculate_expression(
         auto expr2_node = astnode_now->sons[1];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_div: do {
@@ -566,7 +566,7 @@ void calculate_expression(
         auto expr2_node = astnode_now->sons[1];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_ediv: do {
@@ -576,7 +576,7 @@ void calculate_expression(
         auto expr2_node = astnode_now->sons[1];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_mod: do {
@@ -586,7 +586,7 @@ void calculate_expression(
         auto expr2_node = astnode_now->sons[1];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_at: do {
@@ -596,7 +596,7 @@ void calculate_expression(
         auto expr2_node = astnode_now->sons[1];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::bin_op_power: do {
@@ -606,7 +606,7 @@ void calculate_expression(
         auto expr2_node = astnode_now->sons[1];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::sin_op_positive: do {
@@ -614,7 +614,7 @@ void calculate_expression(
         auto expr1_node = astnode_now->sons[0];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::sin_op_negative: do {
@@ -622,7 +622,7 @@ void calculate_expression(
         auto expr1_node = astnode_now->sons[0];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::sin_op_wavenot: do {
@@ -630,7 +630,7 @@ void calculate_expression(
         auto expr1_node = astnode_now->sons[0];
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
 
     default:
@@ -657,7 +657,7 @@ void sausgi(
 
     case astnode_type::error: do {
         ; // nothing
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::statements: do {
@@ -665,7 +665,7 @@ void sausgi(
             sausgi(i, sym_table, ir_vec, global_or_local_reg, func_mgr);
         }
         break;
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::sin_op_return: do {
@@ -724,7 +724,7 @@ void sausgi(
             }
             stdlog::log << stdlog::info << sym_table.last_to_string() << stdlog::endl;
         }
-    } while (0); break;
+    } while (false); break;
 
 
     case astnode_type::pen_op_function_block: do {
@@ -827,7 +827,7 @@ void sausgi(
 
         sym_table.goto_outside_block();
 
-    } while (0); break;
+    } while (false); break;
 
     case astnode_type::bin_op_fcall: do {
         // astnode_now->sons[0]: name
@@ -837,7 +837,7 @@ void sausgi(
 
         // TODO;
 
-    } while (0); break;
+    } while (false); break;
 
     // these are nude (nothing capture the result),
     // so only do the expression assign to anything
@@ -861,7 +861,7 @@ void sausgi(
     case astnode_type::sin_op_wavenot:
     case astnode_type::atom: do {
         calculate_expression(astnode_now, sym_table, ir_vec, global_or_local_reg, false);
-    } while (0); break;
+    } while (false); break;
 
 
     }

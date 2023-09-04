@@ -172,7 +172,7 @@ std::string ShellConfig::get_flag_arg(flags flag) {
     if (flag_input_with_arg.find(flag) != flag_input_with_arg.end()) {
         return flag_input_with_arg[flag];
     }
-    return std::string();
+    return {};
 }
 
 std::string ShellConfig::detail_message() {

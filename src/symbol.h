@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -64,7 +65,7 @@ public:
     // see <is_valued>
     // bool, int, double or char* (b, i, d, s)
     union data_t {
-        bool b; int i; double d; char* s;
+        bool b; int64_t i; double d; char* s;
     } data;
 
     // <basic_type> = sym_basic_type::none

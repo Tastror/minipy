@@ -75,12 +75,12 @@ public:
 
     Token();
 
-    Token(const Token& other);
-    Token(Token&& other);
-    Token& operator=(Token&& other);
-    Token& operator=(const Token& other);
+    Token(const Token& other) noexcept;
+    Token(Token&& other) noexcept;
+    Token& operator=(Token&& other) noexcept;
+    Token& operator=(const Token& other) noexcept;
 
-    std::string to_string() const;
+    [[nodiscard]] std::string to_string() const noexcept;
 };
 
 

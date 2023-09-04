@@ -73,8 +73,8 @@ uint64_t translate_python_int(const std::string& str) {
 
 // class with none-trivial union should implement those functions
 
-Token::content_t::content_t() {}
-Token::content_t::~content_t() {}
+Token::content_t::content_t() = default;
+Token::content_t::~content_t() = default;
 
 Token::Token() {
     this->type = token_type::error;
@@ -82,7 +82,7 @@ Token::Token() {
     this->columnno = 0;
 }
 
-Token::Token(const Token& other) {
+Token::Token(const Token& other) noexcept {
     this->type = other.type;
     this->lineno = other.lineno;
     this->columnno = other.columnno;
@@ -111,24 +111,24 @@ Token::Token(const Token& other) {
     }
 }
 
-Token& Token::operator=(Token&& other) {
-    this->type = std::move(other.type);
-    this->lineno = std::move(other.lineno);
-    this->columnno = std::move(other.columnno);
+Token& Token::operator=(Token&& other) noexcept {
+    this->type = other.type;
+    this->lineno = other.lineno;
+    this->columnno = other.columnno;
     switch (other.type) {
     case token_type::error:
     case token_type::strtext:
         this->content.message = std::move(other.content.message);
         break;
     case token_type::newline:
-        this->content.no = std::move(other.content.no);
+        this->content.no = other.content.no;
         break;
     case token_type::indent:
-        this->content.indent_num = std::move(other.content.indent_num);
+        this->content.indent_num = other.content.indent_num;
         break;
     case token_type::integer:
     case token_type::floats:
-        this->content.data = std::move(other.content.data);
+        this->content.data = other.content.data;
         break;
     case token_type::identifier:
     case token_type::delimiter:
@@ -141,17 +141,17 @@ Token& Token::operator=(Token&& other) {
     return *this;
 }
 
-Token::Token(Token&& other) {
+Token::Token(Token&& other) noexcept {
     *this = std::move(other);
 }
 
-Token& Token::operator=(const Token& other) {
+Token& Token::operator=(const Token& other) noexcept {
     Token temp(other);
     *this = std::move(temp);
     return *this;
 };
 
-std::string Token::to_string() const {
+std::string Token::to_string() const noexcept {
     std::string res;
     res += ::to_string(this->type) + ", ";
     res += std::to_string(this->lineno) + "-";
